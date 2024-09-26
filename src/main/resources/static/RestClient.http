@@ -1,0 +1,47 @@
+GET http://localhost:8080/players
+
+###
+GET http://localhost:8080/player/2
+
+###
+curl -X POST http://localhost:8080/players \
+  -H "Authorization: Basic testing@gmail.com:password" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "name": "test",
+        "age": 30,
+        "peakAge": 30,
+        "rank": 100000,
+        "elo": 100000.0,
+        "peakElo": 100000.0,
+        "clayRaw": 100000.0,
+        "grassRaw": 100000.0,
+        "hardRaw": 100000.0
+      }'
+
+
+###
+POST http://localhost:8080/addRandomData
+Authorization: Basic testing@gmail.com:password
+
+###
+curl -X PUT "http://localhost:8080/player/2" \
+  -H "Authorization: Basic testing@gmail.com:password" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "id":1000,
+        "name": "updatedTest",
+        "age": 31,
+        "peakAge": 31,
+        "rank": 100000,
+        "elo": 100050.0,
+        "peakElo": 100100.0,
+        "clayRaw": 100200.0,
+        "grassRaw": 100300.0,
+        "hardRaw": 100400.0
+      }'
+
+
+###
+DELETE http://localhost:8080/player/7
+Authorization: Basic testing@gmail.com:password
