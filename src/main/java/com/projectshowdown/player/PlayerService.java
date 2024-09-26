@@ -32,12 +32,8 @@ public class PlayerService {
 
   public List<Map<String, Object>> getAllPlayers() throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
-    // Get reference to the 'players' collection
     CollectionReference playersCollection = db.collection("players");
-    // Asynchronously retrieve all documents in the collection
     ApiFuture<QuerySnapshot> future = playersCollection.get();
-
-    // Get all documents
     List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 
     // Prepare a list to hold each document's data
@@ -56,13 +52,8 @@ public class PlayerService {
   // Method to get specific player from firebase.
   public Player getPlayer(int playerId) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
-    // Get reference to the 'players' collection
     DocumentReference documentReference = db.collection("players").document(Integer.toString(playerId));
-
-    // Get the document snapshot asynchronously
     ApiFuture<DocumentSnapshot> future = documentReference.get();
-
-    // Retrieve the snapshot
     DocumentSnapshot document = future.get();
 
     // If the document exists, convert it to a Player object
@@ -103,8 +94,7 @@ public class PlayerService {
   }
 
   public String deletePlayer(int playerId) throws ExecutionException, InterruptedException {
-    Firestore db = getFirestore();
-    // Reference to the specific player document in 'players' collection
+    Firestore db = getFirestore();  
     DocumentReference docRef = db.collection("players").document(Integer.toString(playerId));
 
     // Check if the player document exists

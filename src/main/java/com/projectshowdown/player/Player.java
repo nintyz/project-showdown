@@ -9,6 +9,7 @@ public class Player {
     @NotNull(message = "Player's name should not be empty")
     private String name;
 
+    @NotNull(message = "Player's age should not be empty")
     private int age;
     private int peakAge;
     private double elo;
