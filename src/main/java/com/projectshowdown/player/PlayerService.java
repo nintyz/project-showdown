@@ -25,8 +25,13 @@ import com.projectshowdown.player.PlayerNotFoundException;;
 @Service
 public class PlayerService {
 
+    // Helper method to get Firestore instance
+    private Firestore getFirestore() {
+        return FirestoreClient.getFirestore();
+    }
+
   public List<Map<String, Object>> getAllPlayers() throws ExecutionException, InterruptedException {
-    Firestore db = FirestoreClient.getFirestore();
+    Firestore db = getFirestore();
     // Get reference to the 'players' collection
     CollectionReference playersCollection = db.collection("players");
     // Asynchronously retrieve all documents in the collection
@@ -50,7 +55,7 @@ public class PlayerService {
 
   // Method to get specific player from firebase.
   public Player getPlayer(int playerId) throws ExecutionException, InterruptedException {
-    Firestore db = FirestoreClient.getFirestore();
+    Firestore db = getFirestore();
     // Get reference to the 'players' collection
     DocumentReference documentReference = db.collection("players").document(Integer.toString(playerId));
 
@@ -74,7 +79,7 @@ public class PlayerService {
 
   // Method to add a new player document to the 'players' collection
   public String addPlayer(Player playerData) throws ExecutionException, InterruptedException {
-    Firestore db = FirestoreClient.getFirestore();
+    Firestore db = getFirestore();
     // count players to set as id
     ApiFuture<QuerySnapshot> query = db.collection("players").get();
     int playerCount = query.get().getDocuments().size();
@@ -87,7 +92,7 @@ public class PlayerService {
 
   // Method to update a player's document in the 'players' collection
   public String updatePlayer(String id, Player playerData) throws ExecutionException, InterruptedException {
-    Firestore db = FirestoreClient.getFirestore();
+    Firestore db = getFirestore();
     DocumentReference docRef = db.collection("players").document(id);
 
     // Update player fields in Firebase
@@ -98,7 +103,7 @@ public class PlayerService {
   }
 
   public String deletePlayer(int playerId) throws ExecutionException, InterruptedException {
-    Firestore db = FirestoreClient.getFirestore();
+    Firestore db = getFirestore();
     // Reference to the specific player document in 'players' collection
     DocumentReference docRef = db.collection("players").document(Integer.toString(playerId));
 
