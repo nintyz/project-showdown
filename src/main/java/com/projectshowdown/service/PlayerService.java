@@ -1,4 +1,4 @@
-package com.projectshowdown.player;
+package com.projectshowdown.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-import com.projectshowdown.player.PlayerNotFoundException;;
+import com.projectshowdown.player.Player;
+import com.projectshowdown.exceptions.PlayerNotFoundException;
 
 @Service
 public class PlayerService {

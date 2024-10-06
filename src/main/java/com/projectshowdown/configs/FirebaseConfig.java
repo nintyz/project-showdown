@@ -1,4 +1,4 @@
-package com.projectshowdown.firebase;
+package com.projectshowdown.configs;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;

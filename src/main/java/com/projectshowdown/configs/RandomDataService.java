@@ -1,4 +1,4 @@
-package com.projectshowdown.firebase;
+package com.projectshowdown.configs;
 
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.CollectionReference;

@@ -1,4 +1,4 @@
-package com.projectshowdown.user;
+package com.projectshowdown.service;
 
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentSnapshot;
@@ -14,6 +14,11 @@ import java.util.concurrent.ExecutionException;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
+
+    public CustomUserDetailsService() {
+        super();
+        
+    }
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
