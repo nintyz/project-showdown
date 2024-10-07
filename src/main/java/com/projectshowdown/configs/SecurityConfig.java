@@ -50,10 +50,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests((authz) -> authz
                         .requestMatchers("/error").permitAll() // the default error page
                         .requestMatchers(HttpMethod.GET, "/users", "/user/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/users").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/users").hasAuthority("admin")
                         .requestMatchers(HttpMethod.POST, "/addRandomData").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/user/*").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/user/*").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/user/*").hasAuthority("admin")
+                        .requestMatchers(HttpMethod.DELETE, "/user/*").hasAuthority("admin")
                         // note that Spring Security 6 secures all endpoints by default
                         .anyRequest().permitAll())
                 // ensure that the application won’t create any session in our stateless REST

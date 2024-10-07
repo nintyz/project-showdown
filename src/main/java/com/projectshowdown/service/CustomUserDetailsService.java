@@ -14,6 +14,7 @@ import com.projectshowdown.user.User;
 import com.projectshowdown.user.UserDTO;
 import com.projectshowdown.user.UserMapper;
 
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -45,7 +46,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         String password = document.getString("password"); // Assuming password is stored
         return org.springframework.security.core.userdetails.User.withUsername(email)
             .password(password) // Hashed password
-            .roles("ADMIN") // You can fetch roles from Firestore if needed
+            .authorities(document.getString("role"))
             .build();
       } else {
         throw new UsernameNotFoundException("User not found: " + email);
