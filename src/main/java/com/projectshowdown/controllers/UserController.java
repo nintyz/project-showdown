@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.projectshowdown.exceptions.PlayerNotFoundException;
-import com.projectshowdown.player.Player;
-import com.projectshowdown.service.PlayerService;
+import com.projectshowdown.service.CustomUserDetailsService;
+import com.projectshowdown.user.User;
 
 import jakarta.validation.Valid;
 
@@ -22,25 +22,25 @@ import java.util.concurrent.ExecutionException;
 import java.util.List;
 
 @RestController
-public class PlayerController {
+public class UserController {
     @Autowired
-    private PlayerService playerService;
+    private CustomUserDetailsService userService;
 
-    public PlayerController(PlayerService playerService) {
-        this.playerService = playerService;
+    public UserController(CustomUserDetailsService userService) {
+        this.userService = userService;
     }
 
     // GET all players
-    @GetMapping("/players")
+    @GetMapping("/users")
     public List<Map<String, Object>> getPlayers() throws ExecutionException, InterruptedException {
-        return playerService.getAllPlayers();
+        return userService.getAllPlayers();
     }
 
    
     //get specific player
-    @GetMapping("/player/{id}")
-    public Player getPlayer(@PathVariable int id) throws ExecutionException, InterruptedException {
-        Player player = playerService.getPlayer(id);
+    @GetMapping("/user/{id}")
+    public User getPlayer(@PathVariable int id) throws ExecutionException, InterruptedException {
+        User player = userService.getPlayer(id);
 
         // Need to handle "player not found" error using proper HTTP status code
         // In this case it should be HTTP 404
@@ -51,20 +51,21 @@ public class PlayerController {
     }
 
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping("/players")
-    public String addPlayer(@Valid @RequestBody Player playerData) throws ExecutionException, InterruptedException {
-        return playerService.addPlayer(playerData);
+    @PostMapping("/users")
+    public String addPlayer(@Valid @RequestBody User playerData) throws ExecutionException, InterruptedException {
+        //return playerData.getPlayerDetails().getName().toString();
+        return userService.addPlayer(playerData);
     }
 
-    @PutMapping("/player/{id}")
+    @PutMapping("/user/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public String updatePlayer(@PathVariable String id, @RequestBody Player playerData) throws ExecutionException, InterruptedException {
-        return playerService.updatePlayer(id, playerData);
+    public String updatePlayer(@PathVariable String id, @RequestBody User playerData) throws ExecutionException, InterruptedException {
+        return userService.updatePlayer(id, playerData);
     }
 
-    @DeleteMapping("/player/{id}")
+    @DeleteMapping("/user/{id}")
     public String deletePlayer(@PathVariable int id) throws ExecutionException, InterruptedException {
-        return playerService.deletePlayer(id);
+        return userService.deletePlayer(id);
     }
 
 }

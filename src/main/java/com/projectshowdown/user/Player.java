@@ -1,9 +1,8 @@
-package com.projectshowdown.player;
+package com.projectshowdown.user;
 
 import jakarta.validation.constraints.NotNull;
 
 public class Player {
-    private int id;
     private int rank;
 
     @NotNull(message = "Player's name should not be empty")
@@ -21,10 +20,9 @@ public class Player {
     public Player() {
     }
 
-    public Player(String name, int age, int peakAge, double elo, double peakElo, double hardRaw, double clayRaw,
+    public Player(String name, int rank, int age, int peakAge, double elo, double peakElo, double hardRaw,
+            double clayRaw,
             double grassRaw) {
-        this.id = 0;
-        this.rank = Integer.MAX_VALUE;
         this.name = name;
         this.age = age;
         this.elo = elo;
@@ -33,10 +31,6 @@ public class Player {
         this.hardRaw = hardRaw;
         this.clayRaw = clayRaw;
         this.grassRaw = grassRaw;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public void setRank(int rank) {
@@ -73,10 +67,6 @@ public class Player {
 
     public void setGrassRaw(double grassRaw) {
         this.grassRaw = grassRaw;
-    }
-
-    public int getId() {
-        return id;
     }
 
     public long getRank() {

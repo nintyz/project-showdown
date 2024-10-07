@@ -40,20 +40,6 @@ public class SecurityConfig {
     }
 
     /**
-     * TODO: Activity 2a - Authentication
-     * Add code to secure requests to Reviews
-     * In particular, only authenticated users would be able to create/update/delete
-     * Reviews
-     * Hint: Add requestMatchers rules
-     * 
-     * 
-     * 
-     * 
-     * TODO: Activity 2b - Authorization
-     * Add roles to specify permissions for each enpoint
-     * User role: can add review.
-     * Admin role: can add/delete/update books/reviews, and add/list users
-     * 
      * Note: '*' matches zero or more characters, e.g., /books/* matches /books/20
      * '**' matches zero or more 'directories' in a path, e.g., /books/** matches
      * /books/1/reviews
@@ -63,13 +49,12 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests((authz) -> authz
                         .requestMatchers("/error").permitAll() // the default error page
-                        .requestMatchers(HttpMethod.GET, "/players", "/player/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/players").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/users", "/user/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/users").authenticated()
                         .requestMatchers(HttpMethod.POST, "/addRandomData").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/player/*").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/player/*").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/user/*").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/user/*").authenticated()
                         // note that Spring Security 6 secures all endpoints by default
-                        // remove the below line after adding the required rules
                         .anyRequest().permitAll())
                 // ensure that the application won’t create any session in our stateless REST
                 // APIs
