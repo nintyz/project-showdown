@@ -9,7 +9,7 @@ import com.google.auth.oauth2.GoogleCredentials;
 
 public class AuthService {
 
-    private static final String CREDENTIALS_FILE_PATH = "C:\\Users\\Andre\\project-showdown\\src\\main\\resources\\showdownbot-ptdj-77ade853197d.json"; // Update this path
+    private static final String CREDENTIALS_FILE_PATH = "D:\\GitHub\\project-showdown\\src\\main\\resources\\showdownbot-ptdj-77ade853197d.json"; // Update this path
     private static final String DIALOGFLOW_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
 
     public String getAccessToken() throws IOException {
