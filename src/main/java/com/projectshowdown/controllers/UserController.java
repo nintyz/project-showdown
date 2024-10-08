@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.projectshowdown.dto.UserDTO;
 import com.projectshowdown.exceptions.PlayerNotFoundException;
 import com.projectshowdown.service.CustomUserDetailsService;
 import com.projectshowdown.user.User;
@@ -39,8 +40,8 @@ public class UserController {
    
     //get specific player
     @GetMapping("/user/{id}")
-    public User getPlayer(@PathVariable int id) throws ExecutionException, InterruptedException {
-        User player = userService.getPlayer(id);
+    public UserDTO getPlayer(@PathVariable int id) throws ExecutionException, InterruptedException {
+        UserDTO player = userService.getPlayer(id);
 
         // Need to handle "player not found" error using proper HTTP status code
         // In this case it should be HTTP 404

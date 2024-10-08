@@ -1,22 +1,29 @@
 package com.projectshowdown.configs;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.projectshowdown.service.JwtRequestFilter;
 
 @EnableWebSecurity
 @Configuration
 public class SecurityConfig {
 
     private UserDetailsService userDetailsService;
+    @Autowired
+    private JwtRequestFilter jwtRequestFilter;
 
     public SecurityConfig(UserDetailsService userSvc) {
         this.userDetailsService = userSvc;
@@ -39,6 +46,11 @@ public class SecurityConfig {
         return authProvider;
     }
 
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+        return authConfig.getAuthenticationManager();
+    }
+
     /**
      * Note: '*' matches zero or more characters, e.g., /books/* matches /books/20
      * '**' matches zero or more 'directories' in a path, e.g., /books/** matches
@@ -49,6 +61,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests((authz) -> authz
                         .requestMatchers("/error").permitAll() // the default error page
+                        .requestMatchers("/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/users", "/user/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/users").hasAuthority("admin")
                         .requestMatchers(HttpMethod.POST, "/addRandomData").permitAll()
@@ -56,15 +69,16 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/user/*").hasAuthority("admin")
                         // note that Spring Security 6 secures all endpoints by default
                         .anyRequest().permitAll())
+
                 // ensure that the application won’t create any session in our stateless REST
                 // APIs
                 .sessionManagement(configurer -> configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .httpBasic(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable()) // CSRF protection is needed only for browser based attacks
                 .formLogin(form -> form.disable())
                 .headers(header -> header.disable()) // disable the security headers, as we do not return HTML in our
-                                                     // APIs
+                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
                 .authenticationProvider(authenticationProvider());
+
         return http.build();
     }
 

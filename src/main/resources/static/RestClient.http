@@ -4,8 +4,17 @@ GET http://localhost:8080/users
 GET http://localhost:8080/user/2
 
 ###
+POST http://localhost:8080/login
+Content-Type: application/json
+
+{
+    "email":"admin@gmail.com",
+    "password":"admin.Password"
+}
+
+###
 curl -X POST http://localhost:8080/users \
-  -H "Authorization: Basic admin@gmail.com:adminPassword" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjpbImFkbWluIl0sInN1YiI6ImFkbWluQGdtYWlsLmNvbSIsImlhdCI6MTcyODM3MTMwOSwiZXhwIjoxNzI4NDA3MzA5fQ.x31VQvAuqW0PgA2bU3rSh3oyogBJBP0SEEEUQ8uZrUI" \
   -H "Content-Type: application/json" \
   -d '{
         "email":"playerEmail@gmail.com",
@@ -31,11 +40,12 @@ Authorization: Basic testing@gmail.com:password
 
 ###
 curl -X PUT "http://localhost:8080/user/2" \
-  -H "Authorization: Basic admin@gmail.com:adminPassword" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjpbImFkbWluIl0sInN1YiI6ImFkbWluQGdtYWlsLmNvbSIsImlhdCI6MTcyODM2OTcwNCwiZXhwIjoxNzI4NDA1NzA0fQ.Kj8OrOVpX5QGg8NHsX5jRpGF6lcikNLsp4gf-EiCY9U" \
   -H "Content-Type: application/json" \
   -d '{
         "email":"playerEmail@gmail.com",
         "password":"$2a$12$NLiiv7gVsA1ltsI1tux.xuE8kEKfAmIHIkloVXwqxHXArgfiJ1XoK",
+        "role":"player",
         "playerDetails":{
           "name": "test2",
           "age": 40,
@@ -52,4 +62,4 @@ curl -X PUT "http://localhost:8080/user/2" \
 
 ###
 DELETE http://localhost:8080/user/3
-Authorization: Basic admin@gmail.com:adminPassword
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjpbImFkbWluIl0sInN1YiI6ImFkbWluQGdtYWlsLmNvbSIsImlhdCI6MTcyODM2OTcwNCwiZXhwIjoxNzI4NDA1NzA0fQ.Kj8OrOVpX5QGg8NHsX5jRpGF6lcikNLsp4gf-EiCY9U

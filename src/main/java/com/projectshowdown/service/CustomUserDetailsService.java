@@ -9,12 +9,11 @@ import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
 import com.google.firebase.cloud.FirestoreClient;
+import com.projectshowdown.dto.UserDTO;
 import com.projectshowdown.exceptions.PlayerNotFoundException;
 import com.projectshowdown.user.User;
-import com.projectshowdown.user.UserDTO;
 import com.projectshowdown.user.UserMapper;
 
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -81,7 +80,7 @@ public class CustomUserDetailsService implements UserDetailsService {
   }
 
   // Method to get specific player from firebase.
-  public User getPlayer(int userId) throws ExecutionException, InterruptedException {
+  public UserDTO getPlayer(int userId) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
     DocumentReference documentReference = db.collection("users").document(Integer.toString(userId));
     ApiFuture<DocumentSnapshot> future = documentReference.get();
@@ -90,8 +89,8 @@ public class CustomUserDetailsService implements UserDetailsService {
     // If the document exists, convert it to a Player object
     if (document.exists()) {
       // You can directly map the Firestore data to a Player class
-      User userToReturn = document.toObject(User.class);
-      userToReturn.setId(userId);
+      UserDTO userToReturn = document.toObject(UserDTO.class);
+      userToReturn.setId(Integer.toString(userId));
       return userToReturn;
     } else {
       // Document doesn't exist, return null or handle it based on your needs
