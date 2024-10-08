@@ -9,8 +9,8 @@ public class Player {
     private String name;
 
     @NotNull(message = "Player's age should not be empty")
-    private int age;
-    private int peakAge;
+    private double age;
+    private double peakAge;
     private double elo;
     private double peakElo;
     private double hardRaw;
@@ -77,11 +77,11 @@ public class Player {
         return name;
     }
 
-    public int getAge() {
+    public double getAge() {
         return age;
     }
 
-    public int getPeakAge() {
+    public double getPeakAge() {
         return peakAge;
     }
 

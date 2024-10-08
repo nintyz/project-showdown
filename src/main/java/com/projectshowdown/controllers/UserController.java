@@ -20,6 +20,7 @@ import jakarta.validation.Valid;
 
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -37,8 +38,7 @@ public class UserController {
         return userService.getAllPlayers();
     }
 
-   
-    //get specific player
+    // get specific player
     @GetMapping("/user/{id}")
     public UserDTO getPlayer(@PathVariable String id) throws ExecutionException, InterruptedException {
         UserDTO player = userService.getPlayer(id);
@@ -47,20 +47,27 @@ public class UserController {
         // In this case it should be HTTP 404
         if (player == null)
             throw new PlayerNotFoundException(id);
-            
+
         return player;
     }
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/users")
     public String addPlayer(@Valid @RequestBody User playerData) throws ExecutionException, InterruptedException {
-        //return playerData.getPlayerDetails().getName().toString();
+        // return playerData.getPlayerDetails().getName().toString();
         return userService.addPlayer(playerData);
+    }
+
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/import")
+    public String massImport(@RequestBody ArrayList<UserDTO> body) throws ExecutionException, InterruptedException {
+        return userService.massImport(body);
     }
 
     @PutMapping("/user/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public String updatePlayer(@PathVariable String id, @RequestBody User playerData) throws ExecutionException, InterruptedException {
+    public String updatePlayer(@PathVariable String id, @RequestBody User playerData)
+            throws ExecutionException, InterruptedException {
         return userService.updatePlayer(id, playerData);
     }
 
