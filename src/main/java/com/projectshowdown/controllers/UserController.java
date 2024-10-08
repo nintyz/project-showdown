@@ -33,14 +33,14 @@ public class UserController {
 
     // GET all players
     @GetMapping("/users")
-    public List<Map<String, Object>> getPlayers() throws ExecutionException, InterruptedException {
+    public List<UserDTO> getPlayers() throws ExecutionException, InterruptedException {
         return userService.getAllPlayers();
     }
 
    
     //get specific player
     @GetMapping("/user/{id}")
-    public UserDTO getPlayer(@PathVariable int id) throws ExecutionException, InterruptedException {
+    public UserDTO getPlayer(@PathVariable String id) throws ExecutionException, InterruptedException {
         UserDTO player = userService.getPlayer(id);
 
         // Need to handle "player not found" error using proper HTTP status code
@@ -65,7 +65,7 @@ public class UserController {
     }
 
     @DeleteMapping("/user/{id}")
-    public String deletePlayer(@PathVariable int id) throws ExecutionException, InterruptedException {
+    public String deletePlayer(@PathVariable String id) throws ExecutionException, InterruptedException {
         return userService.deletePlayer(id);
     }
 

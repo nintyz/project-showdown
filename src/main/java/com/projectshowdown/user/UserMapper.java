@@ -6,7 +6,7 @@ import com.projectshowdown.dto.UserDTO;
 // so it does not store redundent methods into our firebase.
 public class UserMapper {
     public static UserDTO toUserDTO(User user) {
-        return new UserDTO(Integer.toString(user.getId()), user.getEmail(), user.getPassword(), user.getRole(), user.getPlayerDetails());
+        return new UserDTO(user.getId(), user.getEmail(), user.getPassword(), user.getRole(), user.getPlayerDetails());
     }
 
     public static User toUser(UserDTO userDTO) {

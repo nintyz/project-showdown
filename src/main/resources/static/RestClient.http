@@ -1,7 +1,7 @@
 GET http://localhost:8080/users
 
 ###
-GET http://localhost:8080/user/2
+GET http://localhost:8080/user/svEetmwCV1lSDgbOpaJQ
 
 ###
 POST http://localhost:8080/login
@@ -14,7 +14,7 @@ Content-Type: application/json
 
 ###
 curl -X POST http://localhost:8080/users \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjpbImFkbWluIl0sInN1YiI6ImFkbWluQGdtYWlsLmNvbSIsImlhdCI6MTcyODM3MTMwOSwiZXhwIjoxNzI4NDA3MzA5fQ.x31VQvAuqW0PgA2bU3rSh3oyogBJBP0SEEEUQ8uZrUI" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjpbImFkbWluIl0sInN1YiI6ImFkbWluQGdtYWlsLmNvbSIsImlhdCI6MTcyODM3NDMzMSwiZXhwIjoxNzI4NDEwMzMxfQ.ca76WO9zTEmhGxDchIYUp-dchQnYBMYCy3r8n1aqjlw" \
   -H "Content-Type: application/json" \
   -d '{
         "email":"playerEmail@gmail.com",
@@ -39,7 +39,7 @@ POST http://localhost:8080/addRandomData
 Authorization: Basic testing@gmail.com:password
 
 ###
-curl -X PUT "http://localhost:8080/user/2" \
+curl -X PUT "http://localhost:8080/user/svEetmwCV1lSDgbOpaJQ" \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjpbImFkbWluIl0sInN1YiI6ImFkbWluQGdtYWlsLmNvbSIsImlhdCI6MTcyODM2OTcwNCwiZXhwIjoxNzI4NDA1NzA0fQ.Kj8OrOVpX5QGg8NHsX5jRpGF6lcikNLsp4gf-EiCY9U" \
   -H "Content-Type: application/json" \
   -d '{
@@ -61,5 +61,5 @@ curl -X PUT "http://localhost:8080/user/2" \
 
 
 ###
-DELETE http://localhost:8080/user/3
+DELETE http://localhost:8080/user/te5Hk9b2fWwOK5OrJIP6
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjpbImFkbWluIl0sInN1YiI6ImFkbWluQGdtYWlsLmNvbSIsImlhdCI6MTcyODM2OTcwNCwiZXhwIjoxNzI4NDA1NzA0fQ.Kj8OrOVpX5QGg8NHsX5jRpGF6lcikNLsp4gf-EiCY9U

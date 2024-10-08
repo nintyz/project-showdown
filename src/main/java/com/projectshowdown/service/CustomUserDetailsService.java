@@ -20,6 +20,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -60,19 +61,24 @@ public class CustomUserDetailsService implements UserDetailsService {
     return FirestoreClient.getFirestore();
   }
 
-  public List<Map<String, Object>> getAllPlayers() throws ExecutionException, InterruptedException {
+  public List<UserDTO> getAllPlayers() throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
     Query playersCollection = db.collection("users").whereEqualTo("role", "player");
     ApiFuture<QuerySnapshot> future = playersCollection.get();
     List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 
     // Prepare a list to hold each document's data
-    List<Map<String, Object>> players = new ArrayList<>();
+    List<UserDTO> players = new ArrayList<>();
 
     // Iterate through the documents and add their data to the list
     for (DocumentSnapshot document : documents) {
       if (document.exists()) {
-        players.add(document.getData()); // Add document data to the list
+        // Add document data to the list
+        UserDTO currentPlayer = document.toObject(UserDTO.class);
+        // set id.
+        currentPlayer.setId(document.getId());
+        players.add(currentPlayer);
+
       }
     }
 
@@ -80,9 +86,9 @@ public class CustomUserDetailsService implements UserDetailsService {
   }
 
   // Method to get specific player from firebase.
-  public UserDTO getPlayer(int userId) throws ExecutionException, InterruptedException {
+  public UserDTO getPlayer(String userId) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
-    DocumentReference documentReference = db.collection("users").document(Integer.toString(userId));
+    DocumentReference documentReference = db.collection("users").document(userId);
     ApiFuture<DocumentSnapshot> future = documentReference.get();
     DocumentSnapshot document = future.get();
 
@@ -90,7 +96,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     if (document.exists()) {
       // You can directly map the Firestore data to a Player class
       UserDTO userToReturn = document.toObject(UserDTO.class);
-      userToReturn.setId(Integer.toString(userId));
+      userToReturn.setId(userId);
       return userToReturn;
     } else {
       // Document doesn't exist, return null or handle it based on your needs
@@ -98,37 +104,50 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
   }
 
-  // Method to add a new player document to the 'players' collection
+  // Method to add a new player document to the 'users' collection
   public String addPlayer(User userData) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
-    // count players to set as id
-    ApiFuture<QuerySnapshot> query = db.collection("users").get();
-    int userCount = query.get().getDocuments().size();
-    userData.setId(userCount);
+    // Generate a new document reference with a random ID
+    DocumentReference docRef = db.collection("users").document();
+    // Get the generated document ID
+    String generatedId = docRef.getId();
 
-    DocumentReference docRef = db.collection("users").document(Integer.toString(userCount));
+    // Convert User object to UserDTO and set the generated ID
     UserDTO userDTO = UserMapper.toUserDTO(userData);
-    ApiFuture<WriteResult> writeResult = docRef.set(userDTO);
-    return "Player created successfully at: " + writeResult.get().getUpdateTime();
 
+    // Save the updated UserDTO to Firestore
+    ApiFuture<WriteResult> writeResult = docRef.set(userDTO);
+
+    // Return success message with timestamp
+    return "Player created successfully with ID: " + generatedId + " at: " + writeResult.get().getUpdateTime();
   }
 
   // Method to update a player's document in the 'players' collection
-  public String updatePlayer(String id, User playerData) throws ExecutionException, InterruptedException {
+  public String updatePlayer(String userId, User userData) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
-    DocumentReference docRef = db.collection("users").document(id);
 
-    // Update player fields in Firebase
-    UserDTO userDTO = UserMapper.toUserDTO(playerData);
+    // Check if the user document exists
+    DocumentReference docRef = db.collection("users").document(userId);
+    ApiFuture<DocumentSnapshot> future = docRef.get();
+    DocumentSnapshot document = future.get();
+
+    if (!document.exists()) {
+      throw new PlayerNotFoundException("User with ID: " + userId + " does not exist.");
+    }
+
+    // Convert User object to UserDTO
+    UserDTO userDTO = UserMapper.toUserDTO(userData);
+
+    // Update the user document
     ApiFuture<WriteResult> writeResult = docRef.set(userDTO);
 
-    // Return update time after successful update
-    return "Player updated successfully at: " + writeResult.get().getUpdateTime();
+    // Return success message
+    return "User with ID: " + userId + " updated successfully at: " + writeResult.get().getUpdateTime();
   }
 
-  public String deletePlayer(int userId) throws ExecutionException, InterruptedException {
+  public String deletePlayer(String userId) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
-    DocumentReference docRef = db.collection("users").document(Integer.toString(userId));
+    DocumentReference docRef = db.collection("users").document(userId);
 
     // Check if the player document exists
     ApiFuture<DocumentSnapshot> future = docRef.get();

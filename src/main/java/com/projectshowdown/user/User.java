@@ -11,7 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 e.g., what authorities (roles) are granted to the user and whether the account is enabled or not
 */
 public class User implements UserDetails {
-    private int id;
+    private String id;
     private String email;
     private String password;
     private String role;
@@ -77,11 +77,11 @@ public class User implements UserDetails {
         this.password = password;
     }
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 
