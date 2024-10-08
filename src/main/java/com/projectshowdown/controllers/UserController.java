@@ -18,7 +18,6 @@ import com.projectshowdown.user.User;
 
 import jakarta.validation.Valid;
 
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.ArrayList;
 import java.util.List;
