@@ -1,6 +1,7 @@
 package com.projectshowdown.service;
 
 import com.google.api.core.ApiFuture;
+import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
@@ -20,9 +21,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 @Service
@@ -114,12 +113,27 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     // Convert User object to UserDTO and set the generated ID
     UserDTO userDTO = UserMapper.toUserDTO(userData);
+    userDTO.setId(generatedId);
 
     // Save the updated UserDTO to Firestore
     ApiFuture<WriteResult> writeResult = docRef.set(userDTO);
 
     // Return success message with timestamp
     return "Player created successfully with ID: " + generatedId + " at: " + writeResult.get().getUpdateTime();
+  }
+
+  public String massImport(ArrayList<UserDTO> body) {
+    Firestore db = getFirestore();
+    CollectionReference usersCollection = db.collection("users");
+
+    for (UserDTO userDTO : body) {
+      DocumentReference docRef = usersCollection.document(); // Create a new document reference with a unique ID
+      userDTO.setId(docRef.getId());
+      docRef.set(userDTO).addListener(() -> {
+        System.out.println("User added: " + userDTO.getEmail());
+      }, Runnable::run);
+    }
+    return "success";
   }
 
   // Method to update a player's document in the 'players' collection
