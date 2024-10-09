@@ -1,5 +1,6 @@
 package com.projectshowdown.configs;
 
+import com.projectshowdown.util.OAuth2AuthenticationSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,9 +22,13 @@ import com.projectshowdown.service.JwtRequestFilter;
 @Configuration
 public class SecurityConfig {
 
-    private UserDetailsService userDetailsService;
+    private final UserDetailsService userDetailsService;
+
     @Autowired
     private JwtRequestFilter jwtRequestFilter;
+
+    @Autowired
+    private OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
     public SecurityConfig(UserDetailsService userSvc) {
         this.userDetailsService = userSvc;
@@ -75,6 +80,9 @@ public class SecurityConfig {
                 .sessionManagement(configurer -> configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(csrf -> csrf.disable()) // CSRF protection is needed only for browser based attacks
                 .formLogin(form -> form.disable())
+                .oauth2Login((oauth2) -> oauth2
+                        .successHandler(oAuth2AuthenticationSuccessHandler)
+                )
                 .headers(header -> header.disable()) // disable the security headers, as we do not return HTML in our
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
                 .authenticationProvider(authenticationProvider());
