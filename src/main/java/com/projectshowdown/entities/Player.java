@@ -1,21 +1,38 @@
 package com.projectshowdown.entities;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 
 public class Player extends User{
 
     private int rank;
 
-    @NotNull(message = "Player's name should not be empty")
+    @NotNull(message = "Name is mandatory")
+    @Size(min = 2, max = 50, message = "Name must be between 2 and 50 characters")
     private String name;
 
-    @NotNull(message = "Player's age should not be empty")
+    @Min(value = 0, message = "Age must be a positive number")
+    @Max(value = 120, message = "Age must be less than or equal to 120")
     private double age;
+
     private double peakAge;
+
+    @Positive(message = "The value must be a positive number")
     private double elo;
+
+    @Positive(message = "The value must be a positive number")
     private double peakElo;
+
+    @Positive(message = "The value must be a positive number")
     private double hardRaw;
+
+    @Positive(message = "The value must be a positive number")
     private double clayRaw;
+
+    @Positive(message = "The value must be a positive number")
     private double grassRaw;
 
     public Player() {
