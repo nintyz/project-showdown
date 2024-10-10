@@ -1,8 +1,6 @@
 package com.projectshowdown.entities;
 
 import java.util.Date;
-import com.projectshowdown.user.User;
-import com.projectshowdown.user.Player;
 
 
 public class Match {

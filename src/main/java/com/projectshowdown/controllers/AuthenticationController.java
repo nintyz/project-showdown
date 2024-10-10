@@ -17,7 +17,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import com.projectshowdown.configs.JwtUtil;
-import com.projectshowdown.user.User;
+import com.projectshowdown.entities.User;
 
 @RestController
 public class AuthenticationController {

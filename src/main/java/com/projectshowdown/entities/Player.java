@@ -1,4 +1,4 @@
-package com.projectshowdown.user;
+package com.projectshowdown.entities;
 
 import jakarta.validation.constraints.NotNull;
 

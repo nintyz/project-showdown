@@ -1,6 +1,6 @@
-package com.projectshowdown.user;
+package com.projectshowdown.dto;
 
-import com.projectshowdown.dto.UserDTO;
+import com.projectshowdown.entities.User;
 
 //Purpose of this file is to convert our local User object into a special userDTO object
 // so it does not store redundent methods into our firebase.

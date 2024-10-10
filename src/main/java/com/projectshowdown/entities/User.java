@@ -1,4 +1,4 @@
-package com.projectshowdown.user;
+package com.projectshowdown.entities;
 
 import java.util.Collection;
 import java.util.Collections;

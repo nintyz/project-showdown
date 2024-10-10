@@ -11,9 +11,9 @@ import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
 import com.google.firebase.cloud.FirestoreClient;
 import com.projectshowdown.dto.UserDTO;
+import com.projectshowdown.dto.UserMapper;
+import com.projectshowdown.entities.User;
 import com.projectshowdown.exceptions.PlayerNotFoundException;
-import com.projectshowdown.user.User;
-import com.projectshowdown.user.UserMapper;
 
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

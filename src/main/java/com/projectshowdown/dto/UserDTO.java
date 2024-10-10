@@ -1,6 +1,6 @@
 package com.projectshowdown.dto;
 
-import com.projectshowdown.user.Player;
+import com.projectshowdown.entities.Player;
 
 //special User object to ensure firebase only store the variables here.
 public class UserDTO {

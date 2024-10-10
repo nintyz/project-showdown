@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.projectshowdown.dto.UserDTO;
+import com.projectshowdown.entities.User;
 import com.projectshowdown.exceptions.PlayerNotFoundException;
 import com.projectshowdown.service.CustomUserDetailsService;
-import com.projectshowdown.user.User;
 
 import jakarta.validation.Valid;
 
