@@ -2,15 +2,16 @@ package com.projectshowdown.user;
 
 import jakarta.validation.constraints.NotNull;
 
-public class Player {
+public class Player extends User{
+
     private int rank;
 
     @NotNull(message = "Player's name should not be empty")
     private String name;
 
     @NotNull(message = "Player's age should not be empty")
-    private int age;
-    private int peakAge;
+    private double age;
+    private double peakAge;
     private double elo;
     private double peakElo;
     private double hardRaw;
@@ -20,7 +21,7 @@ public class Player {
     public Player() {
     }
 
-    public Player(String name, int rank, int age, int peakAge, double elo, double peakElo, double hardRaw,
+    public Player(String name, int rank, double age, double peakAge, double elo, double peakElo, double hardRaw,
             double clayRaw,
             double grassRaw) {
         this.name = name;
@@ -77,11 +78,11 @@ public class Player {
         return name;
     }
 
-    public int getAge() {
+    public double getAge() {
         return age;
     }
 
-    public int getPeakAge() {
+    public double getPeakAge() {
         return peakAge;
     }
 
@@ -103,5 +104,24 @@ public class Player {
 
     public double getGrassRaw() {
         return grassRaw;
+    }
+
+    // Method to calculate MMR based on the given formula
+    public double calculateMMR() {
+
+        double currentElo = this.getElo();
+        double peakElo = this.getPeakElo();
+        double age = this.getAge();
+        double peakAge = this.getPeakAge();
+        double yearsSincePeak = age - peakAge;
+
+        // Pi constant
+        final double PI = Math.PI;
+
+        // Calculate the cosine part of the formula
+        double cosValue = Math.cos((yearsSincePeak * PI) / 10);
+
+        // Apply the formula
+        return currentElo + peakElo * cosValue + 1000;
     }
 }
