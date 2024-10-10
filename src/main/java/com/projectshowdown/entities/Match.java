@@ -1,8 +1,5 @@
 package com.projectshowdown.entities;
 
-import java.util.Date;
-
-
 public class Match {
 
     private String matchId;
@@ -12,7 +9,7 @@ public class Match {
     private String winnerId;
     private String score;
     private double mmrDifference;
-    private Date matchDate;
+    private String matchDate;
     private String stage;
 
     // Default constructor is required by Firebase
@@ -21,7 +18,7 @@ public class Match {
 
     // Parameterized constructor
     public Match(String matchId, String tournamentId, String player1Id, String player2Id, String winnerId, String score,
-                 double mmrDifference, Date matchDate, String stage) {
+                 double mmrDifference, String matchDate, String stage) {
         this.matchId = matchId;
         this.tournamentId = tournamentId;
         this.player1Id = player1Id;
@@ -90,11 +87,11 @@ public class Match {
         this.mmrDifference = mmrDifference;
     }
 
-    public Date getMatchDate() {
+    public String getMatchDate() {
         return matchDate;
     }
 
-    public void setMatchDate(Date matchDate) {
+    public void setMatchDate(String matchDate) {
         this.matchDate = matchDate;
     }
 

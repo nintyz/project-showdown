@@ -1,12 +1,16 @@
 package com.projectshowdown.entities;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
 import java.util.TreeMap;
+
+import com.projectshowdown.validation.ExactPlayers;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.projectshowdown.validation.ExactPlayers;
 
 import jakarta.validation.constraints.NotNull;
 
@@ -129,11 +133,10 @@ public class Tournament {
         // Sort players based on their MMR (or seedings)
         // assume that the number of players is already 32
         Collections.sort(players, Comparator.comparingDouble(Player::calculateMMR));
-
         // Create matches by pairing best vs. worst
-        for (int i = 0; i < totalPlayers / 2; i++) {
+        for (int i = 0; i < players.size() / 2; i++) {
             Player player1 = players.get(i); // Best seeded player
-            Player player2 = players.get(totalPlayers - 1 - i); // Worst seeded player
+            Player player2 = players.get(players.size() - 1 - i); // Worst seeded player
             
             // Create match details
             String matchId = generateMatchId(); // Generate a unique match ID
@@ -153,25 +156,6 @@ public class Tournament {
             matches.add(match);
         }
 
-        // Save matches to Firebase
-        saveMatchesToFirebase(matches); // Implement this method to save to Firebase
-
         return matches;
     }
-
-    // how to generate the matchID
-    private String generateMatchId() {
-        // Implement your match ID generation logic here
-        return "match_" + System.currentTimeMillis(); // Simple implementation
-    }
-
-    // private void saveMatchesToFirebase(List<Match> matches) {
-    //     // Implement Firebase saving logic here
-    //     FirebaseDatabase database = FirebaseDatabase.getInstance();
-    //     DatabaseReference matchesRef = database.getReference("matches");
-
-    //     for (Match match : matches) {
-    //         matchesRef.child(match.getMatchId()).setValue(match);
-    //     }
-    // } 
 }
