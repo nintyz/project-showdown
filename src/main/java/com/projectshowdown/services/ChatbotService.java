@@ -4,12 +4,13 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+
 import org.springframework.stereotype.Service;
 
 @Service
 public class ChatbotService {
 
-    private static final String PROJECT_ID = "showdownbot-ptdj";
+    private static final String PROJECT_ID = "projectshowdown-df5f2";
     private static final String SESSION_ID = "123456";
     private static final String LANGUAGE_CODE = "en";
 
