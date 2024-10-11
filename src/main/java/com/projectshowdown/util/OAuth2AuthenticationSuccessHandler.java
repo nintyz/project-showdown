@@ -38,7 +38,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         UserDetails userDetails = userService.loadUserByUsername(email);
 
         // store token in the session temporarily
-        request.getSession().setAttribute("oauth2_token", jwtUtil.generateToken(userDetails));
+        request.getSession().setAttribute("token", jwtUtil.generateToken(userDetails));
 
         // For future reference
         // Might set the token as cookie instead of session, and redirect to last page
@@ -48,7 +48,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 .build().toUriString();
         */
 
-        getRedirectStrategy().sendRedirect(request, response, targetUrl);
+//        getRedirectStrategy().sendRedirect(request, response, targetUrl);
 
         // Redirect to the /login endpoint
         getRedirectStrategy().sendRedirect(request, response, "/oauth2/redirect");
