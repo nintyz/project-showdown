@@ -3,6 +3,9 @@ package com.projectshowdown.entities;
 import java.util.Collection;
 import java.util.Collections;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,6 +18,10 @@ import jakarta.validation.constraints.Email;
 /* Implementations of UserDetails to provide user information to Spring Security, 
 e.g., what authorities (roles) are granted to the user and whether the account is enabled or not
 */
+
+@Getter
+@Setter
+@NoArgsConstructor
 public class User implements UserDetails {
     private String id;
 
@@ -41,10 +48,6 @@ public class User implements UserDetails {
         this.password = password;
         this.role = role;
         this.playerDetails = playerDetails;
-    }
-
-    public User() {
-
     }
 
     @Override
@@ -83,40 +86,4 @@ public class User implements UserDetails {
         return true;
     }
 
-    // Getters and setters
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    public Player getPlayerDetails() {
-        return playerDetails;
-    }
-
-    public void setPlayerDetails(Player playerDetails) {
-        this.playerDetails = playerDetails;
-    }
 }

@@ -13,7 +13,15 @@ import com.projectshowdown.validation.ExactPlayers;
 // import com.google.firebase.database.FirebaseDatabase;
 
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Tournament {
 
     @NotNull(message = "Tournament ID should not be empty")
@@ -29,72 +37,6 @@ public class Tournament {
 
     @ExactPlayers(message = "The tournament must have exactly 32 players")
     private final ArrayList<Player> players = new ArrayList<Player>();
-
-    public Tournament() {
-
-    }
-
-    public Tournament(String tournamentId, String name, int year, String type, String venue, Date date) {
-
-        this.tournamentId = tournamentId;
-        this.name = name;
-        this.year = year;
-        this.type = type;
-        this.venue = venue;
-        this.date = date;
-    }
-
-    public void setTournamentId(String tournamentId) {
-        this.tournamentId = tournamentId;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setYear(int year) {
-        this.year = year;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public void setVenue(String venue) {
-        this.venue = venue;
-    }
-
-    public void setDate(Date date) {
-        this.date = date;
-    }
-
-    public String getTournamentId() {
-        return this.tournamentId;
-    }
-
-    public String getName() {
-        return this.name;
-    }
-
-    public int getYear() {
-        return this.year;
-    }
-
-    public String getType() {
-        return this.type;
-    }
-
-    public String getVenue() {
-        return this.venue;
-    }
-
-    public Date getDate() {
-        return this.date;
-    }
-
-    public ArrayList<Player> getPlayers() {
-        return this.players;
-    }
 
     public void addPlayer(Player player) {
         this.players.add(player);
@@ -137,11 +79,11 @@ public class Tournament {
         for (int i = 0; i < players.size() / 2; i++) {
             Player player1 = players.get(i); // Best seeded player
             Player player2 = players.get(players.size() - 1 - i); // Worst seeded player
-            
+
             // Create match details
             String matchId = generateMatchId(); // Generate a unique match ID
             double mmrDifference = Math.abs(player1.calculateMMR() - player2.calculateMMR());
-            
+
             Match match = new Match();
             match.setMatchId(matchId);
             match.setTournamentId(this.tournamentId);
@@ -151,7 +93,7 @@ public class Tournament {
             match.setMmrDifference(mmrDifference);
             match.setMatchDate(""); // Set the current date
             match.setStage("Round 1"); // You can change this based on the tournament structure
-            
+
             // Add the match to the list
             matches.add(match);
         }
