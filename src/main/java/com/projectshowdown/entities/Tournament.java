@@ -9,8 +9,8 @@ import java.util.TreeMap;
 
 import com.projectshowdown.validation.ExactPlayers;
 
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+// import com.google.firebase.database.DatabaseReference;
+// import com.google.firebase.database.FirebaseDatabase;
 
 import jakarta.validation.constraints.NotNull;
 
@@ -28,7 +28,7 @@ public class Tournament {
     private Date date;
 
     @ExactPlayers(message = "The tournament must have exactly 32 players")
-    private ArrayList<Player> players;
+    private final ArrayList<Player> players = new ArrayList<Player>();
 
     public Tournament() {
 
@@ -149,7 +149,7 @@ public class Tournament {
             match.setPlayer2Id(player2.getId());
             match.setScore("0-0"); // Initial score
             match.setMmrDifference(mmrDifference);
-            match.setMatchDate(new Date()); // Set the current date
+            match.setMatchDate(""); // Set the current date
             match.setStage("Round 1"); // You can change this based on the tournament structure
             
             // Add the match to the list
@@ -157,5 +157,10 @@ public class Tournament {
         }
 
         return matches;
+    }
+
+    private String generateMatchId() {
+        // Implement unique ID generation logic here
+        return this.name + System.currentTimeMillis();  // Simple example using timestamp
     }
 }

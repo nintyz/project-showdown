@@ -1,23 +1,18 @@
-package com.yourpackage.validation;
+package com.projectshowdown.validation;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+
+import com.projectshowdown.entities.Player;
+
 import java.util.List;
 
-public class ExactPlayersValidator implements ConstraintValidator<ExactPlayers, List<?>> {
-
-    private static final int REQUIRED_SIZE = 32; // Define the exact number of players allowed
+public class ExactPlayersValidator implements ConstraintValidator<ExactPlayers, List<Player>> {
+    @Override
+    public void initialize(ExactPlayers constraintAnnotation) {}
 
     @Override
-    public void initialize(ExactPlayers constraintAnnotation) {
-        // No initialization needed since the number of players is fixed
-    }
-
-    @Override
-    public boolean isValid(List<?> players, ConstraintValidatorContext context) {
-        if (players == null) {
-            return false; // Null list is not valid, we need exactly 32 players
-        }
-        return players.size() == REQUIRED_SIZE; // Validate if the list size is exactly 32
+    public boolean isValid(List<Player> players, ConstraintValidatorContext context) {
+        return players != null && players.size() == 32;
     }
 }
