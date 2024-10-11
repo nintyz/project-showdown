@@ -25,9 +25,9 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 @Service
-public class CustomUserDetailsService implements UserDetailsService {
+public class UserService implements UserDetailsService {
 
-  public CustomUserDetailsService() {
+  public UserService() {
     super();
 
   }

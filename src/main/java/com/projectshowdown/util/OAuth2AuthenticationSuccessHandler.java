@@ -1,7 +1,7 @@
 package com.projectshowdown.util;
 
 import com.projectshowdown.configs.JwtUtil;
-import com.projectshowdown.service.CustomUserDetailsService;
+import com.projectshowdown.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +17,7 @@ import java.io.IOException;
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     @Autowired
-    CustomUserDetailsService userService;
+    UserService userService;
 
     @Autowired
     JwtUtil jwtUtil;

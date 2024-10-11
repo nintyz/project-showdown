@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.projectshowdown.dto.UserDTO;
 import com.projectshowdown.entities.User;
 import com.projectshowdown.exceptions.PlayerNotFoundException;
-import com.projectshowdown.service.CustomUserDetailsService;
+import com.projectshowdown.service.UserService;
 
 import jakarta.validation.Valid;
 
@@ -25,9 +25,9 @@ import java.util.List;
 @RestController
 public class UserController {
     @Autowired
-    private CustomUserDetailsService userService;
+    private UserService userService;
 
-    public UserController(CustomUserDetailsService userService) {
+    public UserController(UserService userService) {
         this.userService = userService;
     }
 
