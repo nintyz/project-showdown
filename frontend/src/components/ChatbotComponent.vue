@@ -3,7 +3,9 @@
     <div v-if="isChatOpen" class="chatbot-window">
       <div class="chatbot-header">
         <span>ShowdownBot</span>
-        <button class="close-btn" @click="toggleChat">X</button>
+        <button class="close-btn" @click="toggleChat">
+          <img src="@/assets/close.png" alt="Close" />
+        </button>
       </div>
 
       <div class="chatbot-body" ref="chatBody">
@@ -37,6 +39,9 @@
           alt="Send" 
           class="send-btn" 
           @click="sendMessage"
+          :class="{ 'disabled': !userInput.trim() }"
+          :style="{ opacity: userInput.trim() ? 1 : 0.5 }"
+          :disabled="!userInput.trim()"
         />
       </div>
     </div>
@@ -132,6 +137,10 @@ export default {
   max-height: 300px;
 }
 
+.chatbot-body::-webkit-scrollbar {
+  display: none;
+}
+
 .user-message,
 .bot-message {
   margin: 5px 0;
@@ -177,11 +186,20 @@ export default {
   cursor: pointer;
 }
 
+.send-btn.disabled {
+  cursor: default;
+}
+
 .close-btn {
   background: none;
   border: none;
   color: white;
   cursor: pointer;
+}
+
+.close-btn img {
+  width: 12px;
+  height: 12px;
 }
 
 .chatbot-toggle-btn {
@@ -200,5 +218,10 @@ export default {
 .chatbot-toggle-btn img {
   width: 30px;
   height: 30px;
+}
+
+.chatbot-toggle-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 </style>
