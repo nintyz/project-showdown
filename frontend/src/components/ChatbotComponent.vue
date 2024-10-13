@@ -59,6 +59,7 @@ export default {
   data() {
     return {
       isChatOpen: false,
+      chatOpened: false,
       userInput: '',
       messages: [],
     };
@@ -67,8 +68,9 @@ export default {
     toggleChat() {
       this.isChatOpen = !this.isChatOpen;
 
-      if (this.isChatOpen) {
+      if (this.chatOpened == false) {
         this.fetchWelcomeMessage();
+        this.chatOpened = true;
       }
     },
     async fetchWelcomeMessage() {
