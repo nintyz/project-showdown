@@ -53,6 +53,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   data() {
     return {
@@ -64,32 +66,73 @@ export default {
   methods: {
     toggleChat() {
       this.isChatOpen = !this.isChatOpen;
+
+      if (this.isChatOpen) {
+        this.fetchWelcomeMessage();
+      }
     },
-    sendMessage() {
+    async fetchWelcomeMessage() {
+      try {
+        const response = await axios.post('http://localhost:8080/chatbot/message', {
+          message: 'hi',
+        });
+
+        const botResponse = response.data.queryResult.fulfillmentText;
+
+        const botMessage = {
+          id: Date.now() + 1,
+          text: botResponse,
+          sender: 'bot',
+        };
+        this.messages.push(botMessage);
+        this.scrollToBottom();
+      } catch (error) {
+        console.error('Error fetching welcome message:', error);
+        const errorMessage = {
+          id: Date.now() + 2,
+          text: "Sorry, I couldn't get a response. Please try again later.",
+          sender: 'bot',
+        };
+        this.messages.push(errorMessage);
+        this.scrollToBottom();
+      }
+    },
+    async sendMessage() {
       if (this.userInput.trim() !== '') {
-        // Add user message to the messages array
         const userMessage = {
           id: Date.now(),
           text: this.userInput,
           sender: 'user',
         };
         this.messages.push(userMessage);
-        
+
+        const inputMessage = this.userInput;
         this.userInput = '';
 
-        setTimeout(() => {
-          // Add bot message to the messages array
+        this.scrollToBottom();
+
+        try {
+          const response = await axios.post('http://localhost:8080/chatbot/message', {
+            message: inputMessage,
+          });
+
           const botMessage = {
             id: Date.now() + 1,
-            text: "I'm just a bot, but I'm doing well!", // Example response
+            text: response.data.queryResult.fulfillmentText || "No response available.",
             sender: 'bot',
           };
           this.messages.push(botMessage);
-      
+        } catch (error) {
+          console.error('Error sending message:', error);
+          const errorMessage = {
+            id: Date.now() + 2,
+            text: "Sorry, I couldn't get a response. Please try again later.",
+            sender: 'bot',
+          };
+          this.messages.push(errorMessage);
+        } finally {
           this.scrollToBottom();
-        }, 1000);
-        
-        this.scrollToBottom();
+        }
       }
     },
     scrollToBottom() {
