@@ -128,15 +128,7 @@ export default {
         this.isBotTyping = true;
 
         try {
-          const response = await axios.post('http://localhost:8080/chatbot/message', {
-            message: inputMessage,
-          });
-
-          const botMessage = {
-            id: Date.now() + 1,
-            text: response.data.queryResult.fulfillmentText || "No response available. Please try again",
-            sender: 'bot',
-          };
+          const botMessage = await this.sendQueryWithRetry(inputMessage);
           this.messages.push(botMessage);
         } catch (error) {
           console.error('Error sending message:', error);
@@ -151,6 +143,43 @@ export default {
           this.isBotTyping = false;
         }
       }
+    },
+    async sendQueryWithRetry(inputMessage, retries = 3, delay = 500) {
+      let attempt = 0;
+      while (attempt < retries) {
+        try {
+          const response = await axios.post('http://localhost:8080/chatbot/message', {
+            message: inputMessage,
+          });
+
+          const fulfillmentText = response.data.queryResult?.fulfillmentText;
+
+          if (fulfillmentText) {
+            return {
+              id: Date.now() + 1,
+              text: fulfillmentText,
+              sender: 'bot',
+            };
+          }
+
+          attempt++;
+          if (attempt < retries) {
+            await this.delay(delay);
+          }
+        } catch (error) {
+          console.error('Dialogflow API error:', error);
+          throw error;
+        }
+      }
+
+      return {
+        id: Date.now() + 2,
+        text: "I'm having trouble understanding. Please try again.",
+        sender: 'bot',
+      };
+    },
+    delay(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
     },
     scrollToBottom() {
       this.$nextTick(() => {
