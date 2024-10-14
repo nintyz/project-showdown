@@ -41,12 +41,22 @@ public class User implements UserDetails {
     @Pattern(regexp = "^(admin|player)$", message = "Role must be either 'admin' or 'player'")
     private String role;
 
+    private String twoFactorSecret;
+
     private Player playerDetails;
 
     public User(String email, String password, String role, Player playerDetails) {
         this.email = email;
         this.password = password;
         this.role = role;
+        this.playerDetails = playerDetails;
+    }
+
+    public User(String email, String password, String role, String twoFactorSecret, Player playerDetails) {
+        this.email = email;
+        this.password = password;
+        this.role = role;
+        this.twoFactorSecret = twoFactorSecret;
         this.playerDetails = playerDetails;
     }
 

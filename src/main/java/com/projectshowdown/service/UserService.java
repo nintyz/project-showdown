@@ -10,22 +10,28 @@ import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
 import com.google.firebase.cloud.FirestoreClient;
+import com.google.zxing.WriterException;
 import com.projectshowdown.dto.UserDTO;
 import com.projectshowdown.dto.UserMapper;
 import com.projectshowdown.entities.User;
 import com.projectshowdown.exceptions.PlayerNotFoundException;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 @Service
 public class UserService implements UserDetailsService {
+
+  @Autowired
+  private TwoFactorAuthService twoFactorAuthService;
 
   public UserService() {
     super();
@@ -82,6 +88,20 @@ public class UserService implements UserDetailsService {
     }
 
     return players; // Return the list of players
+  }
+
+  public String getUserIdByEmail(String email) throws ExecutionException, InterruptedException {
+    Firestore db = getFirestore();
+    Query query = db.collection("users").whereEqualTo("email", email);
+    ApiFuture<QuerySnapshot> future = query.get();
+
+    List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+
+    if (!documents.isEmpty()) {
+      return documents.get(0).getId();
+    } else {
+      throw new UsernameNotFoundException("User not found with email: " + email);
+    }
   }
 
   // Method to get specific player from firebase.
@@ -175,5 +195,14 @@ public class UserService implements UserDetailsService {
     ApiFuture<WriteResult> writeResult = docRef.delete();
 
     return "Player with the id:" + userId + " successfully deleted at: " + writeResult.get().getUpdateTime();
+  }
+
+  public String enableTwoFactorAuth(String userid) throws ExecutionException, InterruptedException, IOException, WriterException {
+    UserDTO user = getPlayer(userid);
+    String secret = twoFactorAuthService.generateSecretKey();
+    user.setTwoFactorSecret(secret);
+    updatePlayer(userid, UserMapper.toUser(user));
+    String qrCodeUri = twoFactorAuthService.generateQrCodeImageUri(secret);
+    return twoFactorAuthService.generateQrCodeImage(qrCodeUri);
   }
 }

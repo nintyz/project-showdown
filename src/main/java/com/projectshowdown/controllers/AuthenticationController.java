@@ -3,6 +3,9 @@ package com.projectshowdown.controllers;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.projectshowdown.dto.UserDTO;
+import com.projectshowdown.service.TwoFactorAuthService;
+import com.projectshowdown.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +33,11 @@ public class AuthenticationController {
 
     @Autowired
     private UserDetailsService userDetailsService;
+
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private TwoFactorAuthService twoFactorAuthService;
 
     @GetMapping("/oauth2/redirect")
     public ResponseEntity<?> loginRedirect(HttpServletRequest request) {
@@ -59,30 +67,56 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public Map<String, String> createAuthenticationToken(@RequestBody User userCredentials) throws Exception {
-
+    public ResponseEntity<?> createAuthenticationToken(@RequestBody User userCredentials) throws Exception {
         try {
-            // Load the user by email to check if the user exists
             UserDetails userDetails = userDetailsService.loadUserByUsername(userCredentials.getEmail());
-            // If user is found, attempt to authenticate with the password
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(userCredentials.getEmail(),
-                    userCredentials.getPassword()));
+                            userCredentials.getPassword()));
 
-            // Generate the JWT token in a form of a JSON Object upon login.
-            Map<String, String> response = new HashMap<>();
-            response.put("token", jwtUtil.generateToken(userDetails));
-            return response;
+            UserDTO user = userService.getPlayer(userService.getUserIdByEmail(userCredentials.getEmail()));
 
+            if (user.getTwoFactorSecret() != null) {
+                // 2FA is enabled, return a flag indicating 2FA is required
+                return ResponseEntity.ok(Map.of("requiresTwoFactor", true, "userId", user.getId()));
+            } else {
+                // 2FA is not enabled, generate the JWT token
+                String token = jwtUtil.generateToken(userDetails);
+                return ResponseEntity.ok(Map.of("token", token, "requiresTwoFactor", false));
+            }
         } catch (UsernameNotFoundException e) {
-            // This exception will be thrown when no user with the given email is found
             throw new Exception("Account with the specified email does not exist");
         } catch (BadCredentialsException e) {
-            // This exception is thrown when the password is incorrect
             throw new Exception("Incorrect password");
         } catch (Exception e) {
-            // Catch any other generic exceptions and propagate them upwards
             throw new Exception("Authentication failed", e);
+        }
+    }
+
+    @PostMapping("/enable-2fa")
+    public ResponseEntity<?> enableTwoFactorAuth(@RequestParam String email) {
+        try {
+            String qrCodeImage = userService.enableTwoFactorAuth(userService.getUserIdByEmail(email));
+            return ResponseEntity.ok().body(Map.of("qrCodeImage", qrCodeImage));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error enabling 2FA: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/verify-2fa")
+    public ResponseEntity<?> verifyTwoFactorAuth(@RequestParam String email, @RequestParam String code) {
+        try {
+            UserDTO user = userService.getPlayer(userService.getUserIdByEmail(email));
+            boolean isValid = twoFactorAuthService.verifyCode(user.getTwoFactorSecret(), code);
+            if (isValid) {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+                String token = jwtUtil.generateToken(userDetails);
+                return ResponseEntity.ok(Map.of("token", token));
+            } else {
+                return ResponseEntity.badRequest().body("Invalid 2FA code");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error verifying 2FA code: " + e.getMessage());
         }
     }
 }
