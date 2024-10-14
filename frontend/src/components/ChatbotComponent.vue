@@ -120,7 +120,7 @@ export default {
 
           const botMessage = {
             id: Date.now() + 1,
-            text: response.data.queryResult.fulfillmentText || "No response available.",
+            text: response.data.queryResult.fulfillmentText || "No response available. Please try again",
             sender: 'bot',
           };
           this.messages.push(botMessage);

@@ -12,7 +12,8 @@ process.env.DEBUG = 'dialogflow:debug';
 exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, response) => {
   const agent = new WebhookClient({ request, response });
 
-  function getEmailByName(agent) {
+  // Get Player's Age by Name
+  function getAgeByName(agent) {
     const userName = agent.parameters.name;
 
     if (!userName) {
@@ -25,16 +26,78 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
       .get()
       .then(snapshot => {
         if (snapshot.empty) {
-          agent.add(`No user found with the name: ${userName.name}`);
+          agent.add(`We couldn't find any user with the name: ${userName.name}. Please check the name and try again.`);
           return;
         }
 
-        let userEmail = '';
+        let userAge = 0;
         snapshot.forEach(doc => {
-          userEmail = doc.data().email;
+          userAge = doc.data().playerDetails.age;
         });
 
-        agent.add(`The email for ${userName.name} is: ${userEmail}`);
+        agent.add(`${userName.name} is ${userAge} years old.`);
+      })
+      .catch(error => {
+        console.error('Error retrieving Firestore documents:', error);
+        agent.add('Error retrieving data from Firestore: ' + error.message);
+      });
+  }
+
+  // Get Player's Elo by Name
+  function getEloByName(agent) {
+    const userName = agent.parameters.name;
+
+    if (!userName) {
+      agent.add("Please provide a name.");
+      return;
+    }
+
+    return db.collection('users')
+      .where('playerDetails.name', '==', userName.name)
+      .get()
+      .then(snapshot => {
+        if (snapshot.empty) {
+          agent.add(`We couldn't find any user with the name: ${userName.name}. Please check the name and try again.`);
+          return;
+        }
+
+        let userElo = 0;
+        snapshot.forEach(doc => {
+          userElo = doc.data().playerDetails.elo;
+        });
+
+        agent.add(`${userName.name} has an elo rating of ${userElo}.`);
+      })
+      .catch(error => {
+        console.error('Error retrieving Firestore documents:', error);
+        agent.add('Error retrieving data from Firestore: ' + error.message);
+      });
+  }
+
+  // Get Player's Rank by Name
+  function getRankByName(agent) {
+    const userName = agent.parameters.name;
+
+    if (!userName) {
+      agent.add("Please provide a name.");
+      return;
+    }
+
+    return db.collection('users')
+      .where('playerDetails.name', '==', userName.name)
+      .get()
+      .then(snapshot => {
+        if (snapshot.empty) {
+          agent.add(`We couldn't find any user with the name: ${userName.name}. Please check the name and try again.`);
+          return;
+        }
+
+        let userRank = 0;
+        snapshot.forEach(doc => {
+          userRank = doc.data().playerDetails.rank;
+        });
+
+        agent.add(`${userName.name} is rank ${userRank}.`);
       })
       .catch(error => {
         console.error('Error retrieving Firestore documents:', error);
@@ -43,7 +106,9 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
   }
 
   let intentMap = new Map();
-  intentMap.set('GetEmail', getEmailByName);
+  intentMap.set('PlayerAge', getAgeByName);
+  intentMap.set('PlayerElo', getEloByName);
+  intentMap.set('PlayerRank', getRankByName);
 
   agent.handleRequest(intentMap);
 });
