@@ -23,6 +23,14 @@
             </div>
           </div>
         </div>
+        <!-- Bot Typing -->
+        <div v-if="isBotTyping" class="d-flex">
+          <div class="bot-message typing-indicator">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+          </div>
+        </div>
       </div>
 
       <div class="chatbot-input">
@@ -62,6 +70,7 @@ export default {
       chatOpened: false,
       userInput: '',
       messages: [],
+      isBotTyping: false,
     };
   },
   methods: {
@@ -74,6 +83,8 @@ export default {
       }
     },
     async fetchWelcomeMessage() {
+      this.isBotTyping = true;
+
       try {
         const response = await axios.post('http://localhost:8080/chatbot/message', {
           message: 'hi',
@@ -97,6 +108,8 @@ export default {
         };
         this.messages.push(errorMessage);
         this.scrollToBottom();
+      } finally {
+        this.isBotTyping = false;
       }
     },
     async sendMessage() {
@@ -112,6 +125,7 @@ export default {
         this.userInput = '';
 
         this.scrollToBottom();
+        this.isBotTyping = true;
 
         try {
           const response = await axios.post('http://localhost:8080/chatbot/message', {
@@ -134,6 +148,7 @@ export default {
           this.messages.push(errorMessage);
         } finally {
           this.scrollToBottom();
+          this.isBotTyping = false;
         }
       }
     },
@@ -211,6 +226,40 @@ export default {
   padding: 10px;
   border-top: 1px solid #ccc;
 }
+
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  margin: 0 2px;
+  background-color: #333;
+  border-radius: 50%;
+  animation: typing 1.4s infinite ease-in-out both;
+}
+
+.dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+.dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes typing {
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
 
 .chatbot-textarea {
   flex: 1;
