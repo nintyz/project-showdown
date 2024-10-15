@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Add service account key to ignore
+serviceAccountKey.json
