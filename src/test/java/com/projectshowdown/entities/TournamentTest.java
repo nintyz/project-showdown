@@ -18,20 +18,19 @@ public class TournamentTest {
 
     @BeforeEach
     public void setUp() {
-        // Initialize the tournament object
-        tournament = new Tournament("T001", "Showdown Tournament", 2024, "Single Elimination", "Stadium", new Date());
-
         // Create a list to hold all the mock players
         mockPlayers = new ArrayList<>();
 
-        // Mock 32 player objects and add them to the tournament
+        // Mock 32 player objects and add them to the list
         for (int i = 1; i <= 32; i++) {
             Player mockPlayer = Mockito.mock(Player.class);
             // Assign unique MMR values to the players for testing purposes
             Mockito.when(mockPlayer.calculateMMR()).thenReturn((double) (3200 - i * 100)); // Example MMRs: 3200, 3100, ..., 1000
             mockPlayers.add(mockPlayer);
-            tournament.addPlayer(mockPlayer); // Add each mock player to the tournament
         }
+
+        // Initialize the tournament object, passing in the list of mock players
+        tournament = new Tournament("T001", "Showdown Tournament", 2024, "Single Elimination", "Stadium", "2024-10-15", new ArrayList<>(mockPlayers));
     }
 
     @Test

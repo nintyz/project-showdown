@@ -3,7 +3,6 @@ package com.projectshowdown.entities;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.TreeMap;
 
@@ -33,10 +32,87 @@ public class Tournament {
     private int year;
     private String type;
     private String venue;
-    private Date date;
+    private String date;
 
     @ExactPlayers(message = "The tournament must have exactly 32 players")
-    private final ArrayList<Player> players = new ArrayList<Player>();
+    private ArrayList<Player> players = new ArrayList<Player>();
+
+    public Tournament(){
+
+    }
+
+    // Parameterized constructor with essential fields
+    public Tournament(String tournamentId, String name, int year, String type) {
+        this.tournamentId = tournamentId;
+        this.name = name;
+        this.year = year;
+        this.type = type;
+        this.players = new ArrayList<>(); // Initialize with an empty list
+    }
+
+    // Full parameterized constructor
+    public Tournament(String tournamentId, String name, int year, String type, String venue, String date, ArrayList<Player> players) {
+        this.tournamentId = tournamentId;
+        this.name = name;
+        this.year = year;
+        this.type = type;
+        this.venue = venue;
+        this.date = date;
+        this.players = players != null ? players : new ArrayList<>(); // Initialize with the provided list or an empty list
+    }
+
+    // Getters and Setters
+    public String getTournamentId() {
+        return tournamentId;
+    }
+
+    public void setTournamentId(String tournamentId) {
+        this.tournamentId = tournamentId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getYear() {
+        return year;
+    }
+
+    public void setYear(int year) {
+        this.year = year;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getVenue() {
+        return venue;
+    }
+
+    public void setVenue(String venue) {
+        this.venue = venue;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
+    }
+
+    public ArrayList<Player> getPlayers() {
+        return players;
+    }
 
     public void addPlayer(Player player) {
         this.players.add(player);

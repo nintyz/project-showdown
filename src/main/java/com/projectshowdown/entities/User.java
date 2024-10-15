@@ -45,6 +45,11 @@ public class User implements UserDetails {
 
     private Player playerDetails;
 
+    public User(){
+
+    }
+
+    // Parameterized constructor with essential fields
     public User(String email, String password, String role, Player playerDetails) {
         this.email = email;
         this.password = password;
@@ -52,11 +57,70 @@ public class User implements UserDetails {
         this.playerDetails = playerDetails;
     }
 
-    public User(String email, String password, String role, String twoFactorSecret, Player playerDetails) {
+    // Full parameterized constructor
+    public User(String id, String email, String password, String role, String twoFactorSecret, Player playerDetails) {
+        this.id = id;
         this.email = email;
         this.password = password;
         this.role = role;
         this.twoFactorSecret = twoFactorSecret;
+        this.playerDetails = playerDetails;
+    }
+
+    public User(String id, String email, String password, String role, Player playerDetails) {
+        this.id = id;
+        this.email = email;
+        this.password = password;
+        this.role = role;
+        this.playerDetails = playerDetails;
+    }
+
+    // Getters and Setters
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    // public String getPassword() {
+    //     return password;
+    // }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public String getTwoFactorSecret() {
+        return twoFactorSecret;
+    }
+
+    public void setTwoFactorSecret(String twoFactorSecret) {
+        this.twoFactorSecret = twoFactorSecret;
+    }
+
+    public Player getPlayerDetails() {
+        return playerDetails;
+    }
+
+    public void setPlayerDetails(Player playerDetails) {
         this.playerDetails = playerDetails;
     }
 
