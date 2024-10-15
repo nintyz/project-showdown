@@ -45,10 +45,6 @@ public class Player{
     @Positive(message = "The value must be a positive number")
     private double grassRaw;
 
-    public Player() {
-        // Initialize fields if necessary
-    }
-
     // Parameterized constructor with essential fields
     public Player(String id, int rank, String name, int age) {
         this.id = id;
@@ -58,19 +54,6 @@ public class Player{
     }
 
     // Full parameterized constructor with all fields
-    public Player(String id, int rank, String name, double age, double peakAge, double elo, double peakElo, 
-                  double hardRaw, double clayRaw, double grassRaw) {
-        this.id = id;
-        this.rank = rank;
-        this.name = name;
-        this.age = age;
-        this.peakAge = peakAge;
-        this.elo = elo;
-        this.peakElo = peakElo;
-        this.hardRaw = hardRaw;
-        this.clayRaw = clayRaw;
-        this.grassRaw = grassRaw;
-    }
 
      // Getters and Setters
 

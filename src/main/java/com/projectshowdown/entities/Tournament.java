@@ -37,10 +37,6 @@ public class Tournament {
     @ExactPlayers(message = "The tournament must have exactly 32 players")
     private ArrayList<Player> players = new ArrayList<Player>();
 
-    public Tournament(){
-
-    }
-
     // Parameterized constructor with essential fields
     public Tournament(String tournamentId, String name, int year, String type) {
         this.tournamentId = tournamentId;
@@ -48,17 +44,6 @@ public class Tournament {
         this.year = year;
         this.type = type;
         this.players = new ArrayList<>(); // Initialize with an empty list
-    }
-
-    // Full parameterized constructor
-    public Tournament(String tournamentId, String name, int year, String type, String venue, String date, ArrayList<Player> players) {
-        this.tournamentId = tournamentId;
-        this.name = name;
-        this.year = year;
-        this.type = type;
-        this.venue = venue;
-        this.date = date;
-        this.players = players != null ? players : new ArrayList<>(); // Initialize with the provided list or an empty list
     }
 
     // Getters and Setters

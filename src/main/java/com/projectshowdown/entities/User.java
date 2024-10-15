@@ -45,10 +45,6 @@ public class User implements UserDetails {
 
     private Player playerDetails;
 
-    public User(){
-
-    }
-
     // Parameterized constructor with essential fields
     public User(String email, String password, String role, Player playerDetails) {
         this.email = email;
