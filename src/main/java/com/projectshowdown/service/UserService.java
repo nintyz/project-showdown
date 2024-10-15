@@ -13,6 +13,7 @@ import com.google.firebase.cloud.FirestoreClient;
 import com.google.zxing.WriterException;
 import com.projectshowdown.dto.UserDTO;
 import com.projectshowdown.dto.UserMapper;
+import com.projectshowdown.entities.Player;
 import com.projectshowdown.entities.User;
 import com.projectshowdown.exceptions.PlayerNotFoundException;
 
@@ -22,9 +23,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.concurrent.ExecutionException;
 
 @Service
@@ -142,18 +146,56 @@ public class UserService implements UserDetailsService {
     return "Player created successfully with ID: " + generatedId + " at: " + writeResult.get().getUpdateTime();
   }
 
-  public String massImport(ArrayList<UserDTO> body) {
+  public String massImport() {
     Firestore db = getFirestore();
     CollectionReference usersCollection = db.collection("users");
 
-    for (UserDTO userDTO : body) {
-      DocumentReference docRef = usersCollection.document(); // Create a new document reference with a unique ID
-      userDTO.setId(docRef.getId());
-      docRef.set(userDTO).addListener(() -> {
-        System.out.println("User added: " + userDTO.getEmail());
-      }, Runnable::run);
+    try (Scanner sc = new Scanner(new File(
+        "C:\\Users\\coben\\OneDrive - Singapore Management University\\Uni - Year 2 Sem 1\\CS203 Collaborative Software Development\\Project\\tenniselo.csv"),
+        "UTF-8")) {
+      sc.nextLine();// skip header
+      sc.useDelimiter(",|\n|\n");
+
+      while (sc.hasNext()) {
+        String line = sc.nextLine(); //extract current row
+        String[] values = line.split(","); //split row to tokens
+
+        String email = values[1].replaceAll("\\u00A0", "").toLowerCase();
+        email += "@gmail.com";
+        String fixedPassword = "$2a$12$NLiiv7gVsA1ltsI1tux.xuE8kEKfAmIHIkloVXwqxHXArgfiJ1XoK";
+
+        int rank = Integer.parseInt(values[0]);
+        String name = values[1];
+        Double age = Double.parseDouble(values[2]);
+        Double elo = Double.parseDouble(values[3]);
+        Double hardRaw = values[4].equals("-") ? null : Double.parseDouble(values[4]);
+        Double clayRaw = values[5].equals("-") ? null : Double.parseDouble(values[5]);
+        Double grassRaw = values[6].equals("-") ? null : Double.parseDouble(values[6]);
+        Double peakAge = Double.parseDouble(values[11]);
+        Double peakElo = Double.parseDouble(values[12]);
+
+        Player currentRowPlayerDetails = new Player(rank, name, age, elo, hardRaw, clayRaw, grassRaw, peakAge, peakElo);
+
+        UserDTO currentRowUser = new UserDTO("", email, fixedPassword, "player", null, currentRowPlayerDetails);
+
+        DocumentReference docRef = usersCollection.document(); // Create a new document reference with a unique ID
+        currentRowUser.setId(docRef.getId());
+        docRef.set(currentRowUser).addListener(() -> {
+
+        }, Runnable::run);
+      }
+
+      while (sc.hasNext()) {
+        System.out.println("echo: " + sc.nextLine());
+      }
+      System.out.println("]'");
+
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
     }
+
     return "success";
+
   }
 
   // Method to update a player's document in the 'players' collection
@@ -197,7 +239,8 @@ public class UserService implements UserDetailsService {
     return "Player with the id:" + userId + " successfully deleted at: " + writeResult.get().getUpdateTime();
   }
 
-  public String enableTwoFactorAuth(String userid) throws ExecutionException, InterruptedException, IOException, WriterException {
+  public String enableTwoFactorAuth(String userid)
+      throws ExecutionException, InterruptedException, IOException, WriterException {
     UserDTO user = getPlayer(userid);
     String secret = twoFactorAuthService.generateSecretKey();
     user.setTwoFactorSecret(secret);

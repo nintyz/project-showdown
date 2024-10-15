@@ -14,7 +14,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Player{
+public class Player {
 
     private int rank;
 
@@ -26,13 +26,8 @@ public class Player{
     @Max(value = 120, message = "Age must be less than or equal to 120")
     private double age;
 
-    private double peakAge;
-
     @Positive(message = "The value must be a positive number")
     private double elo;
-
-    @Positive(message = "The value must be a positive number")
-    private double peakElo;
 
     @Positive(message = "The value must be a positive number")
     private double hardRaw;
@@ -42,6 +37,10 @@ public class Player{
 
     @Positive(message = "The value must be a positive number")
     private double grassRaw;
+
+    private double peakAge;
+    @Positive(message = "The value must be a positive number")
+    private double peakElo;
 
     // Parameterized constructor with essential fields
     public Player(String id, int rank, String name, int age) {
