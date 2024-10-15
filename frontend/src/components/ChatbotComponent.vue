@@ -211,6 +211,8 @@ export default {
   justify-content: space-between;
   align-items: center;
   background-color: #007bff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  position: sticky;
   color: white;
   padding: 10px;
   border-top-left-radius: 10px;
