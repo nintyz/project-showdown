@@ -16,8 +16,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Player{
 
-    private String id;
-
     private int rank;
 
     @NotNull(message = "Name is mandatory")
@@ -47,22 +45,9 @@ public class Player{
 
     // Parameterized constructor with essential fields
     public Player(String id, int rank, String name, int age) {
-        this.id = id;
         this.rank = rank;
         this.name = name;
         this.age = age;
-    }
-
-    // Full parameterized constructor with all fields
-
-     // Getters and Setters
-
-     public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     public int getRank() {

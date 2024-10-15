@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class TournamentTest {
 
     private Tournament tournament;
-    private List<Player> mockPlayers;
+    private List<User> mockPlayers;
 
     @BeforeEach
     public void setUp() {
@@ -23,9 +23,9 @@ public class TournamentTest {
 
         // Mock 32 player objects and add them to the list
         for (int i = 1; i <= 32; i++) {
-            Player mockPlayer = Mockito.mock(Player.class);
+            User mockPlayer = Mockito.mock(User.class);
             // Assign unique MMR values to the players for testing purposes
-            Mockito.when(mockPlayer.calculateMMR()).thenReturn((double) (3200 - i * 100)); // Example MMRs: 3200, 3100, ..., 1000
+            Mockito.when(mockPlayer.getPlayerDetails().calculateMMR()).thenReturn((double) (3200 - i * 100)); // Example MMRs: 3200, 3100, ..., 1000
             mockPlayers.add(mockPlayer);
         }
 
@@ -35,18 +35,18 @@ public class TournamentTest {
 
     @Test
     public void testAddPlayer() {
-        assertEquals(32, tournament.getPlayers().size(), "Tournament should have exactly 32 players.");
+        assertEquals(32, tournament.getUsers().size(), "Tournament should have exactly 32 players.");
     }
 
     @Test
     public void testGetSeedings() {
-        TreeMap<Integer, Player> seedings = tournament.getSeedings();
+        TreeMap<Integer, User> seedings = tournament.getSeedings();
         assertNotNull(seedings, "Seedings should not be null.");
         assertEquals(32, seedings.size(), "Seedings should contain 32 players.");
         
         // Verify the correct seeding based on calculated MMR
         for (int i = 0; i < mockPlayers.size(); i++) {
-            Player expectedPlayer = mockPlayers.get(i);
+            User expectedPlayer = mockPlayers.get(i);
             assertEquals(expectedPlayer, seedings.get(i + 1), "Player with MMR should be seeded correctly.");
         }
     }

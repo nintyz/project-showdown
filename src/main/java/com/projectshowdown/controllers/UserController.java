@@ -60,8 +60,8 @@ public class UserController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/import")
-    public String massImport(@RequestBody ArrayList<UserDTO> body) throws ExecutionException, InterruptedException {
-        return userService.massImport(body);
+    public String massImport() throws ExecutionException, InterruptedException {
+        return userService.massImport();
     }
 
     @PutMapping("/user/{id}")

@@ -24,7 +24,7 @@ public class PlayerTest {
         validator = factory.getValidator();
 
         // Arrange
-        player = new Player("iEb40SaFffPxcpkMgoGO", 1, "John Doe", 25, 24, 2000.0, 2500.0, 500.0, 400.0, 300.0);
+        player = new Player( 1, "John Doe", 25, 24, 2000.0, 2500.0, 500.0, 400.0, 300.0);
     }
 
     @Test
