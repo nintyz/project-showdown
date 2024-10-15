@@ -5,3 +5,86 @@ Content-Type: application/json
 {
     "message": "Hello!"
 }
+GET http://localhost:8080/users
+
+###
+GET http://localhost:8080/user/svEetmwCV1lSDgbOpaJQ
+
+###
+POST http://localhost:8080/login
+Content-Type: application/json
+
+{
+    "email":"admin@gmail.com",
+    "password":"admin.Password"
+}
+
+###
+curl -X POST http://localhost:8080/users \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjpbImFkbWluIl0sInN1YiI6ImFkbWluQGdtYWlsLmNvbSIsImlhdCI6MTcyODM3NDMzMSwiZXhwIjoxNzI4NDEwMzMxfQ.ca76WO9zTEmhGxDchIYUp-dchQnYBMYCy3r8n1aqjlw" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "email":"playerEmail@gmail.com",
+        "password":"$2a$12$NLiiv7gVsA1ltsI1tux.xuE8kEKfAmIHIkloVXwqxHXArgfiJ1XoK",
+        "role":"player",
+        "playerDetails":{
+          "name": "test",
+          "age": 30,
+          "peakAge": 30,
+          "rank": 100000,
+          "elo": 100000.0,
+          "peakElo": 100000.0,
+          "clayRaw": 100000.0,
+          "grassRaw": 100000.0,
+          "hardRaw": 100000.0
+        }
+      }'
+
+
+###
+
+###
+POST http://localhost:8080/addRandomData
+Authorization: Basic testing@gmail.com:password
+
+###
+DELETE http://localhost:8080/user/tXwxhbKw4jXqDetGw6RE
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjpbImFkbWluIl0sInN1YiI6ImFkbWluQGdtYWlsLmNvbSIsImlhdCI6MTcyODM3NDMzMSwiZXhwIjoxNzI4NDEwMzMxfQ.ca76WO9zTEmhGxDchIYUp-dchQnYBMYCy3r8n1aqjlw
+
+###
+curl -X POST http://localhost:8080/import \
+ -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjpbImFkbWluIl0sInN1YiI6ImFkbWluQGdtYWlsLmNvbSIsImlhdCI6MTcyODM3NDMzMSwiZXhwIjoxNzI4NDEwMzMxfQ.ca76WO9zTEmhGxDchIYUp-dchQnYBMYCy3r8n1aqjlw" \
+ -H "Content-Type: application/json" \
+ -d '[
+  {
+  "email": "robertocid@gmail.com",
+  "password":"$2a$12$NLiiv7gVsA1ltsI1tux.xuE8kEKfAmIHIkloVXwqxHXArgfiJ1XoK",
+  "role":"player",
+  "playerDetails":{
+  "rank": 452,
+  "name": "Roberto Cid",
+  "elo":1233.5,
+  "hardRaw":1242.6,
+  "clayRaw":1196.2,
+  "grassRaw":1407.4,
+  "peakAge":24.7,
+  "peakElo":1570.7
+  }
+  }
+  ,
+  {
+  "email": "fajingsun@gmail.com",
+  "password":"$2a$12$NLiiv7gVsA1ltsI1tux.xuE8kEKfAmIHIkloVXwqxHXArgfiJ1XoK",
+  "role":"player",
+  "playerDetails":{
+  "rank": 453,
+  "name": "Fajing Sun",
+  "elo":1232.6,
+  "hardRaw":1203,
+  "clayRaw":1101.5,
+  "grassRaw":null,
+  "peakAge":19.8,
+  "peakElo":1322.4
+  }
+  }
+  ]'
