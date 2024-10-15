@@ -18,22 +18,6 @@ public class UserDTO {
     private String role;
     private String twoFactorSecret;
     private Player playerDetails;
-
-    // Default constructor
-    public UserDTO() {
-
-    }
-
-    // Constructor with parameters
-    public UserDTO(String id, String email, String password, String role, String twoFactorSecret, Player playerDetails) {
-        this.id = id;
-        this.email = email;
-        this.password = password;
-        this.role = role;
-        this.twoFactorSecret = twoFactorSecret;
-        this.playerDetails = playerDetails;
-    }
-
     // Getter for id
     public String getId() {
         return id;
