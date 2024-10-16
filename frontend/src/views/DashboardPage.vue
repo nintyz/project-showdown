@@ -4,9 +4,11 @@
     <Navbar />
 
     <!-- Tournament Details Section -->
-    <div class="tournament-details container my-4">
-      <h2 class="text-center">{{ tournament.name }}</h2>
-      <p class="text-center">{{ tournament.venue }} | {{ tournament.date }}</p>
+    <div class="tournament-details container my-4 text-center">
+      <img :src="tournament.logo" alt="Tournament Logo" class="tournament-logo mb-3" />
+      <h2>{{ tournament.name }}</h2>
+      <p>{{ tournament.venue }} | {{ tournament.date }}</p>
+      <span class="badge rounded-pill status-badge">{{ tournament.status }}</span>
     </div>
 
     <div class="content container-fluid mx-5">
@@ -14,7 +16,11 @@
         <!-- Left Section: Tournament Bracket -->
         <div class="col-lg-8 col-md-7">
           <h4>Current Tournament Bracket</h4>
-          <TennisTournamentBracket />
+          <bracket :rounds="rounds">
+            <template #player="{ player }">
+              {{ player.name }}
+            </template>
+          </bracket>
         </div>
 
         <!-- Right Section: Live Matches -->
@@ -47,20 +53,108 @@
 </template>
 
 <script>
-import TennisTournamentBracket from '@/components/TennisTournamentBracket.vue';
+
 import Navbar from '@/components/NavbarComponent.vue';
-import '@/assets/main.css'; 
+import Bracket from "./Bracket";
+import '@/assets/main.css';
+
+const rounds = [
+    // Round of 16
+    {
+        games: [
+            {
+                player1: { id: "1", name: "Alex", winner: true, scores: [6, 6] },
+                player2: { id: "2", name: "John", winner: false, scores: [3, 4] }
+            },
+            {
+                player1: { id: "3", name: "Mark", winner: false, scores: [4, 3] },
+                player2: { id: "4", name: "Leo", winner: true, scores: [6, 6] }
+            },
+            {
+                player1: { id: "5", name: "Nick", winner: true, scores: [6, 7] },
+                player2: { id: "6", name: "Paul", winner: false, scores: [4, 5] }
+            },
+            {
+                player1: { id: "7", name: "Jake", winner: false, scores: [4, 2] },
+                player2: { id: "8", name: "Max", winner: true, scores: [6, 6] }
+            },
+            {
+                player1: { id: "9", name: "Tom", winner: true, scores: [7, 6] },
+                player2: { id: "10", name: "Eli", winner: false, scores: [5, 4] }
+            },
+            {
+                player1: { id: "11", name: "Sam", winner: false, scores: [3, 2] },
+                player2: { id: "12", name: "Jack", winner: true, scores: [6, 6] }
+            },
+            {
+                player1: { id: "13", name: "Rob", winner: true, scores: [6, 7] },
+                player2: { id: "14", name: "Ben", winner: false, scores: [4, 6] }
+            },
+            {
+                player1: { id: "15", name: "Dan", winner: false, scores: [5, 6] },
+                player2: { id: "16", name: "Ray", winner: true, scores: [6, 7] }
+            }
+        ]
+    },
+    // Quarterfinals
+    {
+        games: [
+            {
+                player1: { id: "1", name: "Alex", winner: true, scores: [6, 6] },
+                player2: { id: "4", name: "Leo", winner: false, scores: [4, 5] }
+            },
+            {
+                player1: { id: "5", name: "Nick", winner: true, scores: [7, 6] },
+                player2: { id: "8", name: "Max", winner: false, scores: [5, 4] }
+            },
+            {
+                player1: { id: "9", name: "Tom", winner: false, scores: [3, 5] },
+                player2: { id: "12", name: "Jack", winner: true, scores: [6, 6] }
+            },
+            {
+                player1: { id: "13", name: "Rob", winner: false, scores: [4, 3] },
+                player2: { id: "16", name: "Ray", winner: true, scores: [6, 6] }
+            }
+        ]
+    },
+    // Semifinals
+    {
+        games: [
+            {
+                player1: { id: "1", name: "Alex", winner: true, scores: [6, 6] },
+                player2: { id: "5", name: "Nick", winner: false, scores: [3, 4] }
+            },
+            {
+                player1: { id: "12", name: "Jack", winner: false, scores: [5, 3] },
+                player2: { id: "16", name: "Ray", winner: true, scores: [6, 7] }
+            }
+        ]
+    },
+    // Final
+    {
+        games: [
+            {
+                player1: { id: "1", name: "Alex", winner: false, scores: [4, 5] },
+                player2: { id: "16", name: "Ray", winner: true, scores: [6, 7] }
+            }
+        ]
+    }
+];
+
 export default {
   components: {
-    TennisTournamentBracket,
+    Bracket,
     Navbar,
   },
   data() {
     return {
+      rounds: rounds,
       tournament: {
-        name: "Grand Slam Tournament",
-        venue: "London, UK",
-        date: "1 - 14 July 2024"
+        name: "ATP Finals",
+        venue: "Turin, Italy",
+        date: "10 - 17 September 2023",
+        status: "Ongoing",
+        logo: "https://cdn.cookielaw.org/logos/d650bf03-392a-4f58-9e0f-30e4e5889bc1/4166a46d-b503-4394-9a8d-cfc6856bb183/d11831c3-5497-41f0-bcc8-a7d664ee017f/nitto.png"
       },
       liveMatches: [
         {
@@ -91,20 +185,20 @@ export default {
   background-color: #ebe3d5;
   padding: 20px;
   border-radius: 10px;
+  text-align: center;
 }
 
-.live-matches {
-  width: 25%;
+.tournament-logo {
+  width: 80px;
+  height: auto;
+  margin-bottom: 10px;
 }
 
-.flag {
-  width: 30px;
-}
-
-.card {
-  background-color: white;
-  border: none;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+.status-badge {
+  background-color: #28a745;
+  color: white;
+  font-size: 14px;
+  padding: 8px 12px;
 }
 
 .players {
@@ -118,5 +212,19 @@ export default {
 
 .player:last-child {
   border-bottom: none;
+}
+
+.flag {
+  width: 30px;
+}
+
+.card {
+  background-color: white;
+  border: none;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.live-matches {
+  width: 370px;
 }
 </style>

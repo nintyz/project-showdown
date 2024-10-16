@@ -14,7 +14,7 @@ import java.util.Collections;
 @Configuration
 public class GoogleServiceConfig {
 
-    private static final String CREDENTIALS_FILE_PATH = "C:\\Users\\Andre\\Desktop\\firebaseKey.json"; // Update this path
+    private static final String CREDENTIALS_FILE_PATH = "C:\\Users\\GanEnn\\SMU\\Y2S1\\CS203\\project-showdown\\serviceAccountKey.json"; // Update this path
     private static final String DIALOGFLOW_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
 
     // Firebase initialization

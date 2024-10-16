@@ -10,107 +10,96 @@
 
             <!-- Right side form for signup -->
             <div class="signup-box">
-                <h1>Create Your Account</h1>
+                <h1>Sign Up</h1>
 
-                <!-- Full Name -->
-                <div class="form-group">
-                    <label for="fullname">Full Name</label>
-                    <input type="text" id="fullname" v-model="fullname" placeholder="Enter your full name" />
-                </div>
-
-                <!-- Name and Age on the same row -->
-                <div class="form-row">
-                    <div class="form-group half-width">
-                        <label for="name">Player Nickname</label>
-                        <input type="text" id="name" v-model="name" placeholder="Enter your player name" />
-                    </div>
-
-                    <div class="form-group half-width">
-                        <label for="age">Age</label>
-                        <input type="number" id="age" v-model="age" placeholder="Enter your age" />
-                    </div>
-                </div>
-
-                <!-- Birthdate and Country on the same row -->
-                <div class="form-row">
-                    <div class="form-group half-width">
-                        <label for="birthdate">Birthdate</label>
-                        <input type="date" id="birthdate" v-model="birthdate" />
-                    </div>
-
-                    <div class="form-group half-width">
-                        <label for="country">Country</label>
-                        <input type="text" id="country" v-model="country" placeholder="Enter your country" />
-                    </div>
-                </div>
-
-                <!-- Email -->
+                <!-- Email and Password -->
                 <div class="form-group">
                     <label for="email">Email</label>
                     <input type="email" id="email" v-model="email" placeholder="Enter your email" />
                 </div>
-
-                <!-- Password -->
                 <div class="form-group">
                     <label for="password">Password</label>
                     <input type="password" id="password" v-model="password" placeholder="Create a password" />
                 </div>
 
-                <!-- Ranking and ELO on the same row -->
-                <div class="form-row">
-                    <div class="form-group half-width">
-                        <label for="ranking">Ranking</label>
-                        <input type="number" id="ranking" v-model="ranking" placeholder="Enter your ranking" />
-                    </div>
-
-                    <div class="form-group half-width">
-                        <label for="elo">ELO</label>
-                        <input type="number" id="elo" v-model="elo" placeholder="Enter your ELO" />
-                    </div>
-                </div>
-
-                <!-- Sign-Up Button -->
+                <!-- Sign Up Button -->
                 <button @click="handleSignUp" class="sign-up-btn">Sign Up</button>
+
+                <!-- OR Divider -->
+                <div class="divider">OR</div>
+
+                <!-- Google & Facebook Sign Up Buttons -->
+                <button class="google-btn" @click="handleGoogleSignUp">
+                    <img src="@/assets/google-icon.png" />
+                    Continue with Google
+                </button>
+                <button class="facebook-btn" @click="handleFacebookSignUp">
+                    <img
+                        src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/F_icon.svg/512px-F_icon.svg.png" />
+                    Continue with Facebook
+                </button>
+
+                <!-- Already have an account? Link -->
+                <div class="account-exists">
+                    <p>Already have an account?
+                        <a @click="goToLogin" class="login-link">Login here</a>
+                    </p>
+                </div>
             </div>
         </div>
     </div>
 </template>
 
+
 <script>
-import '@/assets/main.css'; 
 export default {
     data() {
         return {
-            fullname: "",
-            name: "",
-            age: null,
-            birthdate: "",
-            country: "",
-            email: "",
-            password: "",
-            ranking: null,
-            elo: null,
+            email: '',
+            password: ''
         };
     },
     methods: {
         handleSignUp() {
-            console.log("Player Info:", {
-                fullname: this.fullname,
-                name: this.name,
-                age: this.age,
-                birthdate: this.birthdate,
-                country: this.country,
-                email: this.email,
-                password: this.password,
-                ranking: this.ranking,
-                elo: this.elo,
-            });
+            // Perform email/password sign-up
+            localStorage.setItem("role", "player");
+            // After successful sign-up, redirect to the next page to collect more information
+            this.$router.push('/user-details');
+            
         },
-    },
+        handleGoogleSignUp() {
+            // Perform Google sign-up
+            this.$router.push('/user-details');
+        },
+        handleFacebookSignUp() {
+            // Perform Facebook sign-up
+            this.$router.push('/user-details');
+        },
+        goToLogin() {
+            // Redirect to login page
+            this.$router.push('/login');
+        }
+    }
 };
 </script>
 
+
 <style scoped>
+.account-exists {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.login-link {
+    color: #776b5d;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.login-link:hover {
+    color: #b0a695;
+}
+
 .signup-container {
     display: flex;
     flex-direction: column;
@@ -118,12 +107,10 @@ export default {
     background-color: #f3eeea;
     height: 100vh;
     justify-content: center;
-    position: relative;
 }
 
 .logo {
     width: 250px;
-    height: auto;
     margin-bottom: 1.5em;
 }
 
@@ -131,12 +118,11 @@ export default {
     display: flex;
     background-color: white;
     width: 100%;
-    height: 650px;
     max-width: 1000px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
     overflow: hidden;
-    position: relative;
+    height: 550px;
 }
 
 .signup-box {
@@ -145,7 +131,6 @@ export default {
     width: 50%;
     display: flex;
     flex-direction: column;
-    justify-content: center;
 }
 
 h1 {
@@ -158,37 +143,12 @@ h1 {
     margin-bottom: 10px;
 }
 
-.form-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-}
-
-.half-width {
-    width: 48%;
-}
-
-label {
-    display: block;
-    text-align: left;
-    font-weight: bold;
-    margin-bottom: 3px;
-    font-size: 14px;
-    color: #776b5d;
-}
-
 input {
     width: 100%;
     padding: 8px;
     border: 1px solid #b0a695;
     border-radius: 5px;
     background-color: #f3eeea;
-    color: #776b5d;
-}
-
-input::placeholder {
-    color: #b0a695;
-    padding: 10px;
 }
 
 .sign-up-btn {
@@ -204,6 +164,31 @@ input::placeholder {
 
 .sign-up-btn:hover {
     background-color: #b0a695;
+}
+
+.divider {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.google-btn,
+.facebook-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: white;
+}
+
+.google-btn img,
+.facebook-btn img {
+    width: 20px;
+    margin-right: 10px;
 }
 
 .left-side {
