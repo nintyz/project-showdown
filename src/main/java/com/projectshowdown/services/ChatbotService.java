@@ -7,6 +7,8 @@ import java.net.http.HttpResponse;
 
 import org.springframework.stereotype.Service;
 
+import com.projectshowdown.configs.GoogleServiceConfig;
+
 @Service
 public class ChatbotService {
 
@@ -27,7 +29,7 @@ public class ChatbotService {
         HttpClient client = HttpClient.newHttpClient();
 
         try {
-            String accessToken = new AuthService().getAccessToken();
+            String accessToken = new GoogleServiceConfig().getAccessToken();
             // Create HTTP request
             HttpRequest request = HttpRequest.newBuilder()
                 .uri(new URI(url))
