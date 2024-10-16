@@ -13,7 +13,6 @@ import com.projectshowdown.service.UserService;
 import jakarta.validation.Valid;
 
 import java.util.concurrent.ExecutionException;
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController

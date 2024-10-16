@@ -18,6 +18,7 @@ public class UserDTO {
     private String role;
     private String twoFactorSecret;
     private Player playerDetails;
+
     // Getter for id
     public String getId() {
         return id;
