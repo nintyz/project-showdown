@@ -28,17 +28,22 @@ public class TournamentTest {
             mockPlayers.add(mockPlayer);
         }
 
+        // Arrange
         tournament = new Tournament("T001", "Showdown Tournament", 2024, "Single Elimination", "Stadium", "2024-10-15", new ArrayList<>(mockPlayers));
     }
 
     @Test
     public void testAddPlayer() {
+        // Assert
         assertEquals(32, tournament.getUsers().size(), "Tournament should have exactly 32 players.");
     }
 
     @Test
     public void testGetSeedings() {
+        // Act
         TreeMap<Integer, User> seedings = tournament.getSeedings();
+
+        // Arrange
         assertNotNull(seedings, "Seedings should not be null.");
         assertEquals(32, seedings.size(), "Seedings should contain 32 players.");
         
@@ -51,7 +56,10 @@ public class TournamentTest {
 
     @Test
     public void testCreateMatches() {
+        // Act
         List<Match> matches = tournament.createMatches();
+
+        // Assert
         assertNotNull(matches, "Matches should not be null.");
         assertEquals(16, matches.size(), "There should be 16 matches in the first round.");
 
