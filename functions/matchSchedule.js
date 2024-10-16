@@ -1,4 +1,4 @@
-// const admin = require('firebase-admin');
+//const admin = require('firebase-admin');
 const functions = require('firebase-functions');
 const mailjet = require('node-mailjet');
 
@@ -7,7 +7,7 @@ const mjClient = mailjet.apiConnect(functions.config().mailjet.apikey, functions
 
 // Dummy data for testing: user's email and match time
 const dummyUserEmail = "pehsiewyubxy@gmail.com";
-const dummyMatchTime = new Date('2024-10-12T12:36:00');  // Example match time (adjust as needed)
+const dummyMatchTime = new Date('2024-10-16T07:22:00');  // Example match time (adjust as needed)
 const dummyName = "Player";
 
 // Firebase Pub/Sub function scheduled to run every 1 minute for testing purposes
