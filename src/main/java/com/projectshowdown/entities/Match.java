@@ -1,0 +1,113 @@
+package com.projectshowdown.entities;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class Match {
+
+    private String matchId;
+    private String tournamentId;
+    private String player1Id;
+    private String player2Id;
+    private String winnerId;
+    private String score;
+    private double mmrDifference;
+    private String matchDate;
+    private String stage;
+
+    // Getter for matchId
+    public String getMatchId() {
+        return matchId;
+    }
+
+    // Setter for matchId
+    public void setMatchId(String matchId) {
+        this.matchId = matchId;
+    }
+
+    // Getter for tournamentId
+    public String getTournamentId() {
+        return tournamentId;
+    }
+
+    // Setter for tournamentId
+    public void setTournamentId(String tournamentId) {
+        this.tournamentId = tournamentId;
+    }
+
+    // Getter for player1Id
+    public String getPlayer1Id() {
+        return player1Id;
+    }
+
+    // Setter for player1Id
+    public void setPlayer1Id(String player1Id) {
+        this.player1Id = player1Id;
+    }
+
+    // Getter for player2Id
+    public String getPlayer2Id() {
+        return player2Id;
+    }
+
+    // Setter for player2Id
+    public void setPlayer2Id(String player2Id) {
+        this.player2Id = player2Id;
+    }
+
+    // Getter for winnerId
+    public String getWinnerId() {
+        return winnerId;
+    }
+
+    // Setter for winnerId
+    public void setWinnerId(String winnerId) {
+        this.winnerId = winnerId;
+    }
+
+    // Getter for score
+    public String getScore() {
+        return score;
+    }
+
+    // Setter for score
+    public void setScore(String score) {
+        this.score = score;
+    }
+
+    // Getter for mmrDifference
+    public double getMmrDifference() {
+        return mmrDifference;
+    }
+
+    // Setter for mmrDifference
+    public void setMmrDifference(double mmrDifference) {
+        this.mmrDifference = mmrDifference;
+    }
+
+    // Getter for matchDate
+    public String getMatchDate() {
+        return matchDate;
+    }
+
+    // Setter for matchDate
+    public void setMatchDate(String matchDate) {
+        this.matchDate = matchDate;
+    }
+
+    // Getter for stage
+    public String getStage() {
+        return stage;
+    }
+
+    // Setter for stage
+    public void setStage(String stage) {
+        this.stage = stage;
+    }
+}
