@@ -1,12 +1,13 @@
 package com.projectshowdown.configs;
 
-import com.projectshowdown.util.OAuth2AuthenticationSuccessHandler;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
+import com.projectshowdown.util.OAuth2AuthenticationSuccessHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -72,12 +73,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/addRandomData").permitAll()
                         .requestMatchers(HttpMethod.PUT, "/user/*").hasAuthority("admin")
                         .requestMatchers(HttpMethod.DELETE, "/user/*").hasAuthority("admin")
+                        .requestMatchers(HttpMethod.POST, "/chatbot/message").permitAll()
                         // note that Spring Security 6 secures all endpoints by default
                         .anyRequest().permitAll())
 
                 // ensure that the application won’t create any session in our stateless REST
                 // APIs
                 .sessionManagement(configurer -> configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .httpBasic(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable()) // CSRF protection is needed only for browser based attacks
                 .formLogin(form -> form.disable())
                 .oauth2Login((oauth2) -> oauth2

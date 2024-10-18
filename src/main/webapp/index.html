@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat with ShowdownBot</title>
+</head>
+<body>
+    <h1>Chat with ShowdownBot</h1>
+    <form id="chat-form">
+        <input type="text" id="user-message" placeholder="Type your message" required />
+        <button type="submit">Send</button>
+    </form>
+    <div id="response"></div>
+    <script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script>
+    <df-messenger
+      intent="WELCOME"
+      chat-title="ShowdownBot"
+      agent-id="c089b919-84c2-47e8-89b6-3d50d55c58b1"
+      language-code="en"
+    ></df-messenger>
+    <script>
+        document.getElementById('chat-form').addEventListener('submit', function (event) {
+            event.preventDefault(); // Prevent form submission
+    
+            const message = document.getElementById('user-message').value;
+            fetch('/chatbot/message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log(data); // Log the response to inspect its structure
+                document.getElementById('response').innerText = data.queryResult.fulfillmentText; // Display response
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+    
+</body>
+</html>

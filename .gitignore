@@ -31,5 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
-src/main/java/com/projectshowdown/configs/FirebaseConfig.java
-src/main/java/com/projectshowdown/configs/FirebaseConfig.java
+
+# Ignore Google Cloud service account file
+/src/main/resources/showdown-437905-a8c65b9ff5b7.json
+serviceAccountKey.json
