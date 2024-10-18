@@ -59,7 +59,7 @@ public class UserController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/import")
-    public String massImport() throws ExecutionException, InterruptedException {
+    public String massImport() {
         return userService.massImport();
     }
 
@@ -67,6 +67,7 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     public String updatePlayer(@PathVariable String id, @RequestBody User playerData)
             throws ExecutionException, InterruptedException {
+        playerData.setId(id);
         return userService.updatePlayer(id, playerData);
     }
 
