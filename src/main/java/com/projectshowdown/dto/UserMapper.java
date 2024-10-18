@@ -10,6 +10,6 @@ public class UserMapper {
     }
 
     public static User toUser(UserDTO userDTO) {
-        return new User(userDTO.getEmail(), userDTO.getPassword(), userDTO.getRole(), userDTO.getTwoFactorSecret(), userDTO.getPlayerDetails());
+        return new User(userDTO.getId(), userDTO.getEmail(), userDTO.getPassword(), userDTO.getRole(), userDTO.getTwoFactorSecret(), userDTO.getPlayerDetails());
     }
 }
