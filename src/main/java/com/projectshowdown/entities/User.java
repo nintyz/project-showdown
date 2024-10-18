@@ -63,14 +63,6 @@ public class User implements UserDetails {
         this.playerDetails = playerDetails;
     }
 
-    public User(String id, String email, String password, String role, Player playerDetails) {
-        this.id = id;
-        this.email = email;
-        this.password = password;
-        this.role = role;
-        this.playerDetails = playerDetails;
-    }
-
     // Getters and Setters
     public String getId() {
         return id;
