@@ -58,7 +58,6 @@ public class JwtUtil {
     }
 
     public String generateToken(UserDetails userDetails) {
-        System.out.println("SECRET_KEY: " + SECRET_KEY);
         Map<String, Object> claims = new HashMap<>();
         // Add roles to claims
         claims.put("role", userDetails.getAuthorities()
