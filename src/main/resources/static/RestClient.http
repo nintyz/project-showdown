@@ -1,3 +1,10 @@
+### Test Chatbot Response
+POST http://localhost:8080/chatbot/message
+Content-Type: application/json
+
+{
+    "message": "Hello!"
+}
 GET http://localhost:8080/users
 
 ###
