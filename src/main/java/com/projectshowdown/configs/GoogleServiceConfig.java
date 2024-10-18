@@ -4,6 +4,7 @@ import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,16 +15,21 @@ import java.util.Collections;
 @Configuration
 public class GoogleServiceConfig {
 
-    private static final String CREDENTIALS_FILE_PATH = "C:\\Users\\GanEnn\\SMU\\Y2S1\\CS203\\project-showdown\\serviceAccountKey.json"; // Update this path
-    private static final String DIALOGFLOW_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
+    @Value("${google.dialogflow.scope}")
+    private String DIALOGFLOW_SCOPE;
 
-    // Firebase initialization
+    // Path to your key, which is a JSON file.
+    @Value("${google.config.path}")
+    private String pathToKey;
+
     @Bean
     public FirebaseApp initializeFirebase() throws IOException {
-        FileInputStream serviceAccount = new FileInputStream(CREDENTIALS_FILE_PATH);
+        FileInputStream serviceAccount =
+                new FileInputStream(pathToKey);
 
         FirebaseOptions options = FirebaseOptions.builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                //.setDatabaseUrl(pathToFirebase)
                 .build();
 
         return FirebaseApp.initializeApp(options);
@@ -31,7 +37,7 @@ public class GoogleServiceConfig {
 
     // Method to get Google Cloud API access token (for Dialogflow or other services)
     public String getAccessToken() throws IOException {
-        FileInputStream serviceAccount = new FileInputStream(CREDENTIALS_FILE_PATH);
+        FileInputStream serviceAccount = new FileInputStream(pathToKey);
 
         GoogleCredentials credentials = GoogleCredentials
                 .fromStream(serviceAccount)
