@@ -36,6 +36,7 @@ public class GoogleServiceConfig {
     }
 
     // Method to get Google Cloud API access token (for Dialogflow or other services)
+    @Bean
     public String getAccessToken() throws IOException {
         FileInputStream serviceAccount = new FileInputStream(pathToKey);
 

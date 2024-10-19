@@ -1,8 +1,9 @@
 package com.projectshowdown.controllers;
 
-import com.projectshowdown.services.ChatbotService;
+import com.projectshowdown.service.ChatbotService;
 
-import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,14 +27,9 @@ public class ChatbotController {
     }    
 }
 
+@Setter
+@Getter
 class MessageRequest {
     private String message;
 
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
 }
