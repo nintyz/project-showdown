@@ -1,9 +1,7 @@
 package com.projectshowdown.controllers;
 
+import com.projectshowdown.dto.ChatbotMessageDTO;
 import com.projectshowdown.service.ChatbotService;
-
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,23 +11,12 @@ import org.springframework.web.bind.annotation.*;
 public class ChatbotController {
     
     // Injecting the ChatbotService
-    private final ChatbotService chatbotService;
-
     @Autowired
-    public ChatbotController(ChatbotService chatbotService) {
-        this.chatbotService = chatbotService;
-    }
+    private ChatbotService chatbotService;
 
     // Endpoint to handle user input and get the chatbot response
     @PostMapping("/message")
-    public String getChatbotResponse(@RequestBody MessageRequest messageRequest) {
+    public String getChatbotResponse(@RequestBody ChatbotMessageDTO messageRequest) {
         return chatbotService.getResponse(messageRequest.getMessage());
     }    
-}
-
-@Setter
-@Getter
-class MessageRequest {
-    private String message;
-
 }
