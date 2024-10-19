@@ -8,7 +8,9 @@ Content-Type: application/json
 GET http://localhost:8080/users
 
 ###
-GET http://localhost:8080/user/svEetmwCV1lSDgbOpaJQ
+GET http://localhost:8080/user/WFcYxmwHIPmsMYaODriD
+
+
 
 ###
 POST http://localhost:8080/login
@@ -21,11 +23,11 @@ Content-Type: application/json
 
 ###
 curl -X POST http://localhost:8080/users \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjpbImFkbWluIl0sInN1YiI6ImFkbWluQGdtYWlsLmNvbSIsImlhdCI6MTcyODM3NDMzMSwiZXhwIjoxNzI4NDEwMzMxfQ.ca76WO9zTEmhGxDchIYUp-dchQnYBMYCy3r8n1aqjlw" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjpbImFkbWluIl0sInN1YiI6ImFkbWluQGdtYWlsLmNvbSIsImlhdCI6MTcyOTA2MDMxNCwiZXhwIjoxNzI5MDk2MzE0fQ.bj9YeMD3e2yTtPkeO-j4Gz1McuLNFr8RLUrh8OMLays" \
   -H "Content-Type: application/json" \
   -d '{
-        "email":"playerEmail@gmail.com",
-        "password":"$2a$12$NLiiv7gVsA1ltsI1tux.xuE8kEKfAmIHIkloVXwqxHXArgfiJ1XoK",
+        "email":"player@gmail.com",
+        "password":"$2a$12$ml6BX9FlPXYIaOiIcJx7kOoXF8DO9Rs6S8v9XBo4AGPPc7xSPRuF.",
         "role":"player",
         "playerDetails":{
           "name": "test",
@@ -40,6 +42,26 @@ curl -X POST http://localhost:8080/users \
         }
       }'
 
+###
+curl -X PUT "http://localhost:8080/user/7EeoRHWapP7NKFoGQHSI" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjpbImFkbWluIl0sInN1YiI6ImFkbWluQGdtYWlsLmNvbSIsImlhdCI6MTcyOTA2MDMxNCwiZXhwIjoxNzI5MDk2MzE0fQ.bj9YeMD3e2yTtPkeO-j4Gz1McuLNFr8RLUrh8OMLays" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "email":"playerEmail2@gmail.com",
+        "password":"$2a$12$NLiiv7gVsA1ltsI1tux.xuE8kEKfAmIHIkloVXwqxHXArgfiJ1XoK",
+        "role":"player",
+        "playerDetails":{
+          "name": "test2",
+          "age": 40,
+          "peakAge": 40,
+          "rank": 100000,
+          "elo": 100000.0,
+          "peakElo": 100000.0,
+          "clayRaw": 100000.0,
+          "grassRaw": 100000.0,
+          "hardRaw": 100000.0
+        }
+      }'
 
 ###
 
@@ -48,8 +70,8 @@ POST http://localhost:8080/addRandomData
 Authorization: Basic testing@gmail.com:password
 
 ###
-DELETE http://localhost:8080/user/tXwxhbKw4jXqDetGw6RE
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjpbImFkbWluIl0sInN1YiI6ImFkbWluQGdtYWlsLmNvbSIsImlhdCI6MTcyODM3NDMzMSwiZXhwIjoxNzI4NDEwMzMxfQ.ca76WO9zTEmhGxDchIYUp-dchQnYBMYCy3r8n1aqjlw
+DELETE http://localhost:8080/user/6ieMC9wKH2vlMRPtzPE0	
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjpbImFkbWluIl0sInN1YiI6ImFkbWluQGdtYWlsLmNvbSIsImlhdCI6MTcyOTA2MDMxNCwiZXhwIjoxNzI5MDk2MzE0fQ.bj9YeMD3e2yTtPkeO-j4Gz1McuLNFr8RLUrh8OMLays
 
 ###
 curl -X POST http://localhost:8080/import \
