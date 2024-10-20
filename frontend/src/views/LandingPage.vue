@@ -39,6 +39,17 @@
                             <font-awesome-icon :icon="['fas', 'location-dot']" class="icon-yellow" />
                             <span class="m-3">Acapulca, Mexico</span>
                         </div>
+                        <div class="tournament-date">
+                            <font-awesome-icon :icon="['fas', 'calendar']" class="icon-yellow" />
+                            <span class="m-3">Oct 22 - Oct 30, 2024</span>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="tournament-surface">
+                            <span class="m-3">Surface: Outdoor Clay</span>
+                        </div>                        
+                        <div class="tournament-prize">
+                            <span class="m-3">Prize: $1,642,128</span>
+                        </div>
                     </div>
                     <div class="tournament-two">
                         <div class="tournament-image-header">
@@ -50,6 +61,17 @@
                         <div class="tournament-location">
                             <font-awesome-icon :icon="['fas', 'location-dot']" class="icon-yellow" />
                             <span class="m-3">San Juan, Puerto Rico</span>
+                        </div>
+                        <div class="tournament-date">
+                            <font-awesome-icon :icon="['fas', 'calendar']" class="icon-yellow" />
+                            <span class="m-3">Nov 16 - Nov 28, 2024</span>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="tournament-surface">
+                            <span class="m-3">Surface: Outdoor Hard</span>
+                        </div>                        
+                        <div class="tournament-prize">
+                            <span class="m-3">Prize: $5,342,128</span>
                         </div>
                     </div>
                     <div class="tournament-three">
@@ -63,6 +85,17 @@
                             <font-awesome-icon :icon="['fas', 'location-dot']" class="icon-yellow" />
                             <span class="m-3">Miami, FL, USA</span>
                         </div>
+                        <div class="tournament-date">
+                            <font-awesome-icon :icon="['fas', 'calendar']" class="icon-yellow" />
+                            <span class="m-3">Dec 1 - Dec 7, 2024</span>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="tournament-surface">
+                            <span class="m-3">Surface: Outdoor Hard</span>
+                        </div>                        
+                        <div class="tournament-prize">
+                            <span class="m-3">Prize: $7,642,328</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -73,9 +106,9 @@
   <script>
     import { library } from '@fortawesome/fontawesome-svg-core'
     import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-    import { faLocationDot, faArrowRight } from '@fortawesome/free-solid-svg-icons'
+    import { faLocationDot, faArrowRight, faCalendar } from '@fortawesome/free-solid-svg-icons'
     
-    library.add(faLocationDot, faArrowRight)
+    library.add(faLocationDot, faArrowRight, faCalendar )
 
 
     export default {
@@ -84,7 +117,7 @@
         },
         data() {
             return {
-                letters: 'SHOWDOWN'.split(''), // Split the title into an array of letters
+                letters: 'SHOWDOWN'.split(''),
             };
         },
         methods: {
@@ -189,8 +222,8 @@
         margin-top: 25px;
         padding-left: 80px;
         padding-right: 80px;
-        align-items: center; /* Align all boxes to the same vertical level */
-        text-align: left; /* Ensure the text inside the body is left-aligned */
+        align-items: center;
+        text-align: left;
     }
 
     .tournament-title {
@@ -234,12 +267,30 @@
         font-size: 28px;
     }
 
-    .tournament-location {
+    .tournament-location,
+    .tournament-date {
         align-self: flex-start;
         text-align: left;
-        margin-left: 20px;
+        margin-left: 5%;
         margin-top: 10px;
         font-size: 18px;
     }
+
+    .tournament-surface,
+    .tournament-prize {
+        align-self: flex-start;
+        text-align: left;
+        margin-left: 2%;
+        margin-top: 10px;
+        font-size: 18px;
+    }
+
+    .divider {
+        width: 90%;
+        height: 2px;
+        background-color: #ccc; 
+        margin: 20px 0;
+    }
+
   </style>
   
