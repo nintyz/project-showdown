@@ -16,6 +16,7 @@
                     </p>
                     <p @click="goToLogin" class="get-started">
                         Get Started
+                        <font-awesome-icon :icon="['fas', 'arrow-right']" />
                     </p>
                 </div>
                 <div class="right-content">
@@ -34,9 +35,10 @@
                         <h2 class="tournament-name">
                             Tournament 1
                         </h2>
-                        <span class="tournament-location">
-                            Acapulca, Mexico
-                        </span>
+                        <div class="tournament-location">
+                            <font-awesome-icon :icon="['fas', 'location-dot']" class="icon-yellow" />
+                            <span class="m-3">Acapulca, Mexico</span>
+                        </div>
                     </div>
                     <div class="tournament-two">
                         <div class="tournament-image-header">
@@ -45,9 +47,10 @@
                         <h2 class="tournament-name">
                             Tournament 2
                         </h2>
-                        <span class="tournament-location">
-                            San Juan, Puerto Rico
-                        </span>
+                        <div class="tournament-location">
+                            <font-awesome-icon :icon="['fas', 'location-dot']" class="icon-yellow" />
+                            <span class="m-3">San Juan, Puerto Rico</span>
+                        </div>
                     </div>
                     <div class="tournament-three">
                         <div class="tournament-image-header">
@@ -56,9 +59,10 @@
                         <h2 class="tournament-name">
                             Tournament 3
                         </h2>
-                        <span class="tournament-location">
-                            Miami, FL, USA
-                        </span>
+                        <div class="tournament-location">
+                            <font-awesome-icon :icon="['fas', 'location-dot']" class="icon-yellow" />
+                            <span class="m-3">Miami, FL, USA</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -67,7 +71,17 @@
   </template>
   
   <script>
+    import { library } from '@fortawesome/fontawesome-svg-core'
+    import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+    import { faLocationDot, faArrowRight } from '@fortawesome/free-solid-svg-icons'
+    
+    library.add(faLocationDot, faArrowRight)
+
+
     export default {
+        components: {
+            FontAwesomeIcon,
+        },
         data() {
             return {
                 letters: 'SHOWDOWN'.split(''), // Split the title into an array of letters
@@ -82,6 +96,10 @@
   </script>
   
   <style scoped>
+    .icon-yellow {
+        color: #fea006;
+    }
+
     .navbar {
         margin-left:100px;
     }
@@ -202,9 +220,9 @@
     }
 
     .tournament-image-header img {
-        padding-top: 10px;
         width: 100%;
         height: 250px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); 
     }
 
     .tournament-name {
