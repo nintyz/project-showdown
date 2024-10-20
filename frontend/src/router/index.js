@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+import LandingPage from '@/views/LandingPage.vue'
 import LoginPage from '@/views/LoginPage.vue'
 import DashboardPage from '@/views/DashboardPage.vue'
 import PlayerProfile from '@/views/PlayerProfile.vue'
@@ -11,6 +12,15 @@ import AddUserDetails from '@/views/AddUserDetails.vue'
 import AllTournaments from '@/views/AllTournaments.vue' 
 
 const routes = [
+    {
+      path: '/',
+      redirect: '/home', // This redirects the root path to /home
+    },
+    {
+        path: '/home',
+        name: 'LandingPage',
+        component: LandingPage,
+    },
     {
         path: '/login',
         name: 'LoginPage',
