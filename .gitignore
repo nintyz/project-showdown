@@ -34,4 +34,4 @@ build/
 
 # Ignore Google Cloud service account file
 /src/main/resources/showdown-437905-a8c65b9ff5b7.json
-serviceAccountKey.json
+serviceAccountKey.env
