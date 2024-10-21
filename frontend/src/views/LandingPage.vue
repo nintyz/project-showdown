@@ -50,6 +50,9 @@
                         <div class="tournament-prize">
                             <span class="m-3">Prize: $1,642,128</span>
                         </div>
+                        <div class="tournament-learn-more">
+                            <button @click="goToLogin" class="tournament-btn">Register</button>
+                        </div>
                     </div>
                     <div class="tournament-two">
                         <div class="tournament-image-header">
@@ -73,6 +76,9 @@
                         <div class="tournament-prize">
                             <span class="m-3">Prize: $5,342,128</span>
                         </div>
+                        <div class="tournament-learn-more">
+                            <button @click="goToLogin" class="tournament-btn">Register</button>
+                        </div>
                     </div>
                     <div class="tournament-three">
                         <div class="tournament-image-header">
@@ -95,6 +101,9 @@
                         </div>                        
                         <div class="tournament-prize">
                             <span class="m-3">Prize: $7,642,328</span>
+                        </div>
+                        <div class="tournament-learn-more">
+                            <button @click="goToLogin" class="tournament-btn">Register</button>
                         </div>
                     </div>
                 </div>
@@ -236,7 +245,7 @@
     .tournament-three {
         background-color: #f3eeea;
         width: 500px;
-        height: 70vh;
+        height: 65vh;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
@@ -276,6 +285,13 @@
         font-size: 18px;
     }
 
+    .divider {
+        width: 90%;
+        height: 2px;
+        background-color: #ccc; 
+        margin: 20px 0;
+    }
+
     .tournament-surface,
     .tournament-prize {
         align-self: flex-start;
@@ -285,11 +301,22 @@
         font-size: 18px;
     }
 
-    .divider {
-        width: 90%;
-        height: 2px;
-        background-color: #ccc; 
-        margin: 20px 0;
+    .tournament-learn-more {
+        margin-top:40px;
+    }
+
+    .tournament-btn {
+        background-color: #fea006;
+        color: white;
+        border: white;
+        padding: 5px;
+        width: 50vh;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .tournament-btn:hover {
+        transform: scale(1.05); /* Scale up the button */
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* Add a shadow effect */
     }
 
   </style>

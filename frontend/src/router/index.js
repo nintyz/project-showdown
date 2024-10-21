@@ -13,11 +13,7 @@ import AllTournaments from '@/views/AllTournaments.vue'
 
 const routes = [
     {
-      path: '/',
-      redirect: '/home', // This redirects the root path to /home
-    },
-    {
-        path: '/home',
+        path: '/',
         name: 'LandingPage',
         component: LandingPage,
     },
