@@ -229,7 +229,7 @@
 
     .tournament-header {
         margin-left: 5%;
-        margin-top: 5%;
+        margin-top: 7%;
     }
 
     .tournament-body {
