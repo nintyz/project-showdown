@@ -50,7 +50,7 @@
                         <div class="tournament-prize">
                             <span class="m-3">Prize: $1,642,128</span>
                         </div>
-                        <div class="tournament-learn-more">
+                        <div class="tournament-register">
                             <button @click="goToLogin" class="tournament-btn">Register</button>
                         </div>
                     </div>
@@ -76,7 +76,7 @@
                         <div class="tournament-prize">
                             <span class="m-3">Prize: $5,342,128</span>
                         </div>
-                        <div class="tournament-learn-more">
+                        <div class="tournament-register">
                             <button @click="goToLogin" class="tournament-btn">Register</button>
                         </div>
                     </div>
@@ -102,7 +102,7 @@
                         <div class="tournament-prize">
                             <span class="m-3">Prize: $7,642,328</span>
                         </div>
-                        <div class="tournament-learn-more">
+                        <div class="tournament-register">
                             <button @click="goToLogin" class="tournament-btn">Register</button>
                         </div>
                     </div>
@@ -143,7 +143,7 @@
     }
 
     .navbar {
-        margin-left:100px;
+        margin-left:10%;
     }
     
     .landing-container {
@@ -157,9 +157,15 @@
     }
 
     .left-content {
-        padding-top: 150px;
-        padding-left: 250px;
-        padding-right: 250px;
+        width: 50%;
+        padding-top: 10%;
+        padding-left: 10%;
+    }
+
+    .right-content {
+        display: flex;
+        justify-content: flex-end;
+        width: 50%;
     }
 
     .showdown-title,
@@ -192,14 +198,14 @@
 
     .showdown-description {
         font-size: 20px;
-        margin-top: 20px;
+        margin-top: 5%;
     }
 
     .get-started {
         color: #fea006;
         font-weight: 500;
         font-size: 20px;
-        margin-top: 20px;
+        margin-top: 5%;
         align-self: flex-start;
         cursor: pointer;
     }
@@ -222,15 +228,15 @@
     }
 
     .tournament-header {
-        margin-left: 120px;
-        margin-top: 125px;
+        margin-left: 5%;
+        margin-top: 5%;
     }
 
     .tournament-body {
         justify-content: space-around;
         margin-top: 25px;
-        padding-left: 80px;
-        padding-right: 80px;
+        padding-left: 3%;
+        padding-right: 3%;
         align-items: center;
         text-align: left;
     }
@@ -244,15 +250,14 @@
     .tournament-two,
     .tournament-three {
         background-color: #f3eeea;
-        width: 500px;
+        width: 50vh;
         height: 65vh;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
         align-items: center;
         font-size: 24px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
-        margin: 5px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
     .tournament-image-header {
@@ -271,8 +276,8 @@
         align-self: flex-start;
         text-align: left;
         font-weight: bold;
-        margin-left: 20px;
-        margin-top: 20px;
+        margin-left: 5%;
+        margin-top: 5%;
         font-size: 28px;
     }
 
@@ -281,7 +286,7 @@
         align-self: flex-start;
         text-align: left;
         margin-left: 5%;
-        margin-top: 10px;
+        margin-top: 2%;
         font-size: 18px;
     }
 
@@ -289,7 +294,7 @@
         width: 90%;
         height: 2px;
         background-color: #ccc; 
-        margin: 20px 0;
+        margin-top: 3%;
     }
 
     .tournament-surface,
@@ -297,20 +302,17 @@
         align-self: flex-start;
         text-align: left;
         margin-left: 2%;
-        margin-top: 10px;
+        margin-top: 2%;
         font-size: 18px;
-    }
-
-    .tournament-learn-more {
-        margin-top:40px;
     }
 
     .tournament-btn {
         background-color: #fea006;
         color: white;
         border: white;
-        padding: 5px;
-        width: 50vh;
+        padding: 1%;
+        width: 40vh;
+        margin-top: 5%;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
