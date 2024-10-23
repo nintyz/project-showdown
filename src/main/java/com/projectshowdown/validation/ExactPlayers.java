@@ -9,10 +9,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Constraint(validatedBy = ExactPlayersValidator.class)
-@Target({ ElementType.METHOD, ElementType.FIELD, ElementType.ANNOTATION_TYPE })
+@Target({ ElementType.TYPE })  // Target the entire class (Tournament)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ExactPlayers {
-    String message() default "The tournament must have exactly 32 players";
+    String message() default "The number of players must match the required number for this tournament";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }
