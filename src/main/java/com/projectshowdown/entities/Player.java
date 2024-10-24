@@ -43,6 +43,10 @@ public class Player {
     @Positive(message = "The value must be a positive number")
     private double peakElo;
 
+    private String country;
+    private String bio;
+    private String achievements;
+
     // Parameterized constructor with essential fields
     public Player(String id, int rank, String name, String dob) {
         this.rank = rank;
