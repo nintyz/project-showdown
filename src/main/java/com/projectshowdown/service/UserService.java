@@ -53,7 +53,7 @@ public class UserService implements UserDetailsService {
       if (!querySnapshot.isEmpty()) {
         // Assuming there is only one user with the given username
         DocumentSnapshot document = querySnapshot.getDocuments().get(0);
-        String password = document.getString("password"); // Assuming password is stored
+        String password = document.getString("password");
         return org.springframework.security.core.userdetails.User.withUsername(email)
             .password(password) // Hashed password
             .authorities(document.getString("role"))
