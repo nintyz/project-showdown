@@ -115,22 +115,43 @@ public class TournamentService {
         return "Tournament with ID: " + tournamentId + " updated successfully at: " + writeResult.get().getUpdateTime();
     }
 
-    // // Method to retrieve all matches in a tournament
-    // public List<Match> getMatchesByTournamentId(String tournamentId) throws
-    // ExecutionException, InterruptedException {
-    // List<Match> matches = new ArrayList<>();
-    // Firestore db = getFirestore();
-    // Query matchesQuery = db.collection("matches").whereEqualTo("tournamentId",
-    // tournamentId);
-    // ApiFuture<QuerySnapshot> future = matchesQuery.get();
-    // List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+    // Method to register a new player
+    public String registerUser(String tournamentId, String userId)
+            throws ExecutionException, InterruptedException {
+        Firestore db = getFirestore();
 
-    // for (DocumentSnapshot document : documents) {
-    // if (document.exists()) {
-    // matches.add(document.toObject(Match.class));
-    // }
-    // }
+        // Get a reference to the document
+        DocumentReference docRef = db.collection("tournaments").document(tournamentId);
 
-    // return matches;
-    // }
+        // Check if the document exists
+        ApiFuture<DocumentSnapshot> future = docRef.get();
+        DocumentSnapshot document = future.get();
+        if (!document.exists()) {
+            throw new TournamentNotFoundException(tournamentId);
+        }
+
+        List<String> currentUsers = (List<String>) document.get("users");
+
+        if (currentUsers == null) {
+            currentUsers = new ArrayList<>(); // Initialize a new list if none exists
+        } else {
+            //check if user already registered.
+            for (String user : currentUsers) {
+                if(user.equals( userId)){
+                    return "You have already registered for this Tournament!";
+                }
+            }
+        }
+
+        // Add the new player to the current list
+        currentUsers.add(userId);
+
+        // Update the 'players' field with the updated list
+        ApiFuture<WriteResult> writeResult = docRef.update("users", currentUsers);
+
+        // Return success message with the update time
+        return "UserId:" + userId + " has successfully joined Tournament with ID: " + tournamentId
+                + " successfully at: " + writeResult.get().getUpdateTime();
+    }
+
 }

@@ -52,4 +52,11 @@ public class TournamentController {
             throws ExecutionException, InterruptedException {
         return tournamentService.updateTournament(id, tournamentData);
     }
+
+    @PutMapping("/tournament/{id}/register/{userId}")
+    @ResponseStatus(HttpStatus.OK)
+    public String registerUser(@PathVariable String id, @PathVariable String userId)
+            throws ExecutionException, InterruptedException {
+        return tournamentService.registerUser(id, userId);
+    }
 }

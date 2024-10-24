@@ -79,6 +79,8 @@ public class SecurityConfig {
                         // tournaments CRUD
                         .requestMatchers(HttpMethod.GET, "/tournaments", "/tournaments/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/tournaments").hasAnyAuthority("admin","organizer")
+                        .requestMatchers(HttpMethod.PUT, "/tournaments/**").hasAnyAuthority("admin","organizer")
+                        .requestMatchers(HttpMethod.PUT, "/tournaments/*/register/*").permitAll()
 
                         // chat bot
                         .requestMatchers(HttpMethod.POST, "/chatbot/message").permitAll()
