@@ -167,7 +167,7 @@ public class UserService implements UserDetailsService {
 
         int rank = Integer.parseInt(values[0]);
         String name = values[1];
-        LocalDate dob = LocalDate.parse(values[2]);
+        String dob = values[2];
         Double elo = Double.parseDouble(values[3]);
         Double hardRaw = values[4].equals("-") ? null : Double.parseDouble(values[4]);
         Double clayRaw = values[5].equals("-") ? null : Double.parseDouble(values[5]);

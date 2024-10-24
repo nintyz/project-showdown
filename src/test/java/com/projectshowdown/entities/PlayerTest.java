@@ -26,7 +26,7 @@ public class PlayerTest {
         validator = factory.getValidator();
 
         // Arrange
-        player = new Player(1, "John Doe", LocalDate.now(), 24, 2000.0, 2500.0, 500.0, 400.0, 300.0);
+        player = new Player(1, "John Doe", LocalDate.now().toString(), 24, 2000.0, 2500.0, 500.0, 400.0, 300.0);
     }
 
     @Test
@@ -52,7 +52,7 @@ public class PlayerTest {
     @Test
     public void testPlayerAgeNegative() {
         // Act
-        player.setDob(LocalDate.now().plusYears(5));
+        player.setDob(LocalDate.now().plusYears(5).toString());
 
         // Assert
         Set<ConstraintViolation<Player>> violations = validator.validate(player);
@@ -62,7 +62,7 @@ public class PlayerTest {
     @Test
     public void testPlayerAgeExceed() {
         // Act
-        player.setDob(LocalDate.now().minusYears(200));
+        player.setDob(LocalDate.now().minusYears(200).toString());
 
         // Assert
         Set<ConstraintViolation<Player>> violations = validator.validate(player);
@@ -72,7 +72,7 @@ public class PlayerTest {
     @Test
     public void testPlayerAgeValid() {
         // Act
-        player.setDob(LocalDate.now().minusYears(26));
+        player.setDob(LocalDate.now().minusYears(26).toString());
 
         // Assert
         Set<ConstraintViolation<Player>> violations = validator.validate(player);
@@ -144,7 +144,7 @@ public class PlayerTest {
         // Act
         player.setElo(2000);
         player.setPeakElo(2500);
-        player.setDob(LocalDate.now().minusYears(25));
+        player.setDob(LocalDate.now().minusYears(25).toString());
         player.setPeakAge(24);
 
         // Assert

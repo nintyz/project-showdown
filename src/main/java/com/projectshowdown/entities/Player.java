@@ -1,6 +1,7 @@
 package com.projectshowdown.entities;
 
 import java.time.LocalDate;
+import java.time.Period;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -24,7 +25,7 @@ public class Player {
     @Size(min = 2, max = 50, message = "Name must be between 2 and 50 characters")
     private String name;
 
-    private LocalDate dob;
+    private String dob;
 
     @Positive(message = "The value must be a positive number")
     private double elo;
@@ -43,7 +44,7 @@ public class Player {
     private double peakElo;
 
     // Parameterized constructor with essential fields
-    public Player(String id, int rank, String name, LocalDate dob) {
+    public Player(String id, int rank, String name, String dob) {
         this.rank = rank;
         this.name = name;
         this.dob = dob;
@@ -65,16 +66,20 @@ public class Player {
         this.name = name;
     }
 
-    public LocalDate getDob() {
+    public String getDob() {
         return dob;
     }
 
-    public void setDob(LocalDate age) {
-        this.dob = age;
+    public void setDob(String dob) {
+        this.dob = dob;
     }
 
-    public int getAge() {
-        return LocalDate.now().getYear() - getDob().getYear();
+    public Integer getAge() {
+        if (dob == null) {
+            return null;
+        }
+        LocalDate actualDob = LocalDate.parse(dob);
+        return Period.between(actualDob, LocalDate.now()).getYears();
     }
 
     public double getPeakAge() {
