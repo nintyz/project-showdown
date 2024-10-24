@@ -14,7 +14,7 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
 
   // Get Player's Age by Name
   function getAgeByName(agent) {
-    const userName = agent.parameters.name;
+    const userName = agent.parameters.name_age;
 
     if (!userName) {
       agent.add("Please provide a name.");
@@ -45,7 +45,7 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
 
   // Get Player's Elo by Name
   function getEloByName(agent) {
-    const userName = agent.parameters.name;
+    const userName = agent.parameters.name_elo;
 
     if (!userName) {
       agent.add("Please provide a name.");
@@ -76,7 +76,7 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
 
   // Get Player's Rank by Name
   function getRankByName(agent) {
-    const userName = agent.parameters.name;
+    const userName = agent.parameters.name_rank;
 
     if (!userName) {
       agent.add("Please provide a name.");

@@ -52,7 +52,7 @@ public class UserService implements UserDetailsService {
       if (!querySnapshot.isEmpty()) {
         // Assuming there is only one user with the given username
         DocumentSnapshot document = querySnapshot.getDocuments().get(0);
-        String password = document.getString("password"); // Assuming password is stored
+        String password = document.getString("password");
         return org.springframework.security.core.userdetails.User.withUsername(email)
             .password(password) // Hashed password
             .authorities(document.getString("role"))
@@ -157,8 +157,8 @@ public class UserService implements UserDetailsService {
       sc.useDelimiter(",|\n|\n");
 
       while (sc.hasNext()) {
-        String line = sc.nextLine(); //extract current row
-        String[] values = line.split(","); //split row to tokens
+        String line = sc.nextLine(); // extract current row
+        String[] values = line.split(","); // split row to tokens
 
         String email = values[1].replaceAll("\\u00A0", "").toLowerCase();
         email += "@gmail.com";
@@ -166,15 +166,18 @@ public class UserService implements UserDetailsService {
 
         int rank = Integer.parseInt(values[0]);
         String name = values[1];
-        Double age = Double.parseDouble(values[2]);
+        String dob = values[2];
         Double elo = Double.parseDouble(values[3]);
         Double hardRaw = values[4].equals("-") ? null : Double.parseDouble(values[4]);
         Double clayRaw = values[5].equals("-") ? null : Double.parseDouble(values[5]);
         Double grassRaw = values[6].equals("-") ? null : Double.parseDouble(values[6]);
-        Double peakAge = Double.parseDouble(values[11]);
-        Double peakElo = Double.parseDouble(values[12]);
+        Double peakAge = Double.parseDouble(values[7]);
+        Double peakElo = Double.parseDouble(values[8]);
+        String country = values[9];
+        String bio = "";
+        String achievements = "";
 
-        Player currentRowPlayerDetails = new Player(rank, name, age, elo, hardRaw, clayRaw, grassRaw, peakAge, peakElo);
+        Player currentRowPlayerDetails = new Player(rank, name, dob, elo, hardRaw, clayRaw, grassRaw, peakAge, peakElo, country, bio, achievements);
 
         UserDTO currentRowUser = new UserDTO("", email, fixedPassword, "player", null, currentRowPlayerDetails);
 
