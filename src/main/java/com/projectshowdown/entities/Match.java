@@ -16,7 +16,9 @@ public class Match {
     private String player1Id;
     private String player2Id;
     private String winnerId;
-    private String score;
+    private String loserId;
+    private int player1Score;
+    private int player2Score;
     private double mmrDifference;
     private String matchDate;
     private String stage;
@@ -71,14 +73,28 @@ public class Match {
         this.winnerId = winnerId;
     }
 
-    // Getter for score
-    public String getScore() {
-        return score;
+    public String getLoserId(){
+        return loserId;
     }
 
-    // Setter for score
-    public void setScore(String score) {
-        this.score = score;
+    public void setLoserId(String loserId){
+        this.loserId = loserId;
+    }
+
+    public int getPlayer1Score(){
+        return player1Score;
+    }
+
+    public void setPlayer1Score(int score) {
+        this.player1Score = score;
+    }
+
+    public int getPlayer2Score(){
+        return this.player2Score;
+    }
+
+    public void setPlayer2Score(int score){
+        this.player2Score = score;
     }
 
     // Getter for mmrDifference

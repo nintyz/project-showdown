@@ -1,30 +1,23 @@
 package com.projectshowdown.entities;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.TreeMap;
-
-import com.projectshowdown.validation.ExactPlayers;
-
-// import com.google.firebase.database.DatabaseReference;
-// import com.google.firebase.database.FirebaseDatabase;
-
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.TreeMap;
+
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class Tournament {
-
-    @NotNull(message = "Tournament ID should not be empty")
-    private String tournamentId;
+    private String id;
 
     @NotNull(message = "Tournament name should not be empty")
     private String name;
@@ -33,138 +26,197 @@ public class Tournament {
     private String type;
     private String venue;
     private String date;
+    private int numPlayers;
+    private String status;
 
-    @ExactPlayers(message = "The tournament must have exactly 32 users")
-    private ArrayList<User> users = new ArrayList<User>();
+    private double minMMR;
+    private double maxMMR;
 
-    // Parameterized constructor with essential fields
-    public Tournament(String tournamentId, String name, int year, String type) {
-        this.tournamentId = tournamentId;
+    private ArrayList<User> users = new ArrayList<>();
+
+    public Tournament(String id, String name, int year, String type, String venue, String date, int numPlayers, String status, double minMMR, double maxMMR) {
+        this.id = id;
         this.name = name;
         this.year = year;
         this.type = type;
-        this.users = new ArrayList<>(); // Initialize with an empty list
+        this.venue = venue;
+        this.date = date;
+        this.numPlayers = numPlayers;
+        this.status = status;
+        this.minMMR = minMMR;
+        this.maxMMR = maxMMR;
+        this.users = new ArrayList<>();
     }
 
-    // Getters and Setters
     public String getTournamentId() {
-        return tournamentId;
+        return id;
     }
-
-    public void setTournamentId(String tournamentId) {
-        this.tournamentId = tournamentId;
+    
+    public void setTournamentId(String id) {
+        this.id = id;
     }
-
+    
     public String getName() {
         return name;
     }
-
+    
     public void setName(String name) {
         this.name = name;
     }
-
+    
     public int getYear() {
         return year;
     }
-
+    
     public void setYear(int year) {
         this.year = year;
     }
-
+    
     public String getType() {
         return type;
     }
-
+    
     public void setType(String type) {
         this.type = type;
     }
-
+    
     public String getVenue() {
         return venue;
     }
-
+    
     public void setVenue(String venue) {
         this.venue = venue;
     }
-
+    
     public String getDate() {
         return date;
     }
-
+    
     public void setDate(String date) {
         this.date = date;
     }
-
+    
+    public int getNumPlayers() {
+        return numPlayers;
+    }
+    
+    public void setNumPlayers(int numPlayers) {
+        this.numPlayers = numPlayers;
+    }
+    
+    public double getMinMMR() {
+        return minMMR;
+    }
+    
+    public void setMinMMR(double minMMR) {
+        this.minMMR = minMMR;
+    }
+    
+    public double getMaxMMR() {
+        return maxMMR;
+    }
+    
+    public void setMaxMMR(double maxMMR) {
+        this.maxMMR = maxMMR;
+    }
+    
     public ArrayList<User> getUsers() {
         return users;
     }
-
-    public void addUser(User player) {
-        this.users.add(player);
+    
+    public void setUsers(ArrayList<User> users) {
+        this.users = users;
     }
 
-    // implement the bracket from the users
-    // arraylist of users participating
+    public void addUser(User player) {
+        double playerMMR = player.getPlayerDetails().calculateMMR();
+
+        // Check if the user's MMR is within the tournament's range
+        if (playerMMR >= minMMR && playerMMR <= maxMMR) {
+            this.users.add(player);
+        } else {
+            throw new IllegalArgumentException("Player with MMR " + playerMMR + " is not eligible for this tournament (Allowed range: " + minMMR + " - " + maxMMR + ")");
+        }
+    }
+
     public TreeMap<Integer, User> getSeedings() {
         TreeMap<Integer, User> seedings = new TreeMap<>();
-        ArrayList<User> users = this.getUsers(); // Retrieve users
+        ArrayList<User> users = this.getUsers(); 
 
-        // Sort users by MMR in descending order
         Collections.sort(users, new Comparator<User>() {
             @Override
             public int compare(User p1, User p2) {
                 double mmr1 = p1.getPlayerDetails().calculateMMR();
                 double mmr2 = p2.getPlayerDetails().calculateMMR();
-                // Sort in descending order of MMR (highest MMR first)
                 return Double.compare(mmr2, mmr1);
             }
         });
 
-        // Assign seedings based on sorted order
         for (int i = 0; i < users.size(); i++) {
             User player = users.get(i);
-            seedings.put(i + 1, player); // i + 1 because seedings start from 1
+            seedings.put(i + 1, player);
         }
 
-        return seedings; // Return the sorted seedings TreeMap
+        return seedings;
     }
 
-    // method that creates matches based on seedings
     public List<Match> createMatches() {
         List<Match> matches = new ArrayList<>();
 
-        // Sort users based on their MMR (or seedings)
-        // assume that the number of users is already 32
         Collections.sort(users, Comparator.comparingDouble(user -> user.getPlayerDetails().calculateMMR()));
-        // Create matches by pairing best vs. worst
-        for (int i = 0; i < users.size() / 2; i++) {
-            User user1 = users.get(i); // Best seeded player
-            User user2 = users.get(users.size() - 1 - i); // Worst seeded player
 
-            // Create match details
-            String matchId = generateMatchId(); // Generate a unique match ID
-            double mmrDifference = Math
-                    .abs(user1.getPlayerDetails().calculateMMR() - user2.getPlayerDetails().calculateMMR());
+        if (users.size() % 2 != 0) {
+            throw new IllegalStateException("The number of players should be even to create matches.");
+        }
+        
+        int max = users.size() / 2;
+        int increment = max / 2;
+
+        for (int i = 0; i < users.size() / 2; i++) {
+            User user1 = users.get(i);
+            User user2 = users.get(users.size() - 1 - i);
+
+            double mmrDifference = Math.abs(user1.getPlayerDetails().calculateMMR() - user2.getPlayerDetails().calculateMMR());
+
+            // logic to get the match id and number
+            int bracket = i % increment;
+            int matchNumber = 0;
+            
+            if(i % 2 == 0){
+                if (i < increment){
+                    matchNumber = bracket + 1;
+                }
+                if (i >= increment){
+                    matchNumber = bracket + 2;
+                }
+            } else {
+                if (i <= increment){
+                    matchNumber = max - bracket + 1;
+                }
+                if (i > increment){
+                    matchNumber = max - bracket;
+                }
+            }
 
             Match match = new Match();
-            match.setMatchId(matchId);
-            match.setTournamentId(this.tournamentId);
+            match.setTournamentId(this.id);
             match.setPlayer1Id(user1.getId());
             match.setPlayer2Id(user2.getId());
-            match.setScore("0-0"); // Initial score
+            match.setPlayer1Score(0);
+            match.setPlayer2Score(0);
             match.setMmrDifference(mmrDifference);
-            match.setMatchDate(""); // Set the current date
-            match.setStage("Round 1"); // You can change this based on the tournament structure
-
-            // Add the match to the list
+            match.setMatchDate(this.date);
+            match.setStage("Round 1");
+            String matchId = generateMatchId(match, matchNumber);
+            match.setMatchId(matchId);
             matches.add(match);
         }
 
         return matches;
     }
 
-    private String generateMatchId() {
-        // Implement unique ID generation logic here
-        return this.name + System.currentTimeMillis(); // Simple example using timestamp
+    private String generateMatchId(Match m, int matchNo) {
+        String number = "" + matchNo;
+        return this.name + "_" + m.getStage() + "_" + number;
     }
 }

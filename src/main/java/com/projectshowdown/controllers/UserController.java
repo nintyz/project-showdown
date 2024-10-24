@@ -57,12 +57,6 @@ public class UserController {
         return userService.addPlayer(playerData);
     }
 
-    @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping("/import")
-    public String massImport() {
-        return userService.massImport();
-    }
-
     @PutMapping("/user/{id}")
     @ResponseStatus(HttpStatus.OK)
     public String updatePlayer(@PathVariable String id, @RequestBody User playerData)
@@ -74,6 +68,13 @@ public class UserController {
     @DeleteMapping("/user/{id}")
     public String deletePlayer(@PathVariable String id) throws ExecutionException, InterruptedException {
         return userService.deletePlayer(id);
+    }
+
+
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/import")
+    public String massImport() {
+        return userService.massImport();
     }
 
 }
