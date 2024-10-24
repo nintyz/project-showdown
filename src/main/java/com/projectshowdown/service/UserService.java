@@ -22,8 +22,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.threeten.bp.LocalDate;
 
+import java.time.LocalDate;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -158,8 +158,8 @@ public class UserService implements UserDetailsService {
       sc.useDelimiter(",|\n|\n");
 
       while (sc.hasNext()) {
-        String line = sc.nextLine(); //extract current row
-        String[] values = line.split(","); //split row to tokens
+        String line = sc.nextLine(); // extract current row
+        String[] values = line.split(","); // split row to tokens
 
         String email = values[1].replaceAll("\\u00A0", "").toLowerCase();
         email += "@gmail.com";

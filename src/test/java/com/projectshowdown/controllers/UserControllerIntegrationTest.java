@@ -3,7 +3,6 @@ package com.projectshowdown.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.projectshowdown.dto.UserDTO;
 import com.projectshowdown.entities.Player;
-import com.projectshowdown.entities.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +11,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
+import java.time.LocalDate;
 
 import java.util.Map;
 
@@ -38,7 +38,7 @@ public class UserControllerIntegrationTest {
     @BeforeEach
     void setUp() throws Exception {
         baseUrl = "http://localhost:" + port;
-        Player playerDetails = new Player(1, "Test Player", 25, 24, 2000.0, 2500.0, 500.0, 400.0, 300.0);
+        Player playerDetails = new Player(1, "Test Player", LocalDate.now(), 24, 2000.0, 2500.0, 500.0, 400.0, 300.0);
         testUserDTO = new UserDTO(null, "test@example.com", "Password1@", "player", null, playerDetails);
 
         headers = new HttpHeaders();

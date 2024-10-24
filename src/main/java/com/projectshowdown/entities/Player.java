@@ -1,6 +1,6 @@
 package com.projectshowdown.entities;
 
-import org.threeten.bp.LocalDate;
+import java.time.LocalDate;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

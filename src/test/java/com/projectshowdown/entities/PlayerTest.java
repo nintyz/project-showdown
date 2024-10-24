@@ -7,7 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.threeten.bp.LocalDate;
+
+import java.time.LocalDate;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
