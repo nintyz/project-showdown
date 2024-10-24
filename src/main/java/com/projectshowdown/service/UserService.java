@@ -22,6 +22,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.threeten.bp.LocalDate;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -166,7 +167,7 @@ public class UserService implements UserDetailsService {
 
         int rank = Integer.parseInt(values[0]);
         String name = values[1];
-        Double age = Double.parseDouble(values[2]);
+        LocalDate dob = LocalDate.parse(values[2]);
         Double elo = Double.parseDouble(values[3]);
         Double hardRaw = values[4].equals("-") ? null : Double.parseDouble(values[4]);
         Double clayRaw = values[5].equals("-") ? null : Double.parseDouble(values[5]);
@@ -174,7 +175,7 @@ public class UserService implements UserDetailsService {
         Double peakAge = Double.parseDouble(values[11]);
         Double peakElo = Double.parseDouble(values[12]);
 
-        Player currentRowPlayerDetails = new Player(rank, name, age, elo, hardRaw, clayRaw, grassRaw, peakAge, peakElo);
+        Player currentRowPlayerDetails = new Player(rank, name, dob, elo, hardRaw, clayRaw, grassRaw, peakAge, peakElo);
 
         UserDTO currentRowUser = new UserDTO("", email, fixedPassword, "player", null, currentRowPlayerDetails);
 
