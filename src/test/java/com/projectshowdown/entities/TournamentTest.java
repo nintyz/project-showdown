@@ -30,7 +30,7 @@ public class TournamentTest {
         }
 
         // Set MMR range between 1000 and 1500
-        tournament = new Tournament("T001", "Showdown Tournament", 2024, "Single Elimination", "Stadium", "2024-10-15", 32, 1000, 1500);
+        tournament = new Tournament("T001", "Showdown Tournament", 2024, "Single Elimination", "Stadium", "2024-10-15", 32, "ongoing", 1000, 1500);
     }
 
     @Test

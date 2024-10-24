@@ -1,6 +1,5 @@
 package com.projectshowdown.entities;
 
-import com.projectshowdown.validation.ExactPlayers;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,11 +16,8 @@ import java.util.TreeMap;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ExactPlayers // Applying the custom annotation to validate exact number of players
 public class Tournament {
-
-    @NotNull(message = "Tournament ID should not be empty")
-    private String tournamentId;
+    private String id;
 
     @NotNull(message = "Tournament name should not be empty")
     private String name;
@@ -31,29 +27,33 @@ public class Tournament {
     private String venue;
     private String date;
     private int numPlayers;
+    private String status;
 
     private double minMMR;
     private double maxMMR;
 
     private ArrayList<User> users = new ArrayList<>();
 
-    public Tournament(String tournamentId, String name, int year, String type, int numPlayers, double minMMR, double maxMMR) {
-        this.tournamentId = tournamentId;
+    public Tournament(String id, String name, int year, String type, String venue, String date, int numPlayers, String status, double minMMR, double maxMMR) {
+        this.id = id;
         this.name = name;
         this.year = year;
         this.type = type;
+        this.venue = venue;
+        this.date = date;
         this.numPlayers = numPlayers;
+        this.status = status;
         this.minMMR = minMMR;
         this.maxMMR = maxMMR;
         this.users = new ArrayList<>();
     }
 
     public String getTournamentId() {
-        return tournamentId;
+        return id;
     }
     
-    public void setTournamentId(String tournamentId) {
-        this.tournamentId = tournamentId;
+    public void setTournamentId(String id) {
+        this.id = id;
     }
     
     public String getName() {
@@ -199,7 +199,7 @@ public class Tournament {
             }
 
             Match match = new Match();
-            match.setTournamentId(this.tournamentId);
+            match.setTournamentId(this.id);
             match.setPlayer1Id(user1.getId());
             match.setPlayer2Id(user2.getId());
             match.setPlayer1Score(0);
