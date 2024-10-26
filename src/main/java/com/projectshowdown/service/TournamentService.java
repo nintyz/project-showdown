@@ -135,9 +135,9 @@ public class TournamentService {
         if (currentUsers == null) {
             currentUsers = new ArrayList<>(); // Initialize a new list if none exists
         } else {
-            //check if user already registered.
+            // check if user already registered.
             for (String user : currentUsers) {
-                if(user.equals( userId)){
+                if (user.equals(userId)) {
                     return "You have already registered for this Tournament!";
                 }
             }
@@ -152,6 +152,37 @@ public class TournamentService {
         // Return success message with the update time
         return "UserId:" + userId + " has successfully joined Tournament with ID: " + tournamentId
                 + " successfully at: " + writeResult.get().getUpdateTime();
+    }
+
+    // Method to register a new player
+    public String cancelRegistration(String tournamentId, String userId)
+            throws ExecutionException, InterruptedException {
+        Firestore db = getFirestore();
+
+        // Get a reference to the document
+        DocumentReference docRef = db.collection("tournaments").document(tournamentId);
+
+        // Check if the document exists
+        ApiFuture<DocumentSnapshot> future = docRef.get();
+        DocumentSnapshot document = future.get();
+        if (!document.exists()) {
+            throw new TournamentNotFoundException(tournamentId);
+        }
+
+        List<String> registeredUsers = (List<String>) document.get("users");
+
+        if (registeredUsers.contains(userId)) {
+            registeredUsers.remove(userId);
+        } else {
+            return "You are not registered to this event!";
+        }
+
+        // Update the 'players' field with the updated list
+        ApiFuture<WriteResult> writeResult = docRef.update("users", registeredUsers);
+
+        // Return success message with the update time
+        return "UserId:" + userId + " has successfully unregistered from tournament: " + tournamentId
+                + " at: " + writeResult.get().getUpdateTime();
     }
 
 }

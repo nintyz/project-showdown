@@ -211,7 +211,7 @@ public class UserService implements UserDetailsService {
         String line = sc.nextLine(); // extract current row
         String[] values = line.split(","); // split row to tokens
 
-        String email = values[1].replaceAll("\\u00A0", "").toLowerCase();
+        String email = values[1].replaceAll("\\u00A0", "").toLowerCase().trim();
         email += "@gmail.com";
         String fixedPassword = "$2a$12$NLiiv7gVsA1ltsI1tux.xuE8kEKfAmIHIkloVXwqxHXArgfiJ1XoK";
 
