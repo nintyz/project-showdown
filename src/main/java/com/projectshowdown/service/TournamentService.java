@@ -10,6 +10,7 @@ import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
 import com.google.firebase.cloud.FirestoreClient;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -18,11 +19,16 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
+import com.projectshowdown.dto.UserDTO;
 import com.projectshowdown.entities.Tournament;
 import com.projectshowdown.exceptions.TournamentNotFoundException;
+import com.projectshowdown.entities.User;
 
 @Service
 public class TournamentService {
+
+    @Autowired
+    UserService userService;
 
     // Helper method to get Firestore instance
     private Firestore getFirestore() {
@@ -130,14 +136,24 @@ public class TournamentService {
             throw new TournamentNotFoundException(tournamentId);
         }
 
+        UserDTO user = userService.getPlayer(userId);
+        Tournament tournament = getTournament(tournamentId);
+        if (!tournament.checkUserEligibility(user)) {
+            return "Player with MMR " + user.getPlayerDetails().calculateMMR()
+                    + " is not eligible for this tournament (Allowed range: " + tournament.getMinMMR() + " - "
+                    + tournament.getMaxMMR() + ")";
+        }
+
+        System.out.println("player MMR:" + user.getPlayerDetails().calculateMMR());
+
         List<String> currentUsers = (List<String>) document.get("users");
 
         if (currentUsers == null) {
             currentUsers = new ArrayList<>(); // Initialize a new list if none exists
         } else {
             // check if user already registered.
-            for (String user : currentUsers) {
-                if (user.equals(userId)) {
+            for (String specificUser : currentUsers) {
+                if (specificUser.equals(userId)) {
                     return "You have already registered for this Tournament!";
                 }
             }
