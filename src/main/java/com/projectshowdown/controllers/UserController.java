@@ -48,13 +48,13 @@ public class UserController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/users")
-    public String addPlayer(@Valid @RequestBody User playerData) throws ExecutionException, InterruptedException {
+    public String createUser(@Valid @RequestBody User playerData) throws ExecutionException, InterruptedException {
         // return playerData.getPlayerDetails().getName().toString();
 
         // Encode the password before storing it
         playerData.setPassword(passwordEncoder.encode(playerData.getPassword()));
 
-        return userService.addPlayer(playerData);
+        return userService.createUser(playerData);
     }
 
     @PutMapping("/user/{id}")

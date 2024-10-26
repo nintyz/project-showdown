@@ -128,9 +128,16 @@ public class UserService implements UserDetailsService {
   }
 
   // Method to add a new player document to the 'users' collection
-  public String addPlayer(User userData) throws ExecutionException, InterruptedException {
+  public String createUser(User userData) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
     // Generate a new document reference with a random ID
+    ApiFuture<QuerySnapshot> future = db.collection("users").whereEqualTo("email", userData.getEmail()).get();
+
+    QuerySnapshot querySnapshot = future.get();
+    if (!querySnapshot.isEmpty()) {
+      return "A user account with the email " + userData.getEmail() + " already exists!";
+    }
+
     DocumentReference docRef = db.collection("users").document();
     // Get the generated document ID
     String generatedId = docRef.getId();
