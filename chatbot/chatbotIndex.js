@@ -30,9 +30,11 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
           return;
         }
 
-        let userAge = 0;
+        let userAge = 0
         snapshot.forEach(doc => {
-          userAge = doc.data().playerDetails.age;
+          let dob = doc.data().playerDetails.dob;
+
+          userAge = calculateAge(dob);
         });
 
         agent.add(`${userName.name} is ${userAge} years old.`);
@@ -42,6 +44,21 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
         agent.add('Error retrieving data from Firestore: ' + error.message);
       });
   }
+
+  function calculateAge(dob) {
+    const dobDate = new Date(dob);
+    const today = new Date();
+    
+    let age = today.getFullYear() - dobDate.getFullYear();
+    const monthDiff = today.getMonth() - dobDate.getMonth();
+    
+    // Decrement age by 1 if the user's birthday has not yet occurred this year.
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dobDate.getDate())) {
+        age--;
+    }
+    
+    return age;
+  } 
 
   // Get Player's Elo by Name
   function getEloByName(agent) {

@@ -52,7 +52,7 @@ public class UserService implements UserDetailsService {
       if (!querySnapshot.isEmpty()) {
         // Assuming there is only one user with the given username
         DocumentSnapshot document = querySnapshot.getDocuments().get(0);
-        String password = document.getString("password"); // Assuming password is stored
+        String password = document.getString("password");
         return org.springframework.security.core.userdetails.User.withUsername(email)
             .password(password) // Hashed password
             .authorities(document.getString("role"))
@@ -128,9 +128,16 @@ public class UserService implements UserDetailsService {
   }
 
   // Method to add a new player document to the 'users' collection
-  public String addPlayer(User userData) throws ExecutionException, InterruptedException {
+  public String createUser(User userData) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
     // Generate a new document reference with a random ID
+    ApiFuture<QuerySnapshot> future = db.collection("users").whereEqualTo("email", userData.getEmail()).get();
+
+    QuerySnapshot querySnapshot = future.get();
+    if (!querySnapshot.isEmpty()) {
+      return "A user account with the email " + userData.getEmail() + " already exists!";
+    }
+
     DocumentReference docRef = db.collection("users").document();
     // Get the generated document ID
     String generatedId = docRef.getId();
@@ -144,58 +151,6 @@ public class UserService implements UserDetailsService {
 
     // Return success message with timestamp
     return "Player created successfully with ID: " + generatedId + " at: " + writeResult.get().getUpdateTime();
-  }
-
-  public String massImport() {
-    Firestore db = getFirestore();
-    CollectionReference usersCollection = db.collection("users");
-
-    try (Scanner sc = new Scanner(new File(
-        "C:\\Users\\coben\\OneDrive - Singapore Management University\\Uni - Year 2 Sem 1\\CS203 Collaborative Software Development\\Project\\tenniselo.csv"),
-        "UTF-8")) {
-      sc.nextLine();// skip header
-      sc.useDelimiter(",|\n|\n");
-
-      while (sc.hasNext()) {
-        String line = sc.nextLine(); //extract current row
-        String[] values = line.split(","); //split row to tokens
-
-        String email = values[1].replaceAll("\\u00A0", "").toLowerCase();
-        email += "@gmail.com";
-        String fixedPassword = "$2a$12$NLiiv7gVsA1ltsI1tux.xuE8kEKfAmIHIkloVXwqxHXArgfiJ1XoK";
-
-        int rank = Integer.parseInt(values[0]);
-        String name = values[1];
-        Double age = Double.parseDouble(values[2]);
-        Double elo = Double.parseDouble(values[3]);
-        Double hardRaw = values[4].equals("-") ? null : Double.parseDouble(values[4]);
-        Double clayRaw = values[5].equals("-") ? null : Double.parseDouble(values[5]);
-        Double grassRaw = values[6].equals("-") ? null : Double.parseDouble(values[6]);
-        Double peakAge = Double.parseDouble(values[11]);
-        Double peakElo = Double.parseDouble(values[12]);
-
-        Player currentRowPlayerDetails = new Player(rank, name, age, elo, hardRaw, clayRaw, grassRaw, peakAge, peakElo);
-
-        UserDTO currentRowUser = new UserDTO("", email, fixedPassword, "player", null, currentRowPlayerDetails);
-
-        DocumentReference docRef = usersCollection.document(); // Create a new document reference with a unique ID
-        currentRowUser.setId(docRef.getId());
-        docRef.set(currentRowUser).addListener(() -> {
-
-        }, Runnable::run);
-      }
-
-      while (sc.hasNext()) {
-        System.out.println("echo: " + sc.nextLine());
-      }
-      System.out.println("]'");
-
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
-    }
-
-    return "success";
-
   }
 
   // Method to update a player's document in the 'players' collection
@@ -247,5 +202,61 @@ public class UserService implements UserDetailsService {
     updatePlayer(userid, UserMapper.toUser(user));
     String qrCodeUri = twoFactorAuthService.generateQrCodeImageUri(secret);
     return twoFactorAuthService.generateQrCodeImage(qrCodeUri);
+  }
+
+  public String massImport() {
+    Firestore db = getFirestore();
+    CollectionReference usersCollection = db.collection("users");
+
+    try (Scanner sc = new Scanner(new File(
+        "C:\\Users\\coben\\OneDrive - Singapore Management University\\Uni - Year 2 Sem 1\\CS203 Collaborative Software Development\\Project\\tenniselo.csv"),
+        "UTF-8")) {
+      sc.nextLine();// skip header
+      sc.useDelimiter(",|\n|\n");
+
+      while (sc.hasNext()) {
+        String line = sc.nextLine(); // extract current row
+        String[] values = line.split(","); // split row to tokens
+
+        String email = values[1].replaceAll("\\u00A0", "").toLowerCase().trim();
+        email += "@gmail.com";
+        String fixedPassword = "$2a$12$NLiiv7gVsA1ltsI1tux.xuE8kEKfAmIHIkloVXwqxHXArgfiJ1XoK";
+
+        int rank = Integer.parseInt(values[0]);
+        String name = values[1];
+        String dob = values[2];
+        Double elo = Double.parseDouble(values[3]);
+        Double hardRaw = values[4].equals("-") ? null : Double.parseDouble(values[4]);
+        Double clayRaw = values[5].equals("-") ? null : Double.parseDouble(values[5]);
+        Double grassRaw = values[6].equals("-") ? null : Double.parseDouble(values[6]);
+        Double peakAge = Double.parseDouble(values[7]);
+        Double peakElo = Double.parseDouble(values[8]);
+        String country = values[9];
+        String bio = "";
+        String achievements = "";
+
+        Player currentRowPlayerDetails = new Player(rank, name, dob, elo, hardRaw, clayRaw, grassRaw, peakAge, peakElo,
+            country, bio, achievements);
+
+        UserDTO currentRowUser = new UserDTO("", email, fixedPassword, "player", null, currentRowPlayerDetails);
+
+        DocumentReference docRef = usersCollection.document(); // Create a new document reference with a unique ID
+        currentRowUser.setId(docRef.getId());
+        docRef.set(currentRowUser).addListener(() -> {
+
+        }, Runnable::run);
+      }
+
+      while (sc.hasNext()) {
+        System.out.println("echo: " + sc.nextLine());
+      }
+      System.out.println("]'");
+
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }
+
+    return "success";
+
   }
 }

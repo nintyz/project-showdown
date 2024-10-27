@@ -67,7 +67,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> createAuthenticationToken(@RequestBody User userCredentials) throws Exception {
+    public ResponseEntity<?> createAuthenticationToken(@RequestBody User userCredentials) {
         try {
             UserDetails userDetails = userDetailsService.loadUserByUsername(userCredentials.getEmail());
             authenticationManager.authenticate(
@@ -85,11 +85,11 @@ public class AuthenticationController {
                 return ResponseEntity.ok(Map.of("token", token, "requiresTwoFactor", false));
             }
         } catch (UsernameNotFoundException e) {
-            throw new Exception("Account with the specified email does not exist");
+            return ResponseEntity.badRequest().body("Account with the specified email does not exist");
         } catch (BadCredentialsException e) {
-            throw new Exception("Incorrect password");
+            return ResponseEntity.badRequest().body("Incorrect password");
         } catch (Exception e) {
-            throw new Exception("Authentication failed", e);
+            return ResponseEntity.badRequest().body("Authentication failed");
         }
     }
 
