@@ -48,19 +48,13 @@ public class UserController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/users")
-    public String addPlayer(@Valid @RequestBody User playerData) throws ExecutionException, InterruptedException {
+    public String createUser(@Valid @RequestBody User playerData) throws ExecutionException, InterruptedException {
         // return playerData.getPlayerDetails().getName().toString();
 
         // Encode the password before storing it
         playerData.setPassword(passwordEncoder.encode(playerData.getPassword()));
 
-        return userService.addPlayer(playerData);
-    }
-
-    @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping("/import")
-    public String massImport() {
-        return userService.massImport();
+        return userService.createUser(playerData);
     }
 
     @PutMapping("/user/{id}")
@@ -74,6 +68,13 @@ public class UserController {
     @DeleteMapping("/user/{id}")
     public String deletePlayer(@PathVariable String id) throws ExecutionException, InterruptedException {
         return userService.deletePlayer(id);
+    }
+
+
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/import")
+    public String massImport() {
+        return userService.massImport();
     }
 
 }

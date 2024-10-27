@@ -1,5 +1,8 @@
 package com.projectshowdown.entities;
 
+import java.time.LocalDate;
+import java.time.Period;
+
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -22,9 +25,7 @@ public class Player {
     @Size(min = 2, max = 50, message = "Name must be between 2 and 50 characters")
     private String name;
 
-    @Min(value = 0, message = "Age must be a positive number")
-    @Max(value = 120, message = "Age must be less than or equal to 120")
-    private double age;
+    private String dob;
 
     @Positive(message = "The value must be a positive number")
     private double elo;
@@ -42,11 +43,15 @@ public class Player {
     @Positive(message = "The value must be a positive number")
     private double peakElo;
 
+    private String country;
+    private String bio;
+    private String achievements;
+
     // Parameterized constructor with essential fields
-    public Player(String id, int rank, String name, int age) {
+    public Player(String id, int rank, String name, String dob) {
         this.rank = rank;
         this.name = name;
-        this.age = age;
+        this.dob = dob;
     }
 
     public int getRank() {
@@ -65,12 +70,20 @@ public class Player {
         this.name = name;
     }
 
-    public double getAge() {
-        return age;
+    public String getDob() {
+        return dob;
     }
 
-    public void setAge(double age) {
-        this.age = age;
+    public void setDob(String dob) {
+        this.dob = dob;
+    }
+
+    public Integer getAge() {
+        if (dob == null) {
+            return null;
+        }
+        LocalDate actualDob = LocalDate.parse(dob);
+        return Period.between(actualDob, LocalDate.now()).getYears();
     }
 
     public double getPeakAge() {

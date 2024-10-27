@@ -68,13 +68,23 @@ public class SecurityConfig {
                 .authorizeHttpRequests((authz) -> authz
                         .requestMatchers("/error").permitAll() // the default error page
                         .requestMatchers("/login").permitAll()
+
+                        // users CRUD
                         .requestMatchers(HttpMethod.GET, "/users", "/user/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/users").hasAuthority("admin")
                         .requestMatchers(HttpMethod.POST, "/addRandomData").permitAll()
                         .requestMatchers(HttpMethod.PUT, "/user/*").hasAuthority("admin")
                         .requestMatchers(HttpMethod.DELETE, "/user/*").hasAuthority("admin")
+
+                        // tournaments CRUD
+                        .requestMatchers(HttpMethod.GET, "/tournaments", "/tournaments/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/tournaments").hasAnyAuthority("admin","organizer")
+                        .requestMatchers(HttpMethod.PUT, "/tournaments/**").hasAnyAuthority("admin","organizer")
+                        .requestMatchers(HttpMethod.PUT, "/tournaments/*/register/*").hasAuthority("player")
+                        .requestMatchers(HttpMethod.PUT, "/tournaments/*/cancelRegistration/*").hasAuthority("player")
+
+                        // chat bot
                         .requestMatchers(HttpMethod.POST, "/chatbot/message").permitAll()
-                        // note that Spring Security 6 secures all endpoints by default
                         .anyRequest().permitAll())
 
                 // ensure that the application won’t create any session in our stateless REST
@@ -84,8 +94,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable()) // CSRF protection is needed only for browser based attacks
                 .formLogin(form -> form.disable())
                 .oauth2Login((oauth2) -> oauth2
-                        .successHandler(oAuth2AuthenticationSuccessHandler)
-                )
+                        .successHandler(oAuth2AuthenticationSuccessHandler))
                 .headers(header -> header.disable()) // disable the security headers, as we do not return HTML in our
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
                 .authenticationProvider(authenticationProvider());

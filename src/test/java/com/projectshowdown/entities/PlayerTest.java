@@ -8,6 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
+
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -24,7 +26,7 @@ public class PlayerTest {
         validator = factory.getValidator();
 
         // Arrange
-        player = new Player( 1, "John Doe", 25, 24, 2000.0, 2500.0, 500.0, 400.0, 300.0);
+        player = new Player(1, "John Doe", LocalDate.now().toString(), 24, 2000.0, 2500.0, 500.0, 400.0, 300.0,"","","");
     }
 
     @Test
@@ -50,9 +52,9 @@ public class PlayerTest {
     @Test
     public void testPlayerAgeNegative() {
         // Act
-        player.setAge(-5);
+        player.setDob(LocalDate.now().plusYears(5).toString());
 
-        //Assert
+        // Assert
         Set<ConstraintViolation<Player>> violations = validator.validate(player);
         assertFalse(violations.isEmpty(), "There should be a violation for a negative age.");
     }
@@ -60,9 +62,9 @@ public class PlayerTest {
     @Test
     public void testPlayerAgeExceed() {
         // Act
-        player.setAge(121);
+        player.setDob(LocalDate.now().minusYears(200).toString());
 
-        //Assert
+        // Assert
         Set<ConstraintViolation<Player>> violations = validator.validate(player);
         assertFalse(violations.isEmpty(), "There should be a violation for age exceeding the max limit.");
     }
@@ -70,9 +72,9 @@ public class PlayerTest {
     @Test
     public void testPlayerAgeValid() {
         // Act
-        player.setAge(25);
+        player.setDob(LocalDate.now().minusYears(26).toString());
 
-        //Assert
+        // Assert
         Set<ConstraintViolation<Player>> violations = validator.validate(player);
         assertTrue(violations.isEmpty(), "There should be no violations for a valid age.");
     }
@@ -142,7 +144,7 @@ public class PlayerTest {
         // Act
         player.setElo(2000);
         player.setPeakElo(2500);
-        player.setAge(25);
+        player.setDob(LocalDate.now().minusYears(25).toString());
         player.setPeakAge(24);
 
         // Assert
