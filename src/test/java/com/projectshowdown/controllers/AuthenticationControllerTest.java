@@ -130,7 +130,8 @@ class AuthenticationControllerTest {
 
         when(userDetailsService.loadUserByUsername("test@example.com")).thenThrow(new BadCredentialsException("Invalid credentials"));
 
-        assertThrows(Exception.class, () -> authenticationController.createAuthenticationToken(userCredentials));
+        ResponseEntity<?> response = authenticationController.createAuthenticationToken(userCredentials);
+        assertEquals("Incorrect password", response.getBody());
     }
 
     @Test

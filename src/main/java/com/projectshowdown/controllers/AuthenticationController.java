@@ -67,7 +67,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> createAuthenticationToken(@RequestBody User userCredentials) throws Exception {
+    public ResponseEntity<?> createAuthenticationToken(@RequestBody User userCredentials) {
         try {
             UserDetails userDetails = userDetailsService.loadUserByUsername(userCredentials.getEmail());
             authenticationManager.authenticate(
