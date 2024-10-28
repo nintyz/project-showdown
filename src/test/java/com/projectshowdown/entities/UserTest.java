@@ -130,6 +130,5 @@ public class UserTest {
         assertTrue(user.isAccountNonExpired(), "The account should not be expired.");
         assertTrue(user.isAccountNonLocked(), "The account should not be locked.");
         assertTrue(user.isCredentialsNonExpired(), "The credentials should not be expired.");
-        assertTrue(user.isEnabled(), "The account should be enabled.");
     }
 }

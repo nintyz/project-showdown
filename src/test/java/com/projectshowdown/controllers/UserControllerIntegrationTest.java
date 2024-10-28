@@ -1,8 +1,11 @@
 package com.projectshowdown.controllers;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.projectshowdown.dto.UserDTO;
 import com.projectshowdown.entities.Player;
+import com.projectshowdown.util.DateTimeUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +16,8 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -35,19 +40,39 @@ public class UserControllerIntegrationTest {
     private UserDTO testUserDTO;
     private HttpHeaders headers;
     private String authToken;
-    private final String INVALID_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjpbImFkbWluIl0sInN1YiI6ImFhcm9uaml0ZWNrQGdtYWlsLmNvbSIsImlhdCI6MTcyOTE4NDMxMiwiZXhwIjoxNzI5MjIwMzEyfQ.pDOwOlQr-jVV2uDN2OymYVudItc1Emn4H0TKr7EWstU";
+
+    private List<String> createdUserIds = new ArrayList<>();
 
     @BeforeEach
     void setUp() throws Exception {
         baseUrl = "http://localhost:" + port;
         Player playerDetails = new Player(1, "Test Player", "2000-01-01", 24, 2000.0, 2500.0, 500.0, 400.0, 300.0, "", "", "");
-        testUserDTO = new UserDTO(null, "test" + System.currentTimeMillis() + "@example.com" , "Password1@", "player", null, playerDetails);
+        testUserDTO = new UserDTO(null, "test" + System.currentTimeMillis() + "@example.com" , "Password1@", "player", null, playerDetails, null, null, true);
         headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         // Get authentication token
         authToken = getAuthToken();
         headers.set("Authorization", "Bearer " + authToken);
+    }
+
+    @AfterEach
+    void tearDown() throws Exception {
+        // Delete all users created during the test
+        for (String userId : createdUserIds) {
+            try {
+                restTemplate.exchange(
+                        baseUrl + "/user/" + userId,
+                        HttpMethod.DELETE,
+                        new HttpEntity<>(headers),
+                        String.class
+                );
+            } catch (Exception e) {
+                // Ignore errors during cleanup
+                System.out.println("Could not delete user " + userId + ": " + e.getMessage());
+            }
+        }
+        createdUserIds.clear();
     }
 
     private String getAuthToken() throws Exception {
@@ -71,6 +96,7 @@ public class UserControllerIntegrationTest {
     void testAddPlayer() throws Exception {
         HttpEntity<UserDTO> request = new HttpEntity<>(testUserDTO, headers);
         ResponseEntity<String> response = restTemplate.postForEntity(baseUrl + "/users", request, String.class);
+        extractUserId(response.getBody());
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertTrue(response.getBody().contains("Player created successfully with ID:"));
@@ -84,16 +110,19 @@ public class UserControllerIntegrationTest {
         String userId = extractUserId(addResponse.getBody());
 
         // Then, get the player
-        ResponseEntity<UserDTO> getResponse = restTemplate.exchange(
+        ResponseEntity<String> getResponse = restTemplate.exchange(
                 baseUrl + "/user/" + userId,
                 HttpMethod.GET,
                 new HttpEntity<>(headers),
-                UserDTO.class
+                String.class
         );
 
         assertEquals(HttpStatus.OK, getResponse.getStatusCode());
         assertNotNull(getResponse.getBody());
-        assertEquals(testUserDTO.getEmail(), getResponse.getBody().getEmail());
+
+        // Parse only the fields we need using JsonNode
+        JsonNode jsonNode = objectMapper.readTree(getResponse.getBody());
+        assertEquals(testUserDTO.getEmail(), jsonNode.get("email").asText());
     }
 
     @Test
@@ -113,7 +142,6 @@ public class UserControllerIntegrationTest {
         // First, add a player
         HttpEntity<UserDTO> addRequest = new HttpEntity<>(testUserDTO, headers);
         ResponseEntity<String> addResponse = restTemplate.postForEntity(baseUrl + "/users", addRequest, String.class);
-        System.out.println(addResponse.getBody());
         String userId = extractUserId(addResponse.getBody());
 
         // Update the player
@@ -141,7 +169,7 @@ public class UserControllerIntegrationTest {
 
     @Test
     void testUpdateNonExistentPlayer() throws Exception {
-        UserDTO updatedUser = new UserDTO(null, "updated@example.com", "NewPassword1@", "player", null, null);
+        UserDTO updatedUser = new UserDTO(null, "updated@example.com", "NewPassword1@", "player", null, null,null, null, false);
         HttpEntity<UserDTO> updateRequest = new HttpEntity<>(updatedUser, headers);
         ResponseEntity<String> updateResponse = restTemplate.exchange(
                 baseUrl + "/user/nonExistentId",
@@ -158,7 +186,6 @@ public class UserControllerIntegrationTest {
         // First, add a player
         HttpEntity<UserDTO> addRequest = new HttpEntity<>(testUserDTO, headers);
         ResponseEntity<String> addResponse = restTemplate.postForEntity(baseUrl + "/users", addRequest, String.class);
-        System.out.println(addResponse.getBody());
         String userId = extractUserId(addResponse.getBody());
 
         // Delete the player
@@ -211,25 +238,32 @@ public class UserControllerIntegrationTest {
         for (int i = 0; i < 3; i++) {
             testUserDTO.setEmail("test" + i + System.currentTimeMillis() + "@example.com");
             HttpEntity<UserDTO> request = new HttpEntity<>(testUserDTO, headers);
-            restTemplate.postForEntity(baseUrl + "/users", request, String.class);
+            ResponseEntity<String> addResponse = restTemplate.postForEntity(baseUrl + "/users", request, String.class);
+            extractUserId(addResponse.getBody());
         }
 
         // Get all players
-        ResponseEntity<List<UserDTO>> response = restTemplate.exchange(
+        ResponseEntity<String> response = restTemplate.exchange(
                 baseUrl + "/users",
                 HttpMethod.GET,
                 new HttpEntity<>(headers),
-                new ParameterizedTypeReference<List<UserDTO>>() {}
+                String.class
         );
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertFalse(response.getBody().isEmpty());
+
+        // Parse response as JsonNode array
+        JsonNode jsonArray = objectMapper.readTree(response.getBody());
+        assertTrue(jsonArray.isArray());
+        assertFalse(jsonArray.isEmpty());
     }
 
     private String extractUserId(String response) {
         int start = response.indexOf("ID: ") + 4;
         int end = response.indexOf(" at:");
-        return response.substring(start, end);
+        String userId = response.substring(start, end);
+        createdUserIds.add(userId); // Track the created user ID
+        return userId;
     }
 }

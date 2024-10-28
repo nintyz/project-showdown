@@ -87,6 +87,7 @@ class AuthenticationControllerTest {
         when(jwtUtil.generateToken(userDetails)).thenReturn("testToken");
 
         UserDTO userDTO = new UserDTO();
+        userDTO.setEnabled(true);
         userDTO.setId("5pEhJtbM2c9w7SwanaPn");
         when(userService.getUserIdByEmail("test@example.com")).thenReturn("5pEhJtbM2c9w7SwanaPn");
         when(userService.getPlayer("5pEhJtbM2c9w7SwanaPn")).thenReturn(userDTO);
@@ -109,6 +110,7 @@ class AuthenticationControllerTest {
         when(userDetailsService.loadUserByUsername("test@example.com")).thenReturn(userDetails);
 
         UserDTO userDTO = new UserDTO();
+        userDTO.setEnabled(true);
         userDTO.setId("5pEhJtbM2c9w7SwanaPn");
         userDTO.setTwoFactorSecret("secret");
         when(userService.getUserIdByEmail("test@example.com")).thenReturn("5pEhJtbM2c9w7SwanaPn");
