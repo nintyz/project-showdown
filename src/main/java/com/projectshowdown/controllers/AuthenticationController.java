@@ -2,8 +2,11 @@ package com.projectshowdown.controllers;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import com.projectshowdown.dto.UserDTO;
+import com.projectshowdown.dto.VerifyUserDto;
+import com.projectshowdown.service.AuthenticationService;
 import com.projectshowdown.service.TwoFactorAuthService;
 import com.projectshowdown.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,6 +32,9 @@ public class AuthenticationController {
     private AuthenticationManager authenticationManager;
 
     @Autowired
+    private AuthenticationService authenticationService;
+
+    @Autowired
     private JwtUtil jwtUtil;
 
     @Autowired
@@ -36,6 +42,7 @@ public class AuthenticationController {
 
     @Autowired
     private UserService userService;
+
     @Autowired
     private TwoFactorAuthService twoFactorAuthService;
 
@@ -75,6 +82,10 @@ public class AuthenticationController {
                             userCredentials.getPassword()));
 
             UserDTO user = userService.getPlayer(userService.getUserIdByEmail(userCredentials.getEmail()));
+
+            if (!user.isEnabled()) {
+                return ResponseEntity.badRequest().body("Account not verified. Please verify your account.");
+            }
 
             if (user.getTwoFactorSecret() != null) {
                 // 2FA is enabled, return a flag indicating 2FA is required
@@ -117,6 +128,26 @@ public class AuthenticationController {
             }
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error verifying 2FA code: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/verify")
+    public ResponseEntity<?> verifyUser(@RequestBody VerifyUserDto verifyUserDto) {
+        try {
+            authenticationService.verifyUser(verifyUserDto);
+            return ResponseEntity.ok("Account verified successfully");
+        } catch (RuntimeException | ExecutionException | InterruptedException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/resend")
+    public ResponseEntity<?> resendVerificationCode(@RequestParam String email) {
+        try {
+            authenticationService.resendVerificationCode(email);
+            return ResponseEntity.ok("Verification code sent");
+        } catch (RuntimeException | ExecutionException | InterruptedException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }
