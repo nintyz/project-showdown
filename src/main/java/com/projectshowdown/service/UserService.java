@@ -13,7 +13,9 @@ import com.google.firebase.cloud.FirestoreClient;
 import com.google.zxing.WriterException;
 import com.projectshowdown.dto.UserDTO;
 import com.projectshowdown.dto.UserMapper;
+import com.projectshowdown.entities.Match;
 import com.projectshowdown.entities.Player;
+import com.projectshowdown.entities.Round;
 import com.projectshowdown.entities.User;
 import com.projectshowdown.exceptions.PlayerNotFoundException;
 
@@ -39,6 +41,9 @@ public class UserService implements UserDetailsService {
 
   @Autowired
   private TwoFactorAuthService twoFactorAuthService;
+
+  @Autowired
+  private MatchService matchService;
 
   public UserService() {
     super();
@@ -77,6 +82,15 @@ public class UserService implements UserDetailsService {
     List<User> response = new ArrayList<>();
     for (String userId : listOfUserIds) {
       response.add(UserMapper.toUser(getPlayer(userId)));
+    }
+
+    return response;
+  }
+
+  public List<User> getWinningUsers(List<String> matches) throws ExecutionException, InterruptedException {
+    List<User> response = new ArrayList<>();
+    for (Match match : matchService.getMatches(matches)) {
+      response.add(UserMapper.toUser(getPlayer(match.winnerId())));
     }
 
     return response;

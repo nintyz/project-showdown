@@ -55,10 +55,6 @@ public class Tournament {
         return this.rounds;
     }
 
-    public String getTournamentId() {
-        return id;
-    }
-
     public void setTournamentId(String id) {
         this.id = id;
     }
@@ -264,8 +260,4 @@ public class Tournament {
     // this.rounds.add(newRound);
     // }
 
-    private String generateMatchId(Match m, int matchNo) {
-        String number = "" + matchNo;
-        return this.name + "_" + m.getStage() + "_" + number;
-    }
 }

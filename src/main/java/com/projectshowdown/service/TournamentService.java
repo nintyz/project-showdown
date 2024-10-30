@@ -216,7 +216,7 @@ public class TournamentService {
                 return this.initializeTournament(tournament);
             case 1:
 
-                return "Not implemented yet";
+                return this.quarterFinals(tournament);
             case 2:
 
                 return "Not Implemented yet";
@@ -231,8 +231,6 @@ public class TournamentService {
 
     public String initializeTournament(Tournament tournament) {
         List<String> matches = new ArrayList<>();
-        // update get userService to have a service to get all Users in a specific
-        // tournament
         List<User> users;
         try {
             //
@@ -241,7 +239,7 @@ public class TournamentService {
             Collections.sort(users, Comparator.comparingDouble(user -> user.getPlayerDetails().calculateMMR()));
 
             if (users.size() != tournament.getNumPlayers()) {
-                throw new IllegalStateException("The required amount of registered players have not been met!");
+                return "The required amount of registered players have not been met!";
             }
 
             for (int i = 0; i < users.size() / 2; i++) {
@@ -253,7 +251,7 @@ public class TournamentService {
                                 user2.getPlayerDetails().calculateMMR());
 
                 Match currentMatch = new Match();
-                currentMatch.setTournamentId(tournament.getTournamentId());
+                currentMatch.setTournamentId(tournament.getId());
                 currentMatch.setPlayer1Id(user1.getId());
                 currentMatch.setPlayer2Id(user2.getId());
                 currentMatch.setPlayer1Score(0);
@@ -263,30 +261,74 @@ public class TournamentService {
                 currentMatch.setStage("Round 1");
 
                 // create match in matchService
-                try {
-                    String generatedId = matchService.addMatch(currentMatch);
-                    matches.add(generatedId);
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                }
+                String generatedId = matchService.addMatch(currentMatch);
+                matches.add(generatedId);
 
             }
 
             // after generating the list of matchesIds, add into round object
             // add this round back into tournament.
-            Round newRound = new Round("initial",matches);
+            Round newRound = new Round("initial", matches);
 
             tournament.getRounds().add(newRound);
 
             Map<String, Object> jsonBody = new HashMap<>();
             jsonBody.put("rounds", tournament.getRounds());
-            updateTournament(tournament.getTournamentId(), jsonBody);
+            updateTournament(tournament.getId(), jsonBody);
 
             return matches.size() + " number of matches has been generated for tournament id " + tournament.getId();
         } catch (Exception e) {
             return e.getMessage();
         }
+    }
 
+    public String quarterFinals(Tournament tournament) {
+        List<String> matches = new ArrayList<>();
+        List<User> users;
+        try {
+            //
+            users = userService.getWinningUsers(tournament.getRounds().get(0).getMatches());
+
+            Collections.sort(users, Comparator.comparingDouble(user -> user.getPlayerDetails().calculateMMR()));
+
+            for (int i = 0; i < users.size() / 2; i++) {
+                User user1 = users.get(i);
+                User user2 = users.get(users.size() - 1 - i);
+
+                double mmrDifference = Math
+                        .abs(user1.getPlayerDetails().calculateMMR() -
+                                user2.getPlayerDetails().calculateMMR());
+
+                Match currentMatch = new Match();
+                currentMatch.setTournamentId(tournament.getId());
+                currentMatch.setPlayer1Id(user1.getId());
+                currentMatch.setPlayer2Id(user2.getId());
+                currentMatch.setPlayer1Score(0);
+                currentMatch.setPlayer2Score(0);
+                currentMatch.setMmrDifference(mmrDifference);
+                currentMatch.setMatchDate(tournament.getDate());
+                currentMatch.setStage("Round 1");
+
+                // create match in matchService
+                String generatedId = matchService.addMatch(currentMatch);
+                matches.add(generatedId);
+
+            }
+
+            // after generating the list of matchesIds, add into round object
+            // add this round back into tournament.
+            Round newRound = new Round("Quarter Finals", matches);
+
+            tournament.getRounds().add(newRound);
+
+            Map<String, Object> jsonBody = new HashMap<>();
+            jsonBody.put("rounds", tournament.getRounds());
+            updateTournament(tournament.getId(), jsonBody);
+
+            return matches.size() + " number of matches has been generated for tournament id " + tournament.getId() + "for the Quarter Finals";
+        } catch (Exception e) {
+            return e.getMessage();
+        }
     }
 
 }
