@@ -15,13 +15,27 @@ public class Match {
     private String tournamentId;
     private String player1Id;
     private String player2Id;
-    private String winnerId;
-    private String loserId;
     private int player1Score;
     private int player2Score;
     private double mmrDifference;
     private String matchDate;
     private String stage;
+
+    public String getWinnerId() {
+        String winnerId = player1Id;
+        if (player2Score > player1Score) {
+            winnerId = player2Id;
+        }
+        return winnerId;
+    }
+
+    public String getLoserId() {
+        String loserId = player1Id;
+        if (loserId.equals(getWinnerId())) {
+            loserId = player2Id;
+        }
+        return loserId;
+    }
 
     // Getter for matchId
     public String getMatchId() {
@@ -63,25 +77,7 @@ public class Match {
         this.player2Id = player2Id;
     }
 
-    // Getter for winnerId
-    public String getWinnerId() {
-        return winnerId;
-    }
-
-    // Setter for winnerId
-    public void setWinnerId(String winnerId) {
-        this.winnerId = winnerId;
-    }
-
-    public String getLoserId(){
-        return loserId;
-    }
-
-    public void setLoserId(String loserId){
-        this.loserId = loserId;
-    }
-
-    public int getPlayer1Score(){
+    public int getPlayer1Score() {
         return player1Score;
     }
 
@@ -89,11 +85,11 @@ public class Match {
         this.player1Score = score;
     }
 
-    public int getPlayer2Score(){
+    public int getPlayer2Score() {
         return this.player2Score;
     }
 
-    public void setPlayer2Score(int score){
+    public void setPlayer2Score(int score) {
         this.player2Score = score;
     }
 

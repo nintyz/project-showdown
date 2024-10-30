@@ -14,6 +14,7 @@ import com.google.zxing.WriterException;
 import com.projectshowdown.dto.UserDTO;
 import com.projectshowdown.dto.UserMapper;
 import com.projectshowdown.entities.Player;
+import com.projectshowdown.entities.Tournament;
 import com.projectshowdown.entities.User;
 import com.projectshowdown.exceptions.PlayerNotFoundException;
 
@@ -39,6 +40,8 @@ public class UserService implements UserDetailsService {
 
   @Autowired
   private TwoFactorAuthService twoFactorAuthService;
+  @Autowired
+  private TournamentService tournamentService;
 
   public UserService() {
     super();
@@ -71,6 +74,15 @@ public class UserService implements UserDetailsService {
   // Helper method to get Firestore instance
   private Firestore getFirestore() {
     return FirestoreClient.getFirestore();
+  }
+
+  public List<User> getRegisteredUsers(List<String> listOfUserIds) throws ExecutionException, InterruptedException {
+    List<User> response = new ArrayList<>();
+    for (String userId : listOfUserIds) {
+      response.add(UserMapper.toUser(getPlayer(userId)));
+    }
+
+    return response;
   }
 
   public List<UserDTO> getAllPlayers() throws ExecutionException, InterruptedException {
@@ -246,7 +258,8 @@ public class UserService implements UserDetailsService {
         Player currentRowPlayerDetails = new Player(rank, name, dob, elo, hardRaw, clayRaw, grassRaw, peakAge, peakElo,
             country, bio, achievements);
 
-        UserDTO currentRowUser = new UserDTO("", email, fixedPassword, "player", null, currentRowPlayerDetails, null, DateTimeUtils.toFirebaseTimestamp(LocalDateTime.now().plusMinutes(15)), false);
+        UserDTO currentRowUser = new UserDTO("", email, fixedPassword, "player", null, currentRowPlayerDetails, null,
+            DateTimeUtils.toFirebaseTimestamp(LocalDateTime.now().plusMinutes(15)), false);
 
         DocumentReference docRef = usersCollection.document(); // Create a new document reference with a unique ID
         currentRowUser.setId(docRef.getId());
