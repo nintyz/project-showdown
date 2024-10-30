@@ -14,7 +14,6 @@ import com.google.zxing.WriterException;
 import com.projectshowdown.dto.UserDTO;
 import com.projectshowdown.dto.UserMapper;
 import com.projectshowdown.entities.Player;
-import com.projectshowdown.entities.Tournament;
 import com.projectshowdown.entities.User;
 import com.projectshowdown.exceptions.PlayerNotFoundException;
 
@@ -40,8 +39,6 @@ public class UserService implements UserDetailsService {
 
   @Autowired
   private TwoFactorAuthService twoFactorAuthService;
-  @Autowired
-  private TournamentService tournamentService;
 
   public UserService() {
     super();
