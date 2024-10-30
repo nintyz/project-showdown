@@ -17,6 +17,7 @@ import com.projectshowdown.entities.Player;
 import com.projectshowdown.entities.User;
 import com.projectshowdown.exceptions.PlayerNotFoundException;
 
+import com.projectshowdown.util.DateTimeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -26,8 +27,10 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.ExecutionException;
 
@@ -142,6 +145,11 @@ public class UserService implements UserDetailsService {
     // Get the generated document ID
     String generatedId = docRef.getId();
 
+    // User disabled on creation
+    userData.setVerificationCode(generateVerificationCode());
+    userData.setVerificationCodeExpiresAt(DateTimeUtils.toFirebaseTimestamp(LocalDateTime.now().plusMinutes(15)));
+    userData.setEnabled(false);
+
     // Convert User object to UserDTO and set the generated ID
     UserDTO userDTO = UserMapper.toUserDTO(userData);
     userDTO.setId(generatedId);
@@ -238,7 +246,7 @@ public class UserService implements UserDetailsService {
         Player currentRowPlayerDetails = new Player(rank, name, dob, elo, hardRaw, clayRaw, grassRaw, peakAge, peakElo,
             country, bio, achievements);
 
-        UserDTO currentRowUser = new UserDTO("", email, fixedPassword, "player", null, currentRowPlayerDetails);
+        UserDTO currentRowUser = new UserDTO("", email, fixedPassword, "player", null, currentRowPlayerDetails, null, DateTimeUtils.toFirebaseTimestamp(LocalDateTime.now().plusMinutes(15)), false);
 
         DocumentReference docRef = usersCollection.document(); // Create a new document reference with a unique ID
         currentRowUser.setId(docRef.getId());
@@ -258,5 +266,11 @@ public class UserService implements UserDetailsService {
 
     return "success";
 
+  }
+
+  public String generateVerificationCode() {
+    Random random = new Random();
+    int code = random.nextInt(900000) + 100000;
+    return String.valueOf(code);
   }
 }
