@@ -66,4 +66,11 @@ public class TournamentController {
             throws ExecutionException, InterruptedException {
         return tournamentService.cancelRegistration(id, userId);
     }
+
+    @PutMapping("/tournament/{tournamentId}/matches")
+    @ResponseStatus(HttpStatus.OK)
+    public String progressTournament(@PathVariable String tournamentId)
+            throws ExecutionException, InterruptedException {
+        return tournamentService.progressTournament(tournamentId);
+    }
 }

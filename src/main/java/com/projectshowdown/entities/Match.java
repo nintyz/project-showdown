@@ -11,7 +11,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Match {
 
-    private String matchId;
+    private String id;
     private String tournamentId;
     private String player1Id;
     private String player2Id;
@@ -21,7 +21,7 @@ public class Match {
     private String matchDate;
     private String stage;
 
-    public String getWinnerId() {
+    public String winnerId() {
         String winnerId = player1Id;
         if (player2Score > player1Score) {
             winnerId = player2Id;
@@ -29,22 +29,22 @@ public class Match {
         return winnerId;
     }
 
-    public String getLoserId() {
+    public String loserId() {
         String loserId = player1Id;
-        if (loserId.equals(getWinnerId())) {
+        if (loserId.equals(winnerId())) {
             loserId = player2Id;
         }
         return loserId;
     }
 
-    // Getter for matchId
-    public String getMatchId() {
-        return matchId;
+    // Getter for id
+    public String getId() {
+        return id;
     }
 
-    // Setter for matchId
-    public void setMatchId(String matchId) {
-        this.matchId = matchId;
+    // Setter for id
+    public void setId(String id) {
+        this.id = id;
     }
 
     // Getter for tournamentId
