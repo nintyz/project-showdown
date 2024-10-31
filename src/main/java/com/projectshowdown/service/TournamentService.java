@@ -300,7 +300,7 @@ public class TournamentService {
                     .abs(user1.getPlayerDetails().calculateMMR() - user2.getPlayerDetails().calculateMMR());
             Match match = new Match("", tournament.getId(), user1.getId(), user2.getId(), 0, 0, mmrDiff,
                     tournament.getDate(), stage, false);
-            String matchId = tournament.getId() + "m_" + (matches.size() + 1);
+            String matchId = tournament.getId() + "m_" + (totalMatches + matches.size() + 1);
             match.setId(matchId);
 
             matches.add(matchService.addMatch(match));
