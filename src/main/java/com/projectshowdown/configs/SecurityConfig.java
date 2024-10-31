@@ -87,7 +87,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/tournaments/**").hasAnyAuthority("admin","organizer")
                         .requestMatchers(HttpMethod.PUT, "/tournaments/*/register/*").hasAuthority("player")
                         .requestMatchers(HttpMethod.PUT, "/tournaments/*/cancelRegistration/*").hasAuthority("player")
-                        .requestMatchers(HttpMethod.PUT, "/tournament/*/matches").hasAnyAuthority("admin", "organizer")
+
+                        // matches CRUD
+                        .requestMatchers(HttpMethod.PUT, "/match/*").hasAnyAuthority("admin", "organizer")
 
                         // chat bot
                         .requestMatchers(HttpMethod.POST, "/chatbot/message").permitAll()

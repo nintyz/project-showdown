@@ -53,7 +53,7 @@ public class MatchService {
         ApiFuture<DocumentSnapshot> future = docRef.get();
         DocumentSnapshot document = future.get();
         if (!document.exists()) {
-            throw new RuntimeException("Unable to find match with id:" + id);
+            throw new RuntimeException("Unable to find match with id: " + id);
         }
 
         // Filter out null values from the update data

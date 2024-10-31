@@ -5,9 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
 
-import com.projectshowdown.dto.UserDTO;
 import com.projectshowdown.entities.Tournament;
-import com.projectshowdown.exceptions.PlayerNotFoundException;
 import com.projectshowdown.service.TournamentService;
 
 import jakarta.validation.Valid;
