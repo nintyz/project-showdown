@@ -9,12 +9,12 @@ import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.WriteResult;
 import com.google.firebase.cloud.FirestoreClient;
 import com.projectshowdown.entities.Match;
-import com.projectshowdown.entities.Tournament;
-import com.projectshowdown.exceptions.TournamentNotFoundException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Service
 public class MatchService {
@@ -37,6 +37,35 @@ public class MatchService {
         ApiFuture<WriteResult> writeResult = docRef.set(matchToSave);
         return generatedId;
 
+    }
+
+    // Method to update a tournament document in the 'tournaments' collection
+    public String updateMatch(String id, Map<String, Object> matchData)
+            throws ExecutionException, InterruptedException {
+        Firestore db = getFirestore();
+
+        matchData.put("completed", true);
+
+        // Get a reference to the document
+        DocumentReference docRef = db.collection("matches").document(id);
+
+        // Check if the document exists
+        ApiFuture<DocumentSnapshot> future = docRef.get();
+        DocumentSnapshot document = future.get();
+        if (!document.exists()) {
+            throw new RuntimeException("Unable to find match with id:" + id);
+        }
+
+        // Filter out null values from the update data
+        Map<String, Object> filteredUpdates = matchData.entrySet().stream()
+                .filter(entry -> entry.getValue() != null) // Only include non-null fields
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        // Perform the update operation
+        ApiFuture<WriteResult> writeResult = docRef.update(filteredUpdates);
+
+        // Return success message with the update time
+        return "Match with ID: " + id + " updated successfully at: " + writeResult.get().getUpdateTime();
     }
 
     public Match getMatch(String matchId) throws ExecutionException, InterruptedException {
