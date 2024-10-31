@@ -30,6 +30,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
@@ -88,6 +89,7 @@ public class UserService implements UserDetailsService {
 
   public List<User> getWinningUsers(List<String> matches) throws ExecutionException, InterruptedException {
     List<User> response = new ArrayList<>();
+    
     for (Match match : matchService.getMatches(matches)) {
       if (!match.isCompleted()) {
         throw new RuntimeException("Matches from the last round are not completed!");

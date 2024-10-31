@@ -211,12 +211,18 @@ public class TournamentService {
 
     public String progressTournament(String tournamentId) throws ExecutionException, InterruptedException {
         Tournament tournament = getTournament(tournamentId);
-        if (tournament.getRounds().size() == 0) {
-            return initializeTournament(tournament);
+        switch (tournament.getRounds().size()) {
+            case 0:
+                return initializeTournament(tournament);
+            case 1:
+                return generateNextRound(tournament, "Quarter Finals");
+            case 2:
+            case 3:
+                return "Not Implemented yet";
+            default:
+                return "Error occurred";
+
         }
-
-        return generateNextRound(tournament, "Quarter Finals", tournament.getRounds().size() - 1);
-
     }
 
     public String initializeTournament(Tournament tournament) {
@@ -228,7 +234,7 @@ public class TournamentService {
                 return "The required amount of registered players have not been met!";
             }
 
-            List<String> matches = generateMatches(tournament, users, "Round 1");
+            List<String> matches = generateMatches(tournament, users, "Round 1", 0);
             addRoundToTournament(tournament, "Initial", matches);
 
             return matches.size() + " matches have been generated for tournament id " + tournament.getId();
@@ -237,10 +243,14 @@ public class TournamentService {
         }
     }
 
-    public String generateNextRound(Tournament tournament, String roundName, int previousRoundIndex) {
+    public String generateNextRound(Tournament tournament, String roundName) {
         try {
-            List<User> users = userService.getWinningUsers(tournament.getRounds().get(previousRoundIndex).getMatches());
-            List<String> matches = generateMatches(tournament, users, roundName);
+            List<String> lastRound = tournament.getRounds().get(tournament.getRounds().size() - 1).getMatches();
+            // sort matches by id. split the '_' and use the 2nd part
+            lastRound.sort(Comparator.comparingInt(id -> Integer.parseInt(id.split("_")[1])));
+            List<User> users = userService.getWinningUsers(lastRound);
+
+            List<String> matches = generateMatches(tournament, users, roundName, tournament.totalMatches());
 
             addRoundToTournament(tournament, roundName, matches);
 
@@ -251,34 +261,25 @@ public class TournamentService {
         }
     }
 
-    private List<String> generateMatches(Tournament tournament, List<User> users, String stage)
+    private List<String> generateMatches(Tournament tournament, List<User> users, String stage,
+            int totalMatches)
             throws ExecutionException, InterruptedException {
         List<String> matches = new ArrayList<>();
 
-        for (int i = 0; i < users.size() / 2; i++) {
+        for (int i = 0; i < users.size(); i += 2) {
             User user1 = users.get(i);
-            User user2 = users.get(users.size() - 1 - i);
+            User user2 = users.get(i + 1);
+            Double mmrDiff = Math
+                    .abs(user1.getPlayerDetails().calculateMMR() - user2.getPlayerDetails().calculateMMR());
+            Match match = new Match("", tournament.getId(), user1.getId(), user2.getId(), 0, 0, mmrDiff,
+                    tournament.getDate(), stage, false);
+            String matchId = tournament.getId() + "m_" + (matches.size() + 1);
+            match.setId(matchId);
 
-            Match match = createMatch(tournament, user1, user2, stage);
             matches.add(matchService.addMatch(match));
         }
 
         return matches;
-    }
-
-    private Match createMatch(Tournament tournament, User user1, User user2, String stage) {
-        Match match = new Match();
-        match.setTournamentId(tournament.getId());
-        match.setPlayer1Id(user1.getId());
-        match.setPlayer2Id(user2.getId());
-        match.setPlayer1Score(0);
-        match.setPlayer2Score(0);
-        match.setMmrDifference(
-                Math.abs(user1.getPlayerDetails().calculateMMR() - user2.getPlayerDetails().calculateMMR()));
-        match.setMatchDate(tournament.getDate());
-        match.setStage(stage);
-        match.setCompleted(false);
-        return match;
     }
 
     private void addRoundToTournament(Tournament tournament, String roundName, List<String> matches) {
