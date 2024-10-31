@@ -55,7 +55,7 @@ public class Tournament {
         return this.rounds;
     }
 
-    public void setTournamentId(String id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -131,6 +131,14 @@ public class Tournament {
         this.users = users;
     }
 
+    public int totalMatches() {
+        int counter = 0;
+        for (int i = 0; i < rounds.size(); i++) {
+            counter += rounds.get(i).getMatches().size();
+        }
+        return counter;
+    }
+
     public boolean checkUserEligibility(UserDTO player) {
         double playerMMR = player.getPlayerDetails().calculateMMR();
 
@@ -161,38 +169,6 @@ public class Tournament {
     // }
     // return seedings;
     // }
-
-    // public void progressTournament() {
-    // switch (this.rounds.size()) {
-    // case 0:
-    // this.initializeTournament();
-    // break;
-    // case 1:
-
-    // break;
-    // case 2:
-
-    // break;
-    // case 3:
-
-    // break;
-
-    // default:
-    // break;
-    // }
-    // }
-
-    // public ArrayList<User> getWinnersOfLastRound() {
-    // ArrayList<User> winnersOfPrevRound = new ArrayList<>();
-    // Round prevRound = this.rounds.get(this.rounds.size() - 1);
-    // for (String match : prevRound.getMatches()) {
-
-    // }
-    // }
-
-    public void initializeQF() {
-
-    }
 
     // public void initializeTournament() {
     // List<Match> matches = new ArrayList<>();

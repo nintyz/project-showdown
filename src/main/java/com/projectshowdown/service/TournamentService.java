@@ -11,6 +11,7 @@ import com.google.cloud.firestore.WriteResult;
 import com.google.firebase.cloud.FirestoreClient;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -23,11 +24,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import com.projectshowdown.dto.UserDTO;
+import com.projectshowdown.dto.UserMapper;
 import com.projectshowdown.entities.Match;
 import com.projectshowdown.entities.Round;
 import com.projectshowdown.entities.Tournament;
 import com.projectshowdown.exceptions.TournamentNotFoundException;
 import com.projectshowdown.entities.User;
+import com.projectshowdown.events.MatchUpdatedEvent;
 
 @Service
 public class TournamentService {
@@ -209,6 +212,30 @@ public class TournamentService {
                 + " at: " + writeResult.get().getUpdateTime();
     }
 
+    @EventListener
+    public void handleMatchUpdated(MatchUpdatedEvent event) throws ExecutionException, InterruptedException {
+        String tournamentId = event.getTournamentId();
+        // Check if tournament needs an update based on the match update
+        Tournament tournament = getTournament(tournamentId);
+        List<String> lastRound = tournament.getRounds().get(tournament.getRounds().size() - 1).getMatches();
+        if (matchService.checkCurrentRoundCompletion(lastRound)) {
+            progressTournament(tournamentId);
+        }
+    }
+
+    public List<User> getWinningUsers(List<String> matches) throws ExecutionException, InterruptedException {
+        List<User> response = new ArrayList<>();
+
+        for (Match match : matchService.getMatches(matches)) {
+            if (!match.isCompleted()) {
+                throw new RuntimeException("Matches from the last round are not completed!");
+            }
+            response.add(UserMapper.toUser(userService.getPlayer(match.winnerId())));
+        }
+
+        return response;
+    }
+
     public String progressTournament(String tournamentId) throws ExecutionException, InterruptedException {
         Tournament tournament = getTournament(tournamentId);
         switch (tournament.getRounds().size()) {
@@ -248,7 +275,7 @@ public class TournamentService {
             List<String> lastRound = tournament.getRounds().get(tournament.getRounds().size() - 1).getMatches();
             // sort matches by id. split the '_' and use the 2nd part
             lastRound.sort(Comparator.comparingInt(id -> Integer.parseInt(id.split("_")[1])));
-            List<User> users = userService.getWinningUsers(lastRound);
+            List<User> users = getWinningUsers(lastRound);
 
             List<String> matches = generateMatches(tournament, users, roundName, tournament.totalMatches());
 

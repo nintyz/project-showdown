@@ -42,8 +42,6 @@ public class UserService implements UserDetailsService {
   @Autowired
   private TwoFactorAuthService twoFactorAuthService;
 
-  @Autowired
-  private MatchService matchService;
 
   public UserService() {
     super();
@@ -87,19 +85,6 @@ public class UserService implements UserDetailsService {
     return response;
   }
 
-  public List<User> getWinningUsers(List<String> matches) throws ExecutionException, InterruptedException {
-    List<User> response = new ArrayList<>();
-    
-    for (Match match : matchService.getMatches(matches)) {
-      if (!match.isCompleted()) {
-        throw new RuntimeException("Matches from the last round are not completed!");
-      }
-      response.add(UserMapper.toUser(getPlayer(match.winnerId())));
-    }
-
-    return response;
-  }
-
   public List<UserDTO> getAllPlayers() throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
     Query playersCollection = db.collection("users").whereEqualTo("role", "player");
@@ -120,7 +105,6 @@ public class UserService implements UserDetailsService {
 
       }
     }
-
     return players; // Return the list of players
   }
 
