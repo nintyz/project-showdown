@@ -15,7 +15,6 @@ import com.projectshowdown.dto.UserDTO;
 import com.projectshowdown.dto.UserMapper;
 import com.projectshowdown.entities.Match;
 import com.projectshowdown.entities.Player;
-import com.projectshowdown.entities.Round;
 import com.projectshowdown.entities.User;
 import com.projectshowdown.exceptions.PlayerNotFoundException;
 
@@ -90,6 +89,9 @@ public class UserService implements UserDetailsService {
   public List<User> getWinningUsers(List<String> matches) throws ExecutionException, InterruptedException {
     List<User> response = new ArrayList<>();
     for (Match match : matchService.getMatches(matches)) {
+      if (!match.isCompleted()) {
+        throw new RuntimeException("Matches from the last round are not completed!");
+      }
       response.add(UserMapper.toUser(getPlayer(match.winnerId())));
     }
 

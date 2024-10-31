@@ -211,24 +211,19 @@ public class TournamentService {
 
     public String progressTournament(String tournamentId) throws ExecutionException, InterruptedException {
         Tournament tournament = getTournament(tournamentId);
-        switch (tournament.getRounds().size()) {
-            case 0:
-                return initializeTournament(tournament);
-            case 1:
-                return generateNextRound(tournament, "Quarter Finals", 0);
-            case 2:
-            case 3:
-                return "Not Implemented yet";
-            default:
-                return "Error occurred";
+        if (tournament.getRounds().size() == 0) {
+            return initializeTournament(tournament);
         }
+
+        return generateNextRound(tournament, "Quarter Finals", tournament.getRounds().size() - 1);
+
     }
 
     public String initializeTournament(Tournament tournament) {
         try {
             List<User> users = userService.getRegisteredUsers(tournament.getUsers());
             Collections.sort(users, Comparator.comparingDouble(user -> user.getPlayerDetails().calculateMMR()));
-            
+
             if (users.size() != tournament.getNumPlayers()) {
                 return "The required amount of registered players have not been met!";
             }
@@ -282,6 +277,7 @@ public class TournamentService {
                 Math.abs(user1.getPlayerDetails().calculateMMR() - user2.getPlayerDetails().calculateMMR()));
         match.setMatchDate(tournament.getDate());
         match.setStage(stage);
+        match.setCompleted(false);
         return match;
     }
 
