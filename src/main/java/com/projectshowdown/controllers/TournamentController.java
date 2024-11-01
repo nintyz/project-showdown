@@ -27,14 +27,14 @@ public class TournamentController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/tournaments")
-    public String addPlayer(@Valid @RequestBody Tournament tournamentData)
+    public String addTournament(@Valid @RequestBody Tournament tournamentData)
             throws ExecutionException, InterruptedException {
         return tournamentService.addTournament(tournamentData);
     }
 
     @GetMapping("/tournament/{id}")
-    public Tournament getPlayer(@PathVariable String id) throws ExecutionException, InterruptedException {
-        Tournament tournament = tournamentService.getTournament(id);
+    public Map<String, Object> displayTournament(@PathVariable String id) throws ExecutionException, InterruptedException {
+        Map<String, Object> tournament = tournamentService.displayTournament(id);
 
         // Need to handle "player not found" error using proper HTTP status code
         // In this case it should be HTTP 404

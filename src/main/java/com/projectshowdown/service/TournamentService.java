@@ -105,6 +105,63 @@ public class TournamentService {
         }
     }
 
+    // Method to get specific tournament from firebase.
+    public Map<String, Object> displayTournament(String tournamentId) throws ExecutionException, InterruptedException {
+        Firestore db = getFirestore();
+        Map<String, Object> response = new HashMap<>();
+
+        // Step 1: Fetch Tournament
+        DocumentReference tournamentRef = db.collection("tournaments").document(tournamentId);
+        DocumentSnapshot tournamentSnapshot = tournamentRef.get().get();
+        if (!tournamentSnapshot.exists()) {
+            throw new IllegalArgumentException("Tournament not found");
+        }
+        response.putAll(tournamentSnapshot.getData());
+
+        List<Map<String, Object>> roundsData = new ArrayList<>();
+
+        // Step 2: Iterate over each round
+        List<Map<String, Object>> rounds = (List<Map<String, Object>>) tournamentSnapshot.get("rounds");
+        for (Map<String, Object> round : rounds) {
+            Map<String, Object> roundData = new HashMap<>();
+            roundData.put("name", round.get("name"));
+
+            List<String> matchIds = (List<String>) round.get("matches");
+            List<Map<String, Object>> matchesData = new ArrayList<>();
+
+            // Step 3: Fetch each match in the round
+            for (String matchId : matchIds) {
+                DocumentReference matchRef = db.collection("matches").document(matchId);
+                DocumentSnapshot matchSnapshot = matchRef.get().get();
+                if (matchSnapshot.exists()) {
+                    Map<String, Object> matchData = matchSnapshot.getData();
+                    String player1Id = (String) matchData.get("player1Id");
+                    String player2Id = (String) matchData.get("player2Id");
+
+                    // Fetch player1 and player2 data
+                    DocumentReference player1Ref = db.collection("users").document(player1Id);
+                    DocumentReference player2Ref = db.collection("users").document(player2Id);
+
+                    DocumentSnapshot player1Snapshot = player1Ref.get().get();
+                    DocumentSnapshot player2Snapshot = player2Ref.get().get();
+
+                    if (player1Snapshot.exists() && player2Snapshot.exists()) {
+                        matchData.put("player1", player1Snapshot.getData());
+                        matchData.put("player2", player2Snapshot.getData());
+                    }
+                    matchesData.add(matchData);
+                }
+            }
+            roundData.put("matches", matchesData);
+            roundsData.add(roundData);
+        }
+
+        // Step 4: Add rounds data to tournament data
+        response.put("rounds", roundsData);
+
+        return response;
+    }
+
     // Method to update a tournament document in the 'tournaments' collection
     public String updateTournament(String tournamentId, Map<String, Object> tournamentData)
             throws ExecutionException, InterruptedException {
