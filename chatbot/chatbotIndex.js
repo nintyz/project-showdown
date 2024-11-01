@@ -154,12 +154,44 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
       });
   }
 
+  // Helper function to format date
   function formatDate(dateString) {
     const date = new Date(dateString);
 
     const options = { day: 'numeric', month: 'long', year: 'numeric' };
 
     return date.toLocaleDateString('en-GB', options);
+  }
+
+  // Get Date by Tournament Name
+  function getVenueByTournamentName(agent) {
+    const tournamentName = agent.parameters.tournament_name;
+
+    if (!tournamentName) {
+      agent.add("Please provide a tournament name.");
+      return;
+    }
+
+    return db.collection('tournaments')
+      .where('name', '==', tournamentName)
+      .get()
+      .then(snapshot => {
+        if (snapshot.empty) {
+          agent.add(`We couldn't find any tournament with the name: "${tournamentName}". Please check the name and try again.`);
+          return;
+        }
+
+        let tournamentVenue = "";
+        snapshot.forEach(doc => {
+          tournamentVenue = doc.data().venue;
+        });
+
+        agent.add(`${tournamentName} is held at ${tournamentVenue}.`);
+      })
+      .catch(error => {
+        console.error('Error retrieving Firestore documents:', error);
+        agent.add('There was an error retrieving data from Firestore. Please try again later.');
+      });
   }
 
   let intentMap = new Map();
@@ -170,6 +202,7 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
 
   // Tournament Intents
   intentMap.set('TournamentDate', getDateByTournamentName);
+  intentMap.set('TournamentVenue', getVenueByTournamentName);
 
   agent.handleRequest(intentMap);
 });
