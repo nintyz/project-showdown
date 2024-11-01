@@ -185,6 +185,10 @@ public class TournamentService {
         // Perform the update operation
         ApiFuture<WriteResult> writeResult = docRef.update(filteredUpdates);
 
+        if(tournamentData.get("status").equals("cancelled")){
+            // EMAIL NOTIFICATION TO LET REGISTERED PLAYERS KNOW ABOUT ITS CANCELLATION
+        }
+
         // Return success message with the update time
         return "Tournament with ID: " + tournamentId + " updated successfully at: " + writeResult.get().getUpdateTime();
     }
