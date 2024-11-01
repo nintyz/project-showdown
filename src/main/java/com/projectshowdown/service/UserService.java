@@ -13,7 +13,6 @@ import com.google.firebase.cloud.FirestoreClient;
 import com.google.zxing.WriterException;
 import com.projectshowdown.dto.UserDTO;
 import com.projectshowdown.dto.UserMapper;
-import com.projectshowdown.entities.Match;
 import com.projectshowdown.entities.Player;
 import com.projectshowdown.entities.User;
 import com.projectshowdown.exceptions.PlayerNotFoundException;
@@ -30,7 +29,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -80,7 +78,7 @@ public class UserService implements UserDetailsService {
   public List<User> getRegisteredUsers(List<String> listOfUserIds) throws ExecutionException, InterruptedException {
     List<User> response = new ArrayList<>();
     for (String userId : listOfUserIds) {
-      response.add(UserMapper.toUser(getPlayer(userId)));
+      response.add(UserMapper.toUser(getUser(userId)));
     }
 
     return response;
@@ -124,7 +122,7 @@ public class UserService implements UserDetailsService {
   }
 
   // Method to get specific player from firebase.
-  public UserDTO getPlayer(String userId) throws ExecutionException, InterruptedException {
+  public UserDTO getUser(String userId) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
     DocumentReference documentReference = db.collection("users").document(userId);
     ApiFuture<DocumentSnapshot> future = documentReference.get();
@@ -219,7 +217,7 @@ public class UserService implements UserDetailsService {
 
   public String enableTwoFactorAuth(String userid)
       throws ExecutionException, InterruptedException, IOException, WriterException {
-    UserDTO user = getPlayer(userid);
+    UserDTO user = getUser(userid);
     String secret = twoFactorAuthService.generateSecretKey();
     user.setTwoFactorSecret(secret);
     updateUser(userid, UserMapper.toMap(user));

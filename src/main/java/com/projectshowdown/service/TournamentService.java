@@ -147,7 +147,7 @@ public class TournamentService {
             throw new TournamentNotFoundException(tournamentId);
         }
 
-        UserDTO user = userService.getPlayer(userId);
+        UserDTO user = userService.getUser(userId);
         Tournament tournament = getTournament(tournamentId);
         if (!tournament.checkUserEligibility(user)) {
             return "Player with MMR " + user.getPlayerDetails().calculateMMR()
@@ -229,6 +229,9 @@ public class TournamentService {
     }
 
     public void updateUserAchievements(){
+        User user = userService.getUser(null);
+        HashMap<String, Object> achievements = new HashMap<>();
+        achievements.put("playerDetails.achievements", "");
         
     }
 
@@ -239,7 +242,7 @@ public class TournamentService {
             if (!match.isCompleted()) {
                 throw new RuntimeException("Matches from the last round are not completed!");
             }
-            response.add(UserMapper.toUser(userService.getPlayer(match.winnerId())));
+            response.add(UserMapper.toUser(userService.getUser(match.winnerId())));
         }
 
         return response;

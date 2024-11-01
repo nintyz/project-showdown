@@ -81,7 +81,7 @@ public class AuthenticationController {
                     new UsernamePasswordAuthenticationToken(userCredentials.getEmail(),
                             userCredentials.getPassword()));
 
-            UserDTO user = userService.getPlayer(userService.getUserIdByEmail(userCredentials.getEmail()));
+            UserDTO user = userService.getUser(userService.getUserIdByEmail(userCredentials.getEmail()));
 
             if (!user.isEnabled()) {
                 return ResponseEntity.badRequest().body("Account not verified. Please verify your account.");
@@ -117,7 +117,7 @@ public class AuthenticationController {
     @PostMapping("/verify-2fa")
     public ResponseEntity<?> verifyTwoFactorAuth(@RequestParam String email, @RequestParam String code) {
         try {
-            UserDTO user = userService.getPlayer(userService.getUserIdByEmail(email));
+            UserDTO user = userService.getUser(userService.getUserIdByEmail(email));
             boolean isValid = twoFactorAuthService.verifyCode(user.getTwoFactorSecret(), code);
             if (isValid) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(email);

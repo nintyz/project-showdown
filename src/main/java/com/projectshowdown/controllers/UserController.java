@@ -36,8 +36,8 @@ public class UserController {
 
     // get specific player
     @GetMapping("/user/{id}")
-    public UserDTO getPlayer(@PathVariable String id) throws ExecutionException, InterruptedException {
-        UserDTO player = userService.getPlayer(id);
+    public UserDTO getUser(@PathVariable String id) throws ExecutionException, InterruptedException {
+        UserDTO player = userService.getUser(id);
 
         // Need to handle "player not found" error using proper HTTP status code
         // In this case it should be HTTP 404
@@ -60,9 +60,9 @@ public class UserController {
 
     @PutMapping("/user/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public String updateUser(@PathVariable String id, @RequestBody Map<String, Object> playerData)
+    public String updateUser(@PathVariable String id, @RequestBody Map<String, Object> userData)
             throws ExecutionException, InterruptedException {
-        return userService.updateUser(id, playerData);
+        return userService.updateUser(id, userData);
     }
 
     @DeleteMapping("/user/{id}")

@@ -22,7 +22,7 @@ public class AuthenticationService {
     private UserService userService;
 
     public void verifyUser(VerifyUserDto input) throws ExecutionException, InterruptedException {
-        Optional<UserDTO> optionalUser = Optional.ofNullable(userService.getPlayer(userService.getUserIdByEmail(input.getEmail())));
+        Optional<UserDTO> optionalUser = Optional.ofNullable(userService.getUser(userService.getUserIdByEmail(input.getEmail())));
         if (optionalUser.isPresent()) {
             UserDTO user = optionalUser.get();
             if (DateTimeUtils.isExpired(user.getVerificationCodeExpiresAt())) {
@@ -42,7 +42,7 @@ public class AuthenticationService {
     }
 
     public void resendVerificationCode(String email) throws ExecutionException, InterruptedException {
-        Optional<UserDTO> optionalUser = Optional.ofNullable(userService.getPlayer(userService.getUserIdByEmail(email)));
+        Optional<UserDTO> optionalUser = Optional.ofNullable(userService.getUser(userService.getUserIdByEmail(email)));
         if (optionalUser.isPresent()) {
             UserDTO user = optionalUser.get();
             if (user.isEnabled()) {
