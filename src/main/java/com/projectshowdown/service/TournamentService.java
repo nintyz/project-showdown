@@ -221,6 +221,8 @@ public class TournamentService {
         // already the finals, dont need update, so return
         // but need to update player achivements
         if (lastRound.size() == 1) {
+            updateUserAchievements(tournament, event.getMatch().winnerId(), true);
+            updateUserAchievements(tournament, event.getMatch().loserId(), false);
             return;
         }
         if (matchService.checkCurrentRoundCompletion(lastRound)) {
@@ -228,11 +230,15 @@ public class TournamentService {
         }
     }
 
-    public void updateUserAchievements(){
-        User user = userService.getUser(null);
+    public void updateUserAchievements(Tournament tournament, String userId, boolean gold)
+            throws ExecutionException, InterruptedException {
+        UserDTO user = userService.getUser(userId);
         HashMap<String, Object> achievements = new HashMap<>();
-        achievements.put("playerDetails.achievements", "");
-        
+        String newAchievement = " Obtained " + (gold ? "Gold" : "Silver") + " from " + tournament.getName() + " at "
+                + tournament.getDate();
+        achievements.put("playerDetails.achievements", user.getPlayerDetails().getAchievements() + newAchievement);
+
+        userService.updateUser(userId, achievements);
     }
 
     public List<User> getWinningUsers(List<String> matches) throws ExecutionException, InterruptedException {

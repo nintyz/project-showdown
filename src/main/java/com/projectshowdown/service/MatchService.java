@@ -70,7 +70,8 @@ public class MatchService {
 
         // check if Round has been completed
         // Publish event
-        eventPublisher.publishEvent(new MatchUpdatedEvent(this, tournamentId));
+        Match match = document.toObject(Match.class);
+        eventPublisher.publishEvent(new MatchUpdatedEvent(this, tournamentId, match));
 
         // Return success message with the update time
         return "Match with ID: " + id + " updated successfully at: " + writeResult.get().getUpdateTime();
