@@ -218,13 +218,18 @@ public class TournamentService {
         // Check if tournament needs an update based on the match update
         Tournament tournament = getTournament(tournamentId);
         List<String> lastRound = tournament.getRounds().get(tournament.getRounds().size() - 1).getMatches();
-        // already the finals, dont need update.
+        // already the finals, dont need update, so return
+        // but need to update player achivements
         if (lastRound.size() == 1) {
             return;
         }
         if (matchService.checkCurrentRoundCompletion(lastRound)) {
             progressTournament(tournamentId);
         }
+    }
+
+    public void updateUserAchievements(){
+        
     }
 
     public List<User> getWinningUsers(List<String> matches) throws ExecutionException, InterruptedException {

@@ -32,7 +32,7 @@ public class AuthenticationService {
                 user.setEnabled(true);
                 user.setVerificationCode(null);
                 user.setVerificationCodeExpiresAt(null);
-                userService.updatePlayer(userService.getUserIdByEmail(input.getEmail()), UserMapper.toUser(user));
+                userService.updateUser(userService.getUserIdByEmail(input.getEmail()), UserMapper.toMap(user));
             } else {
                 throw new RuntimeException("Invalid verification code");
             }
@@ -51,7 +51,7 @@ public class AuthenticationService {
             user.setVerificationCode(userService.generateVerificationCode());
             user.setVerificationCodeExpiresAt(DateTimeUtils.toFirebaseTimestamp(LocalDateTime.now().plusHours(1)));
             sendVerificationEmail(user);
-            userService.updatePlayer(userService.getUserIdByEmail(email), UserMapper.toUser(user));
+            userService.updateUser(userService.getUserIdByEmail(email), UserMapper.toMap(user));
         } else {
             throw new RuntimeException("User not found");
         }

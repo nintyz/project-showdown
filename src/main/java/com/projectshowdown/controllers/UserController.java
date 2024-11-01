@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 
 import java.util.concurrent.ExecutionException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 public class UserController {
@@ -59,10 +60,9 @@ public class UserController {
 
     @PutMapping("/user/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public String updatePlayer(@PathVariable String id, @RequestBody User playerData)
+    public String updateUser(@PathVariable String id, @RequestBody Map<String, Object> playerData)
             throws ExecutionException, InterruptedException {
-        playerData.setId(id);
-        return userService.updatePlayer(id, playerData);
+        return userService.updateUser(id, playerData);
     }
 
     @DeleteMapping("/user/{id}")

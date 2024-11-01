@@ -32,16 +32,17 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService implements UserDetailsService {
 
   @Autowired
   private TwoFactorAuthService twoFactorAuthService;
-
 
   public UserService() {
     super();
@@ -173,23 +174,26 @@ public class UserService implements UserDetailsService {
   }
 
   // Method to update a player's document in the 'players' collection
-  public String updatePlayer(String userId, User userData) throws ExecutionException, InterruptedException {
+  public String updateUser(String userId, Map<String, Object> userData)
+      throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
 
     // Check if the user document exists
     DocumentReference docRef = db.collection("users").document(userId);
+
     ApiFuture<DocumentSnapshot> future = docRef.get();
     DocumentSnapshot document = future.get();
-
     if (!document.exists()) {
       throw new PlayerNotFoundException("User with ID: " + userId + " does not exist.");
     }
 
-    // Convert User object to UserDTO
-    UserDTO userDTO = UserMapper.toUserDTO(userData);
+    // Filter out null values from the update data
+    Map<String, Object> filteredUpdates = userData.entrySet().stream()
+        .filter(entry -> entry.getValue() != null) // Only include non-null fields
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
     // Update the user document
-    ApiFuture<WriteResult> writeResult = docRef.set(userDTO);
+    ApiFuture<WriteResult> writeResult = docRef.update(filteredUpdates);
 
     // Return success message
     return "User with ID: " + userId + " updated successfully at: " + writeResult.get().getUpdateTime();
@@ -218,7 +222,7 @@ public class UserService implements UserDetailsService {
     UserDTO user = getPlayer(userid);
     String secret = twoFactorAuthService.generateSecretKey();
     user.setTwoFactorSecret(secret);
-    updatePlayer(userid, UserMapper.toUser(user));
+    updateUser(userid, UserMapper.toMap(user));
     String qrCodeUri = twoFactorAuthService.generateQrCodeImageUri(secret);
     return twoFactorAuthService.generateQrCodeImage(qrCodeUri);
   }
