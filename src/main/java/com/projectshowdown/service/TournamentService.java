@@ -383,6 +383,7 @@ public class TournamentService {
         for (int i = 0; i < users.size(); i += 2) {
             User user1 = users.get(i);
             User user2 = users.get(i + 1);
+            // ADD EMAIL NOTIFICATION, SEND EMAIL TO USER 1 & 2 ABOUT THEIR NEW MATCH.
             Double mmrDiff = Math
                     .abs(user1.getPlayerDetails().calculateMMR() - user2.getPlayerDetails().calculateMMR());
             Match match = new Match("", tournament.getId(), user1.getId(), user2.getId(), 0, 0, mmrDiff,
