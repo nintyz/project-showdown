@@ -218,6 +218,10 @@ public class TournamentService {
         // Check if tournament needs an update based on the match update
         Tournament tournament = getTournament(tournamentId);
         List<String> lastRound = tournament.getRounds().get(tournament.getRounds().size() - 1).getMatches();
+        // already the finals, dont need update.
+        if (lastRound.size() == 1) {
+            return;
+        }
         if (matchService.checkCurrentRoundCompletion(lastRound)) {
             progressTournament(tournamentId);
         }
@@ -238,18 +242,30 @@ public class TournamentService {
 
     public String progressTournament(String tournamentId) throws ExecutionException, InterruptedException {
         Tournament tournament = getTournament(tournamentId);
+        String roundName = "";
         switch (tournament.getRounds().size()) {
             case 0:
                 return initializeTournament(tournament);
             case 1:
-                return generateNextRound(tournament, "Quarter Finals");
+                roundName = tournament.getUsers().size() == 32 ? "Round 2" : "QuarterFinals";
+                break;
             case 2:
+                roundName = tournament.getUsers().size() == 32 ? "QuarterFinals" : "Semi Finals";
+                break;
             case 3:
-                return "Not Implemented yet";
+                roundName = tournament.getUsers().size() == 32 ? "Semi Finals" : "Finals";
+                break;
+            case 4:
+                roundName = tournament.getUsers().size() == 32 ? "Finals" : "Error";
+                break;
             default:
-                return "Error occurred";
-
+                roundName = "Error";
         }
+
+        if (roundName.equals("Error")) {
+            return "The tournament has already completed!";
+        }
+        return generateNextRound(tournament, roundName);
     }
 
     public String initializeTournament(Tournament tournament) {

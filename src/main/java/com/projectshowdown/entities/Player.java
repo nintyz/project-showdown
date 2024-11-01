@@ -78,7 +78,7 @@ public class Player {
         this.dob = dob;
     }
 
-    public Integer getAge() {
+    public Integer age() {
         if (dob == null) {
             return null;
         }
@@ -139,7 +139,7 @@ public class Player {
 
         double currentElo = this.getElo();
         double peakElo = this.getPeakElo();
-        double age = this.getAge();
+        double age = this.age();
         double peakAge = this.getPeakAge();
         double yearsSincePeak = age - peakAge;
 
