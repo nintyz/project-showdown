@@ -90,7 +90,7 @@ class AuthenticationControllerTest {
         userDTO.setEnabled(true);
         userDTO.setId("5pEhJtbM2c9w7SwanaPn");
         when(userService.getUserIdByEmail("test@example.com")).thenReturn("5pEhJtbM2c9w7SwanaPn");
-        when(userService.getPlayer("5pEhJtbM2c9w7SwanaPn")).thenReturn(userDTO);
+        when(userService.getUser("5pEhJtbM2c9w7SwanaPn")).thenReturn(userDTO);
 
         ResponseEntity<?> response = authenticationController.createAuthenticationToken(userCredentials);
 
@@ -114,7 +114,7 @@ class AuthenticationControllerTest {
         userDTO.setId("5pEhJtbM2c9w7SwanaPn");
         userDTO.setTwoFactorSecret("secret");
         when(userService.getUserIdByEmail("test@example.com")).thenReturn("5pEhJtbM2c9w7SwanaPn");
-        when(userService.getPlayer("5pEhJtbM2c9w7SwanaPn")).thenReturn(userDTO);
+        when(userService.getUser("5pEhJtbM2c9w7SwanaPn")).thenReturn(userDTO);
 
         ResponseEntity<?> response = authenticationController.createAuthenticationToken(userCredentials);
 
@@ -154,7 +154,7 @@ class AuthenticationControllerTest {
         userDTO.setId("5pEhJtbM2c9w7SwanaPn");
         userDTO.setTwoFactorSecret("secret");
         when(userService.getUserIdByEmail("test@example.com")).thenReturn("5pEhJtbM2c9w7SwanaPn");
-        when(userService.getPlayer("5pEhJtbM2c9w7SwanaPn")).thenReturn(userDTO);
+        when(userService.getUser("5pEhJtbM2c9w7SwanaPn")).thenReturn(userDTO);
         when(twoFactorAuthService.verifyCode("secret", "123456")).thenReturn(true);
 
         UserDetails userDetails = mock(UserDetails.class);
@@ -174,7 +174,7 @@ class AuthenticationControllerTest {
         userDTO.setId("5pEhJtbM2c9w7SwanaPn");
         userDTO.setTwoFactorSecret("secret");
         when(userService.getUserIdByEmail("test@example.com")).thenReturn("5pEhJtbM2c9w7SwanaPn");
-        when(userService.getPlayer("5pEhJtbM2c9w7SwanaPn")).thenReturn(userDTO);
+        when(userService.getUser("5pEhJtbM2c9w7SwanaPn")).thenReturn(userDTO);
         when(twoFactorAuthService.verifyCode("secret", "123456")).thenReturn(false);
 
         ResponseEntity<?> response = authenticationController.verifyTwoFactorAuth("test@example.com", "123456");
