@@ -2,6 +2,7 @@ package com.projectshowdown.controllers;
 
 import com.projectshowdown.configs.JwtUtil;
 import com.projectshowdown.dto.UserDTO;
+import com.projectshowdown.dto.Verify2faDTO;
 import com.projectshowdown.entities.User;
 import com.projectshowdown.service.TwoFactorAuthService;
 import com.projectshowdown.service.UserService;
@@ -24,7 +25,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class AuthenticationControllerTest {
+class AuthenticationControllerIntegrationTest {
 
     @InjectMocks
     private AuthenticationController authenticationController;
@@ -150,6 +151,7 @@ class AuthenticationControllerTest {
 
     @Test
     void verifyTwoFactorAuth_validCode_returnsToken() throws Exception {
+        Verify2faDTO verify2faDTO = new Verify2faDTO("test@example.com", "123456");
         UserDTO userDTO = new UserDTO();
         userDTO.setId("5pEhJtbM2c9w7SwanaPn");
         userDTO.setTwoFactorSecret("secret");
@@ -161,7 +163,7 @@ class AuthenticationControllerTest {
         when(userDetailsService.loadUserByUsername("test@example.com")).thenReturn(userDetails);
         when(jwtUtil.generateToken(userDetails)).thenReturn("testToken");
 
-        ResponseEntity<?> response = authenticationController.verifyTwoFactorAuth("test@example.com", "123456");
+        ResponseEntity<?> response = authenticationController.verifyTwoFactorAuth(verify2faDTO);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertInstanceOf(Map.class, response.getBody());
@@ -170,6 +172,7 @@ class AuthenticationControllerTest {
 
     @Test
     void verifyTwoFactorAuth_invalidCode_returnsBadRequest() throws Exception {
+        Verify2faDTO verify2faDTO = new Verify2faDTO("test@example.com", "123456");
         UserDTO userDTO = new UserDTO();
         userDTO.setId("5pEhJtbM2c9w7SwanaPn");
         userDTO.setTwoFactorSecret("secret");
@@ -177,7 +180,7 @@ class AuthenticationControllerTest {
         when(userService.getUser("5pEhJtbM2c9w7SwanaPn")).thenReturn(userDTO);
         when(twoFactorAuthService.verifyCode("secret", "123456")).thenReturn(false);
 
-        ResponseEntity<?> response = authenticationController.verifyTwoFactorAuth("test@example.com", "123456");
+        ResponseEntity<?> response = authenticationController.verifyTwoFactorAuth(verify2faDTO);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("Invalid 2FA code", response.getBody());
