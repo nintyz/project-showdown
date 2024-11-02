@@ -1,6 +1,6 @@
 package com.projectshowdown.controllers;
 
-import com.projectshowdown.service.EmailService;
+import com.projectshowdown.service.NotificationService;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -10,31 +10,56 @@ import org.springframework.web.bind.annotation.*;
 public class NotificationController {
 
     @Autowired
-    private EmailService emailService;
+    private NotificationService notificationService;
 
-    @GetMapping("/send")
-    public void sendNotification(@RequestParam String email) {
-        String subject = "Sample Notif";
-        String htmlMessage = "<html>"
-                + "<body style=\"font-family: Arial, sans-serif;\">"
-                + "<div style=\"background-color: #f5f5f5; padding: 20px;\">"
-                + "<h2 style=\"color: #333;\">Welcome to our app!</h2>"
-                + "<p style=\"font-size: 16px;\">some message here</p>"
-                + "<div style=\"background-color: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1);\">"
-                + "<h3 style=\"color: #333;\">more message here</h3>"
-                + "<p style=\"font-size: 18px; font-weight: bold; color: #007bff;\">hello</p>"
-                + "</div>"
-                + "</div>"
-                + "</body>"
-                + "</html>";
-
+    @GetMapping("/sendCustomMessage")
+    public String sendCustomMessage(@RequestParam String email) {
         try {
-            emailService.sendEmail(email, subject, htmlMessage);
+            notificationService.notifyCustomMessage(
+                    email,
+                    "Test Notification",
+                    "Test Header",
+                    "This is a test message body",
+                    "Test SubHeader",
+                    "This is highlighted text"
+            );
+            return "Custom notification sent successfully!";
         } catch (MessagingException e) {
-            // Handle email sending exception
             e.printStackTrace();
+            return "Failed to send custom notification.";
         }
-
     }
 
+    @GetMapping("/matchReminder")
+    public String sendMatchReminder(@RequestParam String email, @RequestParam String playerName) {
+        try {
+            notificationService.notifyMatchStartingSoon(email, playerName, 30); // 30 minutes before the match
+            return "Match reminder notification sent successfully!";
+        } catch (MessagingException e) {
+            e.printStackTrace();
+            return "Failed to send match reminder.";
+        }
+    }
+
+    @GetMapping("/tournamentCancelled")
+    public String notifyTournamentCancelled(@RequestParam String email, @RequestParam String tournamentName) {
+        try {
+            notificationService.notifyTournamentCancelled(email, tournamentName);
+            return "Tournament cancellation notification sent successfully!";
+        } catch (MessagingException e) {
+            e.printStackTrace();
+            return "Failed to send tournament cancellation notification.";
+        }
+    }
+
+    @GetMapping("/playerMatched")
+    public String notifyPlayerMatched(@RequestParam String email, @RequestParam String playerName, @RequestParam String opponentName, @RequestParam String tournamentName) {
+        try {
+            notificationService.notifyPlayerMatched(email, playerName, opponentName, tournamentName);
+            return "Player matched notification sent successfully!";
+        } catch (MessagingException e) {
+            e.printStackTrace();
+            return "Failed to send player matched notification.";
+        }
+    }
 }
