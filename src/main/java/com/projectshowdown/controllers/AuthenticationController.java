@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import com.projectshowdown.dto.UserDTO;
+import com.projectshowdown.dto.Verify2faDTO;
 import com.projectshowdown.dto.VerifyUserDto;
 import com.projectshowdown.service.AuthenticationService;
 import com.projectshowdown.service.TwoFactorAuthService;
@@ -115,12 +116,12 @@ public class AuthenticationController {
     }
 
     @PostMapping("/verify-2fa")
-    public ResponseEntity<?> verifyTwoFactorAuth(@RequestParam String email, @RequestParam String code) {
+    public ResponseEntity<?> verifyTwoFactorAuth(@RequestBody Verify2faDTO verify2faDto) {
         try {
-            UserDTO user = userService.getUser(userService.getUserIdByEmail(email));
-            boolean isValid = twoFactorAuthService.verifyCode(user.getTwoFactorSecret(), code);
+            UserDTO user = userService.getUser(userService.getUserIdByEmail(verify2faDto.getEmail()));
+            boolean isValid = twoFactorAuthService.verifyCode(user.getTwoFactorSecret(), verify2faDto.getCode());
             if (isValid) {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+                UserDetails userDetails = userDetailsService.loadUserByUsername(verify2faDto.getEmail());
                 String token = jwtUtil.generateToken(userDetails);
                 return ResponseEntity.ok(Map.of("token", token));
             } else {
