@@ -21,22 +21,23 @@ public class NotificationService {
      * @param subject Subject of the email.
      * @param header Main header text.
      * @param message Primary message text.
-     * @param subHeader Sub-header text.
-     * @param highlightedText Highlighted text to emphasize.
      */
-    public void notifyCustomMessage(String email, String subject, String header, String message, String subHeader, String highlightedText) throws MessagingException {
-        String htmlMessage = "<html>" 
-                + "<body style=\"font-family: Arial, sans-serif;\">" 
-                + "<div style=\"background-color: #f3eeea; padding: 20px;\">" 
-                + "<h2 style=\"color: #333;\">" + header + "</h2>" 
-                + "<p style=\"font-size: 16px;\">" + message + "</p>" 
-                + "<div style=\"background-color: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1);\">" 
-                + "<h3 style=\"color: #333;\">" + subHeader + "</h3>" 
-                + "<p style=\"font-size: 18px; font-weight: bold; color: #007bff;\">" + highlightedText + "</p>" 
-                + "</div>" 
-                + "</div>" 
-                + "</body>" 
+    public void notifyCustomMessage(String email, String subject, String header, String message) throws MessagingException {
+        String htmlMessage = "<html>"
+                + "<body style=\"font-family: Arial, sans-serif; background-color: #f3eeea; padding: 20px;\">"
+                + "<div style=\"max-width: 600px; margin: auto; background-color: #f3eeea; padding: 20px; border-radius: 8px;\">"
+                + "<h2 style=\"text-align: center; color: #333;\">" + header + "</h2>"
+                + "<p style=\"text-align: center; color: #4b0082; font-size: 16px;\">" + message + "</p>"
+                + "<div style=\"text-align: center; margin: 20px 0;\">"
+                + "<img src=\"cid:showdown-logo\" alt=\"Showdown Logo\" style=\"width: 150px; height: auto;\">"
+                + "</div>"
+                + "<p style=\"text-align: center; color: #888; font-size: 12px;\">This is an auto-generated email. Please do not reply to this email.</p>"
+                + "</div>"
+                + "</body>"
                 + "</html>";
+
+        System.out.println("HTML Message: " + htmlMessage);
+
 
 
         try {
@@ -57,11 +58,9 @@ public class NotificationService {
     public void notifyMatchStartingSoon(String email, String playerName, int matchStartTime) throws MessagingException {
         String subject = "Match Alert: Your match is starting soon!";
         String header = "Match Reminder";
-        String message = "Dear " + playerName + ", your match will start in " + matchStartTime + " minutes. Please be prepared and head to your assigned court.";
-        String subHeader = "Match Starting Soon";
-        String highlightedText = "Be ready!";
+        String message = "Dear " + playerName + ", your match will start in " + matchStartTime + " hour. Please be prepared and head to your assigned court.";
 
-        notifyCustomMessage(email, subject, header, message, subHeader, highlightedText);
+        notifyCustomMessage(email, subject, header, message);
     }
 
     /**
@@ -74,10 +73,8 @@ public class NotificationService {
         String subject = "Important: Tournament Cancellation";
         String header = "Tournament Cancelled";
         String message = "We regret to inform you that the tournament '" + tournamentName + "' has been cancelled due to unforeseen circumstances. We apologize for any inconvenience.";
-        String subHeader = "Cancellation Notice";
-        String highlightedText = "Thank you for your understanding.";
 
-        notifyCustomMessage(email, subject, header, message, subHeader, highlightedText);
+        notifyCustomMessage(email, subject, header, message);
     }
 
     /**
@@ -92,9 +89,7 @@ public class NotificationService {
         String subject = "Match Notification: You've been paired for a tournament!";
         String header = "Match Assignment";
         String message = "Dear " + playerName + ", you have been matched with " + opponentName + " for the tournament '" + tournamentName + "'. Please check the schedule and prepare accordingly.";
-        String subHeader = "Your Next Match";
-        String highlightedText = "Good luck and play well!";
 
-        notifyCustomMessage(email, subject, header, message, subHeader, highlightedText);
+        notifyCustomMessage(email, subject, header, message);
     }
 }

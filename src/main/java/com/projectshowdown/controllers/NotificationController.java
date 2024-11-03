@@ -19,9 +19,7 @@ public class NotificationController {
                     email,
                     "Test Notification",
                     "Test Header",
-                    "This is a test message body",
-                    "Test SubHeader",
-                    "This is highlighted text"
+                    "This is a test message body"
             );
             return "Custom notification sent successfully!";
         } catch (MessagingException e) {
@@ -33,7 +31,7 @@ public class NotificationController {
     @GetMapping("/matchReminder")
     public String sendMatchReminder(@RequestParam String email, @RequestParam String playerName) {
         try {
-            notificationService.notifyMatchStartingSoon(email, playerName, 30); // 30 minutes before the match
+            notificationService.notifyMatchStartingSoon(email, playerName, 1); // 1 hour before the match
             return "Match reminder notification sent successfully!";
         } catch (MessagingException e) {
             e.printStackTrace();
