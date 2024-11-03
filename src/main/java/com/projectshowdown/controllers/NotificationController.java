@@ -28,17 +28,6 @@ public class NotificationController {
         }
     }
 
-    @GetMapping("/matchReminder")
-    public String sendMatchReminder(@RequestParam String email, @RequestParam String playerName) {
-        try {
-            notificationService.notifyMatchStartingSoon(email, playerName, 1); // 1 hour before the match
-            return "Match reminder notification sent successfully!";
-        } catch (MessagingException e) {
-            e.printStackTrace();
-            return "Failed to send match reminder.";
-        }
-    }
-
     @GetMapping("/tournamentCancelled")
     public String notifyTournamentCancelled(@RequestParam String email, @RequestParam String tournamentName) {
         try {
@@ -58,6 +47,17 @@ public class NotificationController {
         } catch (MessagingException e) {
             e.printStackTrace();
             return "Failed to send player matched notification.";
+        }
+    }
+
+    @GetMapping("/matchDetailsUpdated")
+    public String notifyMatchDetailsUpdated(@RequestParam String email, @RequestParam String playerName, @RequestParam String opponentName, @RequestParam String tournamentName, @RequestParam String date, @RequestParam String time, @RequestParam String venue) {
+        try {
+            notificationService.notifyMatchDetailsUpdated(email, playerName, opponentName, tournamentName, date, time, venue);
+            return "Match details updated notification sent successfully!";
+        } catch (MessagingException e) {
+            e.printStackTrace();
+            return "Failed to send match details updated notification.";
         }
     }
 }

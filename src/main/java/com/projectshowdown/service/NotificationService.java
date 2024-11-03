@@ -49,21 +49,6 @@ public class NotificationService {
     }
 
     /**
-     * Notify a player that their match is starting soon.
-     *
-     * @param email Recipient's email.
-     * @param playerName Name of the player.
-     * @param matchStartTime Time in minutes until the match starts.
-     */
-    public void notifyMatchStartingSoon(String email, String playerName, int matchStartTime) throws MessagingException {
-        String subject = "Match Alert: Your match is starting soon!";
-        String header = "Match Reminder";
-        String message = "Dear " + playerName + ", your match will start in " + matchStartTime + " hour. Please be prepared and head to your assigned court.";
-
-        notifyCustomMessage(email, subject, header, message);
-    }
-
-    /**
      * Notify players when a tournament is cancelled.
      *
      * @param email Recipient's email.
@@ -72,13 +57,13 @@ public class NotificationService {
     public void notifyTournamentCancelled(String email, String tournamentName) throws MessagingException {
         String subject = "Important: Tournament Cancellation";
         String header = "Tournament Cancelled";
-        String message = "We regret to inform you that the tournament '" + tournamentName + "' has been cancelled due to unforeseen circumstances. We apologize for any inconvenience.";
+        String message = "We regret to inform you that the tournament '" + tournamentName + "' has been cancelled due to unforeseen circumstances. We apologise for any inconvenience.";
 
         notifyCustomMessage(email, subject, header, message);
     }
 
     /**
-     * Notify a player when they have been matched with another player for a tournament.
+     * Notify a player when they have been matched with another player for a tournament but the details are still pending.
      *
      * @param email Recipient's email.
      * @param playerName Name of the player.
@@ -88,7 +73,28 @@ public class NotificationService {
     public void notifyPlayerMatched(String email, String playerName, String opponentName, String tournamentName) throws MessagingException {
         String subject = "Match Notification: You've been paired for a tournament!";
         String header = "Match Assignment";
-        String message = "Dear " + playerName + ", you have been matched with " + opponentName + " for the tournament '" + tournamentName + "'. Please check the schedule and prepare accordingly.";
+        String message = "Dear " + playerName + ", you have been matched with " + opponentName + " for the tournament '" + tournamentName + "'. The date, time, and venue are currently set to 'TBC'. Please stay tuned for updates.";
+
+        notifyCustomMessage(email, subject, header, message);
+    }
+
+    /**
+     * Notify a player when their match details have been updated.
+     *
+     * @param email Recipient's email.
+     * @param playerName Name of the player.
+     * @param opponentName Name of the opponent.
+     * @param tournamentName Name of the tournament.
+     * @param date Date of the tournament.
+     * @param time Time of the opponent.
+     * @param venue Venue of the tournament.
+     */
+    public void notifyMatchDetailsUpdated(String email, String playerName, String opponentName, String tournamentName, String date, String time, String venue) throws MessagingException {
+        String subject = "Match Details Updated: Tournament Notification";
+        String header = "Match Details Updated";
+        String message = "Dear " + playerName + ", the match details for your upcoming game against " + opponentName +
+        " in the tournament '" + tournamentName + "' have been updated. The match is scheduled for " +
+        date + " at " + time + " at " + venue + ". Please mark your calendar and prepare accordingly.";
 
         notifyCustomMessage(email, subject, header, message);
     }

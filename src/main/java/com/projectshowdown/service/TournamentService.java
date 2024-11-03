@@ -29,6 +29,9 @@ import com.projectshowdown.entities.Match;
 import com.projectshowdown.entities.Round;
 import com.projectshowdown.entities.Tournament;
 import com.projectshowdown.exceptions.TournamentNotFoundException;
+
+import jakarta.mail.MessagingException;
+
 import com.projectshowdown.entities.User;
 import com.projectshowdown.events.MatchUpdatedEvent;
 
@@ -40,6 +43,9 @@ public class TournamentService {
 
     @Autowired
     MatchService matchService;
+
+    @Autowired
+    NotificationService notificationService;
 
     // Helper method to get Firestore instance
     private Firestore getFirestore() {
@@ -185,8 +191,23 @@ public class TournamentService {
         // Perform the update operation
         ApiFuture<WriteResult> writeResult = docRef.update(filteredUpdates);
 
+        // Retrieve the tournament name from the document
+        String tournamentName = document.getString("name");
+
         if(tournamentData.get("status").equals("cancelled")){
             // EMAIL NOTIFICATION TO LET REGISTERED PLAYERS KNOW ABOUT ITS CANCELLATION
+            // Retrieve the list of registered users
+            List<String> registeredUsers = (List<String>) document.get("users");
+            for (String userId : registeredUsers) {
+                UserDTO user = userService.getUser(userId);
+                try {
+                    // Send cancellation notification to each user
+                    notificationService.notifyTournamentCancelled(user.getEmail(), tournamentName);
+                } catch (MessagingException e) {
+                    System.out.println("Failed to send cancellation notification to user: " + userId);
+                    e.printStackTrace();
+                }
+            }
         }
 
         // Return success message with the update time
