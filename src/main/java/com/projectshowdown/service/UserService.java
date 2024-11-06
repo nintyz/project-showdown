@@ -157,7 +157,7 @@ public class UserService implements UserDetailsService {
 
     // User disabled on creation
     userData.setVerificationCode(generateVerificationCode());
-    userData.setVerificationCodeExpiresAt(DateTimeUtils.toFirebaseTimestamp(LocalDateTime.now().plusMinutes(15)));
+    userData.setVerificationCodeExpiresAt(DateTimeUtils.toEpochSeconds(LocalDateTime.now().plusMinutes(15)));
     userData.setEnabled(false);
 
     // Convert User object to UserDTO and set the generated ID
@@ -260,7 +260,7 @@ public class UserService implements UserDetailsService {
             country, bio, achievements);
 
         UserDTO currentRowUser = new UserDTO("", email, fixedPassword, "player", null, currentRowPlayerDetails, null,
-            DateTimeUtils.toFirebaseTimestamp(LocalDateTime.now().plusMinutes(15)), false);
+            DateTimeUtils.toEpochSeconds(LocalDateTime.now().plusMinutes(15)), false);
 
         DocumentReference docRef = usersCollection.document(); // Create a new document reference with a unique ID
         currentRowUser.setId(docRef.getId());

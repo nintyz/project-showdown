@@ -3,7 +3,6 @@ package com.projectshowdown.entities;
 import java.util.Collection;
 import java.util.Collections;
 
-import com.google.cloud.Timestamp;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -47,7 +46,7 @@ public class User implements UserDetails {
     private Player playerDetails;
 
     private String verificationCode;
-    private Timestamp verificationCodeExpiresAt;
+    private Long verificationCodeExpiresAt;
     private boolean enabled;
 
     // Parameterized constructor with essential fields
@@ -59,7 +58,7 @@ public class User implements UserDetails {
     }
 
     // Full parameterized constructor
-    public User(String id, String email, String password, String role, String twoFactorSecret, Player playerDetails, String verificationCode, Timestamp verificationCodeExpiresAt, boolean enabled) {
+    public User(String id, String email, String password, String role, String twoFactorSecret, Player playerDetails, String verificationCode, Long verificationCodeExpiresAt, boolean enabled) {
         this.id = id;
         this.email = email;
         this.password = password;

@@ -49,7 +49,7 @@ public class AuthenticationService {
                 throw new RuntimeException("Account is already verified");
             }
             user.setVerificationCode(userService.generateVerificationCode());
-            user.setVerificationCodeExpiresAt(DateTimeUtils.toFirebaseTimestamp(LocalDateTime.now().plusHours(1)));
+            user.setVerificationCodeExpiresAt(DateTimeUtils.toEpochSeconds(LocalDateTime.now().plusHours(1)));
             sendVerificationEmail(user);
             userService.updateUser(userService.getUserIdByEmail(email), UserMapper.toMap(user));
         } else {
