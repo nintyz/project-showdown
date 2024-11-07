@@ -28,9 +28,9 @@ public class NotificationService {
             <body style="font-family: Arial, sans-serif; background-color: #f3eeea; padding: 20px;">
                 <div style="max-width: 600px; margin: auto; background-color: #f3eeea; padding: 20px; border-radius: 8px;">
                     <h2 style="text-align: center; color: #333;">%s</h2>
-                    <p style="text-align: center; color: #4b0082; font-size: 16px;">%s</p>
+                    <p style="text-align: center; color: #333; font-size: 16px;">%s</p>
                     <div style="text-align: center; margin: 20px 0;">
-                        <img src="cid:showdown-logo" alt="Showdown Logo" style="width: 150px; height: auto;">
+                        <img src="cid:showdown-logo.png" alt="Showdown Logo" style="width: 500px; height: auto;">
                     </div>
                     <p style="text-align: center; color: #888; font-size: 12px;">This is an auto-generated email. Please do not reply to this email.</p>
                 </div>
