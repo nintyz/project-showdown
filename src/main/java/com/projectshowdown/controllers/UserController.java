@@ -13,8 +13,8 @@ import com.projectshowdown.service.UserService;
 import jakarta.validation.Valid;
 
 import java.util.concurrent.ExecutionException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 public class UserController {
@@ -36,8 +36,8 @@ public class UserController {
 
     // get specific player
     @GetMapping("/user/{id}")
-    public UserDTO getPlayer(@PathVariable String id) throws ExecutionException, InterruptedException {
-        UserDTO player = userService.getPlayer(id);
+    public UserDTO getUser(@PathVariable String id) throws ExecutionException, InterruptedException {
+        UserDTO player = userService.getUser(id);
 
         // Need to handle "player not found" error using proper HTTP status code
         // In this case it should be HTTP 404
@@ -49,31 +49,32 @@ public class UserController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/users")
-    public String addPlayer(@Valid @RequestBody User playerData) throws ExecutionException, InterruptedException {
+    public String createUser(@Valid @RequestBody User playerData) throws ExecutionException, InterruptedException {
         // return playerData.getPlayerDetails().getName().toString();
 
         // Encode the password before storing it
         playerData.setPassword(passwordEncoder.encode(playerData.getPassword()));
 
-        return userService.addPlayer(playerData);
-    }
-
-    @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping("/import")
-    public String massImport(@RequestBody ArrayList<UserDTO> body) throws ExecutionException, InterruptedException {
-        return userService.massImport(body);
+        return userService.createUser(playerData);
     }
 
     @PutMapping("/user/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public String updatePlayer(@PathVariable String id, @RequestBody User playerData)
+    public String updateUser(@PathVariable String id, @RequestBody Map<String, Object> userData)
             throws ExecutionException, InterruptedException {
-        return userService.updatePlayer(id, playerData);
+        return userService.updateUser(id, userData);
     }
 
     @DeleteMapping("/user/{id}")
     public String deletePlayer(@PathVariable String id) throws ExecutionException, InterruptedException {
         return userService.deletePlayer(id);
+    }
+
+
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/import")
+    public String massImport() {
+        return userService.massImport();
     }
 
 }

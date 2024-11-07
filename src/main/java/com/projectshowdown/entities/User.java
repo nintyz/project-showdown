@@ -34,7 +34,7 @@ public class User implements UserDetails {
     @Pattern(regexp = ".*[A-Z].*", message = "Password must contain at least one uppercase letter")
     @Pattern(regexp = ".*[a-z].*", message = "Password must contain at least one lowercase letter")
     @Pattern(regexp = ".*\\d.*", message = "Password must contain at least one digit")
-    @Pattern(regexp = ".*[@#$%^&+=].*", message = "Password must contain at least one special character (@#$%^&+=)")
+    @Pattern(regexp = ".*[!@#$%^&+=].*", message = "Password must contain at least one special character (!@#$%^&+=)")
     private String password;
 
     @NotBlank(message = "Role is mandatory")
@@ -45,6 +45,11 @@ public class User implements UserDetails {
 
     private Player playerDetails;
 
+    private String verificationCode;
+    private Long verificationCodeExpiresAt;
+    private boolean enabled;
+
+    // Parameterized constructor with essential fields
     public User(String email, String password, String role, Player playerDetails) {
         this.email = email;
         this.password = password;
@@ -52,11 +57,61 @@ public class User implements UserDetails {
         this.playerDetails = playerDetails;
     }
 
-    public User(String email, String password, String role, String twoFactorSecret, Player playerDetails) {
+    // Full parameterized constructor
+    public User(String id, String email, String password, String role, String twoFactorSecret, Player playerDetails, String verificationCode, Long verificationCodeExpiresAt, boolean enabled) {
+        this.id = id;
         this.email = email;
         this.password = password;
         this.role = role;
         this.twoFactorSecret = twoFactorSecret;
+        this.playerDetails = playerDetails;
+        this.verificationCode = verificationCode;
+        this.verificationCodeExpiresAt = verificationCodeExpiresAt;
+        this.enabled = enabled;
+    }
+
+    // Getters and Setters
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public String getTwoFactorSecret() {
+        return twoFactorSecret;
+    }
+
+    public void setTwoFactorSecret(String twoFactorSecret) {
+        this.twoFactorSecret = twoFactorSecret;
+    }
+
+    public Player getPlayerDetails() {
+        return playerDetails;
+    }
+
+    public void setPlayerDetails(Player playerDetails) {
         this.playerDetails = playerDetails;
     }
 
@@ -93,7 +148,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return this.enabled;
     }
 
 }

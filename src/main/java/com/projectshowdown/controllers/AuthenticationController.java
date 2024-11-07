@@ -2,8 +2,12 @@ package com.projectshowdown.controllers;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import com.projectshowdown.dto.UserDTO;
+import com.projectshowdown.dto.Verify2faDTO;
+import com.projectshowdown.dto.VerifyUserDto;
+import com.projectshowdown.service.AuthenticationService;
 import com.projectshowdown.service.TwoFactorAuthService;
 import com.projectshowdown.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,6 +33,9 @@ public class AuthenticationController {
     private AuthenticationManager authenticationManager;
 
     @Autowired
+    private AuthenticationService authenticationService;
+
+    @Autowired
     private JwtUtil jwtUtil;
 
     @Autowired
@@ -36,6 +43,7 @@ public class AuthenticationController {
 
     @Autowired
     private UserService userService;
+
     @Autowired
     private TwoFactorAuthService twoFactorAuthService;
 
@@ -67,14 +75,18 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> createAuthenticationToken(@RequestBody User userCredentials) throws Exception {
+    public ResponseEntity<?> createAuthenticationToken(@RequestBody User userCredentials) {
         try {
             UserDetails userDetails = userDetailsService.loadUserByUsername(userCredentials.getEmail());
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(userCredentials.getEmail(),
                             userCredentials.getPassword()));
 
-            UserDTO user = userService.getPlayer(userService.getUserIdByEmail(userCredentials.getEmail()));
+            UserDTO user = userService.getUser(userService.getUserIdByEmail(userCredentials.getEmail()));
+
+            if (!user.isEnabled()) {
+                return ResponseEntity.badRequest().body("Account not verified. Please verify your account.");
+            }
 
             if (user.getTwoFactorSecret() != null) {
                 // 2FA is enabled, return a flag indicating 2FA is required
@@ -85,11 +97,11 @@ public class AuthenticationController {
                 return ResponseEntity.ok(Map.of("token", token, "requiresTwoFactor", false));
             }
         } catch (UsernameNotFoundException e) {
-            throw new Exception("Account with the specified email does not exist");
+            return ResponseEntity.badRequest().body("Account with the specified email does not exist");
         } catch (BadCredentialsException e) {
-            throw new Exception("Incorrect password");
+            return ResponseEntity.badRequest().body("Incorrect password");
         } catch (Exception e) {
-            throw new Exception("Authentication failed", e);
+            return ResponseEntity.badRequest().body("Authentication failed");
         }
     }
 
@@ -104,12 +116,12 @@ public class AuthenticationController {
     }
 
     @PostMapping("/verify-2fa")
-    public ResponseEntity<?> verifyTwoFactorAuth(@RequestParam String email, @RequestParam String code) {
+    public ResponseEntity<?> verifyTwoFactorAuth(@RequestBody Verify2faDTO verify2faDto) {
         try {
-            UserDTO user = userService.getPlayer(userService.getUserIdByEmail(email));
-            boolean isValid = twoFactorAuthService.verifyCode(user.getTwoFactorSecret(), code);
+            UserDTO user = userService.getUser(userService.getUserIdByEmail(verify2faDto.getEmail()));
+            boolean isValid = twoFactorAuthService.verifyCode(user.getTwoFactorSecret(), verify2faDto.getCode());
             if (isValid) {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+                UserDetails userDetails = userDetailsService.loadUserByUsername(verify2faDto.getEmail());
                 String token = jwtUtil.generateToken(userDetails);
                 return ResponseEntity.ok(Map.of("token", token));
             } else {
@@ -117,6 +129,26 @@ public class AuthenticationController {
             }
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error verifying 2FA code: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/verify")
+    public ResponseEntity<?> verifyUser(@RequestBody VerifyUserDto verifyUserDto) {
+        try {
+            authenticationService.verifyUser(verifyUserDto);
+            return ResponseEntity.ok("Account verified successfully");
+        } catch (RuntimeException | ExecutionException | InterruptedException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/resend")
+    public ResponseEntity<?> resendVerificationCode(@RequestParam String email) {
+        try {
+            authenticationService.resendVerificationCode(email);
+            return ResponseEntity.ok("Verification code sent");
+        } catch (RuntimeException | ExecutionException | InterruptedException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }

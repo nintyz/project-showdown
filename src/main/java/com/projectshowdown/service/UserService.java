@@ -13,19 +13,28 @@ import com.google.firebase.cloud.FirestoreClient;
 import com.google.zxing.WriterException;
 import com.projectshowdown.dto.UserDTO;
 import com.projectshowdown.dto.UserMapper;
+import com.projectshowdown.entities.Player;
 import com.projectshowdown.entities.User;
 import com.projectshowdown.exceptions.PlayerNotFoundException;
 
+import com.projectshowdown.util.DateTimeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Scanner;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -48,7 +57,7 @@ public class UserService implements UserDetailsService {
       if (!querySnapshot.isEmpty()) {
         // Assuming there is only one user with the given username
         DocumentSnapshot document = querySnapshot.getDocuments().get(0);
-        String password = document.getString("password"); // Assuming password is stored
+        String password = document.getString("password");
         return org.springframework.security.core.userdetails.User.withUsername(email)
             .password(password) // Hashed password
             .authorities(document.getString("role"))
@@ -64,6 +73,15 @@ public class UserService implements UserDetailsService {
   // Helper method to get Firestore instance
   private Firestore getFirestore() {
     return FirestoreClient.getFirestore();
+  }
+
+  public List<User> getRegisteredUsers(List<String> listOfUserIds) throws ExecutionException, InterruptedException {
+    List<User> response = new ArrayList<>();
+    for (String userId : listOfUserIds) {
+      response.add(UserMapper.toUser(getUser(userId)));
+    }
+
+    return response;
   }
 
   public List<UserDTO> getAllPlayers() throws ExecutionException, InterruptedException {
@@ -86,7 +104,6 @@ public class UserService implements UserDetailsService {
 
       }
     }
-
     return players; // Return the list of players
   }
 
@@ -105,7 +122,7 @@ public class UserService implements UserDetailsService {
   }
 
   // Method to get specific player from firebase.
-  public UserDTO getPlayer(String userId) throws ExecutionException, InterruptedException {
+  public UserDTO getUser(String userId) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
     DocumentReference documentReference = db.collection("users").document(userId);
     ApiFuture<DocumentSnapshot> future = documentReference.get();
@@ -124,12 +141,24 @@ public class UserService implements UserDetailsService {
   }
 
   // Method to add a new player document to the 'users' collection
-  public String addPlayer(User userData) throws ExecutionException, InterruptedException {
+  public String createUser(User userData) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
     // Generate a new document reference with a random ID
+    ApiFuture<QuerySnapshot> future = db.collection("users").whereEqualTo("email", userData.getEmail()).get();
+
+    QuerySnapshot querySnapshot = future.get();
+    if (!querySnapshot.isEmpty()) {
+      return "A user account with the email " + userData.getEmail() + " already exists!";
+    }
+
     DocumentReference docRef = db.collection("users").document();
     // Get the generated document ID
     String generatedId = docRef.getId();
+
+    // User disabled on creation
+    userData.setVerificationCode(generateVerificationCode());
+    userData.setVerificationCodeExpiresAt(DateTimeUtils.toEpochSeconds(LocalDateTime.now().plusMinutes(15)));
+    userData.setEnabled(false);
 
     // Convert User object to UserDTO and set the generated ID
     UserDTO userDTO = UserMapper.toUserDTO(userData);
@@ -142,38 +171,27 @@ public class UserService implements UserDetailsService {
     return "Player created successfully with ID: " + generatedId + " at: " + writeResult.get().getUpdateTime();
   }
 
-  public String massImport(ArrayList<UserDTO> body) {
-    Firestore db = getFirestore();
-    CollectionReference usersCollection = db.collection("users");
-
-    for (UserDTO userDTO : body) {
-      DocumentReference docRef = usersCollection.document(); // Create a new document reference with a unique ID
-      userDTO.setId(docRef.getId());
-      docRef.set(userDTO).addListener(() -> {
-        System.out.println("User added: " + userDTO.getEmail());
-      }, Runnable::run);
-    }
-    return "success";
-  }
-
   // Method to update a player's document in the 'players' collection
-  public String updatePlayer(String userId, User userData) throws ExecutionException, InterruptedException {
+  public String updateUser(String userId, Map<String, Object> userData)
+      throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
 
     // Check if the user document exists
     DocumentReference docRef = db.collection("users").document(userId);
+
     ApiFuture<DocumentSnapshot> future = docRef.get();
     DocumentSnapshot document = future.get();
-
     if (!document.exists()) {
       throw new PlayerNotFoundException("User with ID: " + userId + " does not exist.");
     }
 
-    // Convert User object to UserDTO
-    UserDTO userDTO = UserMapper.toUserDTO(userData);
+    // Filter out null values from the update data
+    Map<String, Object> filteredUpdates = userData.entrySet().stream()
+        .filter(entry -> entry.getValue() != null) // Only include non-null fields
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
     // Update the user document
-    ApiFuture<WriteResult> writeResult = docRef.set(userDTO);
+    ApiFuture<WriteResult> writeResult = docRef.update(filteredUpdates);
 
     // Return success message
     return "User with ID: " + userId + " updated successfully at: " + writeResult.get().getUpdateTime();
@@ -197,12 +215,76 @@ public class UserService implements UserDetailsService {
     return "Player with the id:" + userId + " successfully deleted at: " + writeResult.get().getUpdateTime();
   }
 
-  public String enableTwoFactorAuth(String userid) throws ExecutionException, InterruptedException, IOException, WriterException {
-    UserDTO user = getPlayer(userid);
+  public String enableTwoFactorAuth(String userid)
+      throws ExecutionException, InterruptedException, IOException, WriterException {
+    UserDTO user = getUser(userid);
     String secret = twoFactorAuthService.generateSecretKey();
     user.setTwoFactorSecret(secret);
-    updatePlayer(userid, UserMapper.toUser(user));
+    updateUser(userid, UserMapper.toMap(user));
     String qrCodeUri = twoFactorAuthService.generateQrCodeImageUri(secret);
     return twoFactorAuthService.generateQrCodeImage(qrCodeUri);
+  }
+
+  public String massImport() {
+    Firestore db = getFirestore();
+    CollectionReference usersCollection = db.collection("users");
+
+    try (Scanner sc = new Scanner(new File(
+        "C:\\Users\\coben\\OneDrive - Singapore Management University\\Uni - Year 2 Sem 1\\CS203 Collaborative Software Development\\Project\\tenniselo.csv"),
+        "UTF-8")) {
+      sc.nextLine();// skip header
+      sc.useDelimiter(",|\n|\n");
+
+      while (sc.hasNext()) {
+        String line = sc.nextLine(); // extract current row
+        String[] values = line.split(","); // split row to tokens
+
+        String email = values[1].replaceAll("\\u00A0", "").toLowerCase().trim();
+        email += "@gmail.com";
+        String fixedPassword = "$2a$12$NLiiv7gVsA1ltsI1tux.xuE8kEKfAmIHIkloVXwqxHXArgfiJ1XoK";
+
+        int rank = Integer.parseInt(values[0]);
+        String name = values[1];
+        String dob = values[2];
+        Double elo = Double.parseDouble(values[3]);
+        Double hardRaw = values[4].equals("-") ? null : Double.parseDouble(values[4]);
+        Double clayRaw = values[5].equals("-") ? null : Double.parseDouble(values[5]);
+        Double grassRaw = values[6].equals("-") ? null : Double.parseDouble(values[6]);
+        Double peakAge = Double.parseDouble(values[7]);
+        Double peakElo = Double.parseDouble(values[8]);
+        String country = values[9];
+        String bio = "";
+        String achievements = "";
+
+        Player currentRowPlayerDetails = new Player(rank, name, dob, elo, hardRaw, clayRaw, grassRaw, peakAge, peakElo,
+            country, bio, achievements);
+
+        UserDTO currentRowUser = new UserDTO("", email, fixedPassword, "player", null, currentRowPlayerDetails, null,
+            DateTimeUtils.toEpochSeconds(LocalDateTime.now().plusMinutes(15)), false);
+
+        DocumentReference docRef = usersCollection.document(); // Create a new document reference with a unique ID
+        currentRowUser.setId(docRef.getId());
+        docRef.set(currentRowUser).addListener(() -> {
+
+        }, Runnable::run);
+      }
+
+      while (sc.hasNext()) {
+        System.out.println("echo: " + sc.nextLine());
+      }
+      System.out.println("]'");
+
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }
+
+    return "success";
+
+  }
+
+  public String generateVerificationCode() {
+    Random random = new Random();
+    int code = random.nextInt(900000) + 100000;
+    return String.valueOf(code);
   }
 }
