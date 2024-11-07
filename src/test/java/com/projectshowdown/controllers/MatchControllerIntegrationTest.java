@@ -5,6 +5,7 @@ import com.projectshowdown.config.TestSecurityConfig;
 import com.projectshowdown.dto.UserDTO;
 import com.projectshowdown.entities.Player;
 import com.projectshowdown.entities.Tournament;
+import com.projectshowdown.entities.Match;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Import(TestSecurityConfig.class)
@@ -80,23 +80,21 @@ public class MatchControllerIntegrationTest {
         createdMatchIds.add(matchId);
     }
 
-    // bookmark
-
     @Test
-    void testGetTournaments() {
-        // First create a tournament
-        HttpEntity<Tournament> createRequest = new HttpEntity<>(testTournament, headers);
+    void testGetMatches() {
+        // First create a match
+        HttpEntity<Match> createRequest = new HttpEntity<>(testMatch, headers);
         ResponseEntity<String> createResponse = restTemplate.postForEntity(
-                baseUrl + "/tournaments",
+                baseUrl + "/match",
                 createRequest,
                 String.class
         );
         System.out.println(createResponse.getBody());
-        createdTournamentIds.add(extractTournamentId(createResponse.getBody()));
+        createdMatchIds.add(extractTournamentId(createResponse.getBody()));
 
-        // Get all tournaments
+        // Get all Matches
         ResponseEntity<String> response = restTemplate.getForEntity(
-                baseUrl + "/tournaments",
+                baseUrl + "/matches",
                 String.class
         );
 
@@ -105,124 +103,35 @@ public class MatchControllerIntegrationTest {
     }
 
     @Test
-    void testDisplayTournament() throws Exception {
-        // First create a tournament
-        HttpEntity<Tournament> createRequest = new HttpEntity<>(testTournament, headers);
+    void testUpdateMatch() throws Exception {
+        // First create a Match
+        HttpEntity<Match> createRequest = new HttpEntity<>(testMatch, headers);
         ResponseEntity<String> createResponse = restTemplate.postForEntity(
-                baseUrl + "/tournaments",
+                baseUrl + "/matches",
                 createRequest,
                 String.class
         );
-        String tournamentId = extractTournamentId(createResponse.getBody());
+        String matchId = extractMatchId(createResponse.getBody());
+        createdMatchIds.add(matchId);
 
-        // Get the tournament
-        ResponseEntity<Map> response = restTemplate.getForEntity(
-                baseUrl + "/tournament/" + tournamentId,
-                Map.class
-        );
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals("Test Tournament", response.getBody().get("name"));
-    }
-
-    @Test
-    void testUpdateTournament() throws Exception {
-        // First create a tournament
-        HttpEntity<Tournament> createRequest = new HttpEntity<>(testTournament, headers);
-        ResponseEntity<String> createResponse = restTemplate.postForEntity(
-                baseUrl + "/tournaments",
-                createRequest,
-                String.class
-        );
-        String tournamentId = extractTournamentId(createResponse.getBody());
-        createdTournamentIds.add(tournamentId);
-
-        // Update tournament data
+        // Update match data
+                // bookmark
         Map<String, Object> updateData = new HashMap<>();
-        updateData.put("name", "Updated Tournament Name");
-        updateData.put("venue", "Updated Venue");
-        updateData.put("year", 2024);
-        updateData.put("format", "Single Elimination");
+        updateData.put("player1Score", 1);
+        updateData.put("player2Score", 2);
         updateData.put("date", "2024-12-31");
-        updateData.put("maxPlayers", 32);
-        updateData.put("status", "pending");
-        updateData.put("minMMR", 1000.0);
-        updateData.put("maxMMR", 2000.0);
+        updateData.put("date", "2024-12-31");
+        updateData.put("stage", "Round Of 16");
+        updateData.put("completed", true);
 
         HttpEntity<Map<String, Object>> updateRequest = new HttpEntity<>(updateData, headers);
         ResponseEntity<String> updateResponse = restTemplate.exchange(
-                baseUrl + "/tournament/" + tournamentId,
+                baseUrl + "/match/" + matchId,
                 HttpMethod.PUT,
                 updateRequest,
                 String.class
         );
 
         assertEquals(HttpStatus.OK, updateResponse.getStatusCode());
-    }
-
-    @Test
-    void testRegisterUser() throws Exception {
-        // First create a test user
-        Player playerDetails = new Player(1, "Test Player", "2000-01-01", 24, 1500.0, 2500.0, 500.0, 400.0, 300.0, "", "", "");
-        UserDTO testUser = new UserDTO(
-                "testUserId",
-                "test" + System.currentTimeMillis() + "@example.com",
-                "Password1@",
-                "player",
-                null,
-                playerDetails,
-                null,
-                null,
-                true
-        );
-
-        HttpEntity<UserDTO> userRequest = new HttpEntity<>(testUser, headers);
-        ResponseEntity<String> userResponse = restTemplate.postForEntity(
-                baseUrl + "/users",
-                userRequest,
-                String.class
-        );
-        String userId = extractUserId(userResponse.getBody());
-
-        // Then create a tournament
-        HttpEntity<Tournament> createRequest = new HttpEntity<>(testTournament, headers);
-        ResponseEntity<String> createResponse = restTemplate.postForEntity(
-                baseUrl + "/tournaments",
-                createRequest,
-                String.class
-        );
-        String tournamentId = extractTournamentId(createResponse.getBody());
-        createdTournamentIds.add(tournamentId);
-
-        // Debug prints
-        System.out.println("User ID: " + userId);
-        System.out.println("Tournament ID: " + tournamentId);
-        System.out.println("Registration URL: " + baseUrl + "/tournament/" + tournamentId + "/register/" + userId);
-
-        // Register the user
-        ResponseEntity<String> registerResponse = restTemplate.exchange(
-                baseUrl + "/tournament/" + tournamentId + "/register/" + userId,
-                HttpMethod.PUT,
-                new HttpEntity<>(headers),
-                String.class
-        );
-
-        assertEquals(HttpStatus.OK, registerResponse.getStatusCode());
-    }
-
-    private String extractUserId(String response) {
-        // Extract just the ID before any timestamp
-        return response.substring(
-                response.indexOf("ID: ") + 4,
-                response.indexOf(" at:")
-        ).trim();
-    }
-    private String extractTournamentId(String response) {
-        // Extract just the ID before the "at:" text
-        return response.substring(
-                response.indexOf("ID: ") + 4,
-                response.indexOf(" at:")
-        ).trim();
     }
 }
