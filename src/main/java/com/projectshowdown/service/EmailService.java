@@ -16,17 +16,17 @@ public class EmailService {
     public void sendEmail(String to, String subject, String text) throws MessagingException {
         MimeMessage message = emailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
-        ClassPathResource imageResource = new ClassPathResource("/static/ShowdownLogo.png");
+        ClassPathResource imageResource = new ClassPathResource("static/ShowdownLogo.png");
         System.out.println("Sending email....");
-        if (!imageResource.exists()) {
-            System.out.println("Image not found!");
-        } else {
-            System.out.println("Image path: " + imageResource.getPath());
-            helper.addInline("showdown-logo", imageResource);
-        }
-
+        // if (!imageResource.exists()) {
+        //     System.out.println("Image not found!");
+        // } else {
+        //     System.out.println("Image path: " + imageResource.getPath());
+        // }
+        
         helper.setTo(to);
         helper.setSubject(subject);
+        helper.addInline("showdown-logo", imageResource);
         helper.setText(text, true);
 
         emailSender.send(message);
