@@ -379,20 +379,66 @@ public class TournamentService {
         }
     }
 
+    // private List<String> generateMatches(Tournament tournament, List<User> users, String stage,
+    //         int totalMatches)
+    //         throws ExecutionException, InterruptedException {
+    //     List<String> matches = new ArrayList<>();
+
+    //     for (int i = 0; i < users.size(); i += 2) {
+    //         User user1 = users.get(i);
+    //         User user2 = users.get(i + 1);
+    //         // ADD EMAIL NOTIFICATION, SEND EMAIL TO USER 1 & 2 ABOUT THEIR NEW MATCH.
+    //         Double mmrDiff = Math
+    //                 .abs(user1.getPlayerDetails().calculateMMR() - user2.getPlayerDetails().calculateMMR());
+    //         Match match = new Match("", tournament.getId(), user1.getId(), user2.getId(), 0, 0, mmrDiff,
+    //                 tournament.getDate(), stage, false);
+    //         String matchId = tournament.getId() + "m_" + (totalMatches + matches.size() + 1);
+    //         match.setId(matchId);
+
+    //         matches.add(matchService.addMatch(match));
+    //     }
+
+    //     return matches;
+    // }
+
     private List<String> generateMatches(Tournament tournament, List<User> users, String stage,
             int totalMatches)
             throws ExecutionException, InterruptedException {
         List<String> matches = new ArrayList<>();
 
-        for (int i = 0; i < users.size(); i += 2) {
-            User user1 = users.get(i);
-            User user2 = users.get(i + 1);
+        int max = users.size() / 2;
+        int increment = max / 2;
+
+        for (int i = 0; i < users.size() / 2; i++) {
+            User user1 = users.get(i); // best player 
+            User user2 = users.get(users.size() - 1 - i); // worst player
             // ADD EMAIL NOTIFICATION, SEND EMAIL TO USER 1 & 2 ABOUT THEIR NEW MATCH.
             Double mmrDiff = Math
                     .abs(user1.getPlayerDetails().calculateMMR() - user2.getPlayerDetails().calculateMMR());
+            // logic to generate the match id 
+            int bracket = i % increment;
+            int matchNumber = 0;
+            
+            if(i % 2 == 0){
+                if (i < increment){
+                    matchNumber = bracket + 1;
+                }
+                if (i >= increment){
+                    matchNumber = bracket + 2;
+                }
+            } else {
+                if (i <= increment){
+                    matchNumber = max - bracket + 1;
+                }
+                if (i > increment){
+                    matchNumber = max - bracket;
+                }
+            }
+            
+            // creating a match based on the match number 
             Match match = new Match("", tournament.getId(), user1.getId(), user2.getId(), 0, 0, mmrDiff,
                     tournament.getDate(), stage, false);
-            String matchId = tournament.getId() + "m_" + (totalMatches + matches.size() + 1);
+            String matchId = tournament.getId() + "m_" + match.getStage() + "_" + matchNumber;
             match.setId(matchId);
 
             matches.add(matchService.addMatch(match));

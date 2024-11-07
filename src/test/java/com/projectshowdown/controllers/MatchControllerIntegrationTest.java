@@ -1,0 +1,228 @@
+package com.projectshowdown.controllers;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.projectshowdown.config.TestSecurityConfig;
+import com.projectshowdown.dto.UserDTO;
+import com.projectshowdown.entities.Player;
+import com.projectshowdown.entities.Tournament;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.*;
+import org.springframework.test.context.ActiveProfiles;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Import(TestSecurityConfig.class)
+@ActiveProfiles("test")
+public class MatchControllerIntegrationTest {
+
+    @LocalServerPort
+    private int port;
+
+    @Autowired
+    private TestRestTemplate restTemplate;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    private String baseUrl;
+    private HttpHeaders headers;
+    private Match testMatch;
+    private List<String> createdMatchIds;
+
+    @BeforeEach
+    void setUp() {
+        baseUrl = "http://localhost:" + port;
+        headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        createdMatchIds = new ArrayList<>();
+
+        testMatch = new Match(
+            "Test_Match_Id",
+            "Test_Tournament_Id",
+            "Test_player1_Id",
+            "Test_player2_Id",
+            2, // player 1 score 
+            1, // player 2 score
+            1000.0, // MMR Difference
+            "2024-12-31", // match date
+            "Round Of 16",
+            true // whether the match is completed
+        );
+    }
+
+    @Test
+    void testAddMatch() throws Exception {
+        HttpEntity<Match> request = new HttpEntity<>(testMatch, headers);
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                baseUrl + "/tournaments",
+                request,
+                String.class
+        );
+        System.out.println(response.getBody());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertTrue(response.getBody().contains("Match created successfully with ID:"));
+
+        // Extract and store match ID for cleanup
+        String matchId = extractMatchId(response.getBody());
+        createdMatchIds.add(matchId);
+    }
+
+    // bookmark
+
+    @Test
+    void testGetTournaments() {
+        // First create a tournament
+        HttpEntity<Tournament> createRequest = new HttpEntity<>(testTournament, headers);
+        ResponseEntity<String> createResponse = restTemplate.postForEntity(
+                baseUrl + "/tournaments",
+                createRequest,
+                String.class
+        );
+        System.out.println(createResponse.getBody());
+        createdTournamentIds.add(extractTournamentId(createResponse.getBody()));
+
+        // Get all tournaments
+        ResponseEntity<String> response = restTemplate.getForEntity(
+                baseUrl + "/tournaments",
+                String.class
+        );
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+    }
+
+    @Test
+    void testDisplayTournament() throws Exception {
+        // First create a tournament
+        HttpEntity<Tournament> createRequest = new HttpEntity<>(testTournament, headers);
+        ResponseEntity<String> createResponse = restTemplate.postForEntity(
+                baseUrl + "/tournaments",
+                createRequest,
+                String.class
+        );
+        String tournamentId = extractTournamentId(createResponse.getBody());
+
+        // Get the tournament
+        ResponseEntity<Map> response = restTemplate.getForEntity(
+                baseUrl + "/tournament/" + tournamentId,
+                Map.class
+        );
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("Test Tournament", response.getBody().get("name"));
+    }
+
+    @Test
+    void testUpdateTournament() throws Exception {
+        // First create a tournament
+        HttpEntity<Tournament> createRequest = new HttpEntity<>(testTournament, headers);
+        ResponseEntity<String> createResponse = restTemplate.postForEntity(
+                baseUrl + "/tournaments",
+                createRequest,
+                String.class
+        );
+        String tournamentId = extractTournamentId(createResponse.getBody());
+        createdTournamentIds.add(tournamentId);
+
+        // Update tournament data
+        Map<String, Object> updateData = new HashMap<>();
+        updateData.put("name", "Updated Tournament Name");
+        updateData.put("venue", "Updated Venue");
+        updateData.put("year", 2024);
+        updateData.put("format", "Single Elimination");
+        updateData.put("date", "2024-12-31");
+        updateData.put("maxPlayers", 32);
+        updateData.put("status", "pending");
+        updateData.put("minMMR", 1000.0);
+        updateData.put("maxMMR", 2000.0);
+
+        HttpEntity<Map<String, Object>> updateRequest = new HttpEntity<>(updateData, headers);
+        ResponseEntity<String> updateResponse = restTemplate.exchange(
+                baseUrl + "/tournament/" + tournamentId,
+                HttpMethod.PUT,
+                updateRequest,
+                String.class
+        );
+
+        assertEquals(HttpStatus.OK, updateResponse.getStatusCode());
+    }
+
+    @Test
+    void testRegisterUser() throws Exception {
+        // First create a test user
+        Player playerDetails = new Player(1, "Test Player", "2000-01-01", 24, 1500.0, 2500.0, 500.0, 400.0, 300.0, "", "", "");
+        UserDTO testUser = new UserDTO(
+                "testUserId",
+                "test" + System.currentTimeMillis() + "@example.com",
+                "Password1@",
+                "player",
+                null,
+                playerDetails,
+                null,
+                null,
+                true
+        );
+
+        HttpEntity<UserDTO> userRequest = new HttpEntity<>(testUser, headers);
+        ResponseEntity<String> userResponse = restTemplate.postForEntity(
+                baseUrl + "/users",
+                userRequest,
+                String.class
+        );
+        String userId = extractUserId(userResponse.getBody());
+
+        // Then create a tournament
+        HttpEntity<Tournament> createRequest = new HttpEntity<>(testTournament, headers);
+        ResponseEntity<String> createResponse = restTemplate.postForEntity(
+                baseUrl + "/tournaments",
+                createRequest,
+                String.class
+        );
+        String tournamentId = extractTournamentId(createResponse.getBody());
+        createdTournamentIds.add(tournamentId);
+
+        // Debug prints
+        System.out.println("User ID: " + userId);
+        System.out.println("Tournament ID: " + tournamentId);
+        System.out.println("Registration URL: " + baseUrl + "/tournament/" + tournamentId + "/register/" + userId);
+
+        // Register the user
+        ResponseEntity<String> registerResponse = restTemplate.exchange(
+                baseUrl + "/tournament/" + tournamentId + "/register/" + userId,
+                HttpMethod.PUT,
+                new HttpEntity<>(headers),
+                String.class
+        );
+
+        assertEquals(HttpStatus.OK, registerResponse.getStatusCode());
+    }
+
+    private String extractUserId(String response) {
+        // Extract just the ID before any timestamp
+        return response.substring(
+                response.indexOf("ID: ") + 4,
+                response.indexOf(" at:")
+        ).trim();
+    }
+    private String extractTournamentId(String response) {
+        // Extract just the ID before the "at:" text
+        return response.substring(
+                response.indexOf("ID: ") + 4,
+                response.indexOf(" at:")
+        ).trim();
+    }
+}
