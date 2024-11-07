@@ -416,6 +416,7 @@ public class TournamentService {
             Double mmrDiff = Math
                     .abs(user1.getPlayerDetails().calculateMMR() - user2.getPlayerDetails().calculateMMR());
             // logic to generate the match id 
+            // match number is generated such that the best players will be on opposite sides of the bracket
             int bracket = i % increment;
             int matchNumber = 0;
             
