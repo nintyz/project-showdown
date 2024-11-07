@@ -25,6 +25,9 @@ public class AuthenticationService {
         Optional<UserDTO> optionalUser = Optional.ofNullable(userService.getUser(userService.getUserIdByEmail(input.getEmail())));
         if (optionalUser.isPresent()) {
             UserDTO user = optionalUser.get();
+            if (user.isEnabled()) {
+                throw new RuntimeException("Account is already verified");
+            }
             if (DateTimeUtils.isExpired(user.getVerificationCodeExpiresAt())) {
                 throw new RuntimeException("Verification code has expired");
             }
