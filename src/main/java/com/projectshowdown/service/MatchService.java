@@ -88,16 +88,13 @@ public class MatchService {
     }
 
     public Match getMatch(String matchId) throws ExecutionException, InterruptedException {
-
         Firestore db = getFirestore();
         // Generate a new document reference with a random ID
         DocumentReference documentReference = db.collection("matches").document(matchId);
         ApiFuture<DocumentSnapshot> future = documentReference.get();
         DocumentSnapshot document = future.get();
-
         // If the document exists, convert it to a Player object
         if (document.exists()) {
-
             Match matchToReturn = document.toObject(Match.class);
             matchToReturn.setId(matchId);
             return matchToReturn;
@@ -110,11 +107,9 @@ public class MatchService {
 
     public List<Match> getMatches(List<String> matchIds) throws ExecutionException, InterruptedException {
         List<Match> response = new ArrayList<>();
-
         for (String matchId : matchIds) {
             response.add(getMatch(matchId));
         }
         return response;
-
     }
 }
