@@ -8,7 +8,10 @@ import AddTournament from '@/views/AddTournament.vue'
 import SignUp from '@/views/SignUp.vue'
 import DashboardPageTwo from '@/views/DashboardPageTwo.vue'
 import AddUserDetails from '@/views/AddUserDetails.vue'
-import AllTournaments from '@/views/AllTournaments.vue' 
+import AllTournaments from '@/views/AllTournaments.vue'
+import OAuthCallback from "@/views/OAuthCallback.vue";
+import Verify from "@/views/VerifyAccount.vue";
+import Verify2FA from "@/views/Verify2FA.vue";
 
 const routes = [
     {
@@ -56,6 +59,21 @@ const routes = [
         name: 'AllTournaments',
         component: AllTournaments,
     },
+    {
+        path: '/oauth2/callback',
+        name: 'OAuthCallback',
+        component: OAuthCallback,
+    },
+    {
+        path: '/verify',
+        name: 'Verify',
+        component: Verify,
+    },
+    {
+        path: '/verify-2fa',
+        name: 'Verify2FA',
+        component: Verify2FA,
+    }
 ]
 
 const router = createRouter({

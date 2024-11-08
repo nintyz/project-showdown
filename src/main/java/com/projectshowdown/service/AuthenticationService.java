@@ -25,6 +25,9 @@ public class AuthenticationService {
         Optional<UserDTO> optionalUser = Optional.ofNullable(userService.getUser(userService.getUserIdByEmail(input.getEmail())));
         if (optionalUser.isPresent()) {
             UserDTO user = optionalUser.get();
+            if (user.isEnabled()) {
+                throw new RuntimeException("Account is already verified");
+            }
             if (DateTimeUtils.isExpired(user.getVerificationCodeExpiresAt())) {
                 throw new RuntimeException("Verification code has expired");
             }
@@ -49,7 +52,7 @@ public class AuthenticationService {
                 throw new RuntimeException("Account is already verified");
             }
             user.setVerificationCode(userService.generateVerificationCode());
-            user.setVerificationCodeExpiresAt(DateTimeUtils.toFirebaseTimestamp(LocalDateTime.now().plusHours(1)));
+            user.setVerificationCodeExpiresAt(DateTimeUtils.toEpochSeconds(LocalDateTime.now().plusHours(1)));
             sendVerificationEmail(user);
             userService.updateUser(userService.getUserIdByEmail(email), UserMapper.toMap(user));
         } else {

@@ -1,38 +1,29 @@
 package com.projectshowdown.util;
 
-import com.google.cloud.Timestamp;
-
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Date;
 
 public class DateTimeUtils {
 
     /**
-     * Converts LocalDateTime to Firebase Timestamp
+     * Converts LocalDateTime to epoch seconds
      */
-    public static Timestamp toFirebaseTimestamp(LocalDateTime localDateTime) {
-        return Timestamp.of(Date.from(
-                localDateTime.toInstant(ZoneOffset.systemDefault().getRules().getOffset(localDateTime))
-        ));
+    public static long toEpochSeconds(LocalDateTime localDateTime) {
+        return localDateTime.toEpochSecond(ZoneOffset.UTC);
     }
 
     /**
-     * Converts Firebase Timestamp back to LocalDateTime
+     * Converts epoch seconds to LocalDateTime
      */
-    public static LocalDateTime fromFirebaseTimestamp(Timestamp firebaseTimestamp) {
-        return LocalDateTime.ofInstant(
-                firebaseTimestamp.toDate().toInstant(),
-                ZoneOffset.systemDefault()
-        );
+    public static LocalDateTime fromEpochSeconds(long epochSeconds) {
+        return LocalDateTime.ofEpochSecond(epochSeconds, 0, ZoneOffset.UTC);
     }
 
     /**
-     * Checks if a Firebase Timestamp has expired compared to current time
+     * Checks if an epoch timestamp has expired compared to current time
      */
-    public static boolean isExpired(Timestamp firebaseTimestamp) {
-        LocalDateTime dateTime = fromFirebaseTimestamp(firebaseTimestamp);
+    public static boolean isExpired(long epochSeconds) {
+        LocalDateTime dateTime = fromEpochSeconds(epochSeconds);
         return dateTime.isBefore(LocalDateTime.now());
     }
-
 }

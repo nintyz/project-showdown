@@ -1,6 +1,5 @@
 package com.projectshowdown.dto;
 
-import com.google.cloud.Timestamp;
 import com.projectshowdown.entities.Player;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,7 +19,7 @@ public class UserDTO {
     private String twoFactorSecret;
     private Player playerDetails;
     private String verificationCode;
-    private Timestamp verificationCodeExpiresAt;
+    private Long verificationCodeExpiresAt;
     private boolean enabled;
 
     // Getter for id

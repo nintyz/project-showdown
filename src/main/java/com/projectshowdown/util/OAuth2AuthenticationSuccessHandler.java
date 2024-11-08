@@ -1,6 +1,8 @@
 package com.projectshowdown.util;
 
 import com.projectshowdown.configs.JwtUtil;
+import com.projectshowdown.dto.UserDTO;
+import com.projectshowdown.service.AuthenticationService;
 import com.projectshowdown.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,6 +19,9 @@ import java.io.IOException;
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     @Autowired
+    AuthenticationService authenticationService;
+
+    @Autowired
     UserService userService;
 
     @Autowired
@@ -25,32 +30,49 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException {
-        String targetUrl = determineTargetUrl(request, response, authentication);
-
         if (response.isCommitted()) {
-            logger.debug("Response has already been committed. Unable to redirect to " + targetUrl);
             return;
         }
 
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         String email = oAuth2User.getAttribute("email");
 
-        UserDetails userDetails = userService.loadUserByUsername(email);
+        String frontendUrl = "http://localhost:3000";
 
-        // store token in the session temporarily
-        request.getSession().setAttribute("token", jwtUtil.generateToken(userDetails));
+        try {
+            UserDTO user = userService.getUser(userService.getUserIdByEmail(email));
 
-        // For future reference
-        // Might set the token as cookie instead of session, and redirect to last page
-        /*
-        targetUrl = UriComponentsBuilder.fromUriString(targetUrl)
-                .queryParam("token", token)
-                .build().toUriString();
-        */
+            if (!user.isEnabled()) {
+                // User needs verification
+                authenticationService.resendVerificationCode(email);
+                request.getSession().setAttribute("email", email);
+                request.getSession().setAttribute("status", "UNVERIFIED");
+                getRedirectStrategy().sendRedirect(request, response,
+                        frontendUrl + "/verify?email=" + email);
+                return;
+            }
 
-//        getRedirectStrategy().sendRedirect(request, response, targetUrl);
+            UserDetails userDetails = userService.loadUserByUsername(email);
 
-        // Redirect to the /login endpoint
-        getRedirectStrategy().sendRedirect(request, response, "/oauth2/redirect");
+            if (user.getTwoFactorSecret() != null) {
+                // User has 2FA enabled
+                request.getSession().setAttribute("email", email);
+                request.getSession().setAttribute("userId", user.getId());
+                request.getSession().setAttribute("status", "REQUIRES_2FA");
+                getRedirectStrategy().sendRedirect(request, response,
+                        frontendUrl + "/verify-2fa?email=" + email);
+            } else {
+                // No 2FA, generate token
+                String token = jwtUtil.generateToken(userDetails);
+                getRedirectStrategy().sendRedirect(request, response,
+                        frontendUrl + "/oauth2/callback?token=" + token);
+            }
+        } catch (Exception e) {
+            getRedirectStrategy().sendRedirect(request, response,
+                    frontendUrl + "/login?error=authentication_failed");
+        }
     }
 }
+
+
+

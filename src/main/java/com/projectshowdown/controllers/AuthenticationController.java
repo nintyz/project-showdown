@@ -1,6 +1,5 @@
 package com.projectshowdown.controllers;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -10,10 +9,7 @@ import com.projectshowdown.dto.VerifyUserDto;
 import com.projectshowdown.service.AuthenticationService;
 import com.projectshowdown.service.TwoFactorAuthService;
 import com.projectshowdown.service.UserService;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -46,33 +42,6 @@ public class AuthenticationController {
 
     @Autowired
     private TwoFactorAuthService twoFactorAuthService;
-
-    @GetMapping("/oauth2/redirect")
-    public ResponseEntity<?> loginRedirect(HttpServletRequest request) {
-
-        // Get the session, and don't create a new one if it doesn't exist
-        HttpSession session = request.getSession(false);
-
-        if (session != null) {
-            String token = (String) session.getAttribute("token");
-            if (token != null) {
-                // Remove the token from the session
-                session.removeAttribute("token");
-
-                // Invalidate the session for extra security
-                session.invalidate();
-
-                // Create the response
-                Map<String, String> responseBody = new HashMap<>();
-                responseBody.put("token", token);
-
-                return ResponseEntity.ok(responseBody);
-            }
-        }
-
-        // If accessed directly, return an unauthorised response
-        return new ResponseEntity<>("Unauthorised", HttpStatus.UNAUTHORIZED);
-    }
 
     @PostMapping("/login")
     public ResponseEntity<?> createAuthenticationToken(@RequestBody User userCredentials) {
@@ -128,7 +97,7 @@ public class AuthenticationController {
                 return ResponseEntity.badRequest().body("Invalid 2FA code");
             }
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error verifying 2FA code: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error verifying 2FA code");
         }
     }
 
@@ -136,7 +105,24 @@ public class AuthenticationController {
     public ResponseEntity<?> verifyUser(@RequestBody VerifyUserDto verifyUserDto) {
         try {
             authenticationService.verifyUser(verifyUserDto);
-            return ResponseEntity.ok("Account verified successfully");
+
+            // Get user details after verification
+            UserDTO user = userService.getUser(userService.getUserIdByEmail(verifyUserDto.getEmail()));
+            UserDetails userDetails = userDetailsService.loadUserByUsername(verifyUserDto.getEmail());
+
+            if (user.getTwoFactorSecret() != null) {
+                return ResponseEntity.ok(Map.of(
+                        "status", "requires_2fa",
+                        "message", "Account verified successfully. 2FA required."
+                ));
+            } else {
+                String token = jwtUtil.generateToken(userDetails);
+                return ResponseEntity.ok(Map.of(
+                        "status", "success",
+                        "token", token,
+                        "message", "Account verified successfully"
+                ));
+            }
         } catch (RuntimeException | ExecutionException | InterruptedException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
