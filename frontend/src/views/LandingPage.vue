@@ -23,7 +23,7 @@
                     <img src="@/assets/tennis-man.png" class="animated-image"/>
                 </div>
             </div>
-            <div class="d-flex tournament-content">
+            <!-- <div class="d-flex tournament-content">
                 <div class="tournament-header"> 
                     <h1 class="tournament-title"> TOURNAMENTS </h1>
                 </div>
@@ -107,7 +107,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> -->
         </div>
     </div>
   </template>
