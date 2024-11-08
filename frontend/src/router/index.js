@@ -8,7 +8,10 @@ import AddTournament from '@/views/AddTournament.vue'
 import SignUp from '@/views/SignUp.vue'
 import DashboardPageTwo from '@/views/DashboardPageTwo.vue'
 import AddUserDetails from '@/views/AddUserDetails.vue'
-import AllTournaments from '@/views/AllTournaments.vue' 
+import AllTournaments from '@/views/AllTournaments.vue'
+import TournamentDetails from '@/views/TournamentDetails.vue'
+import TournamentDashboard from '@/views/TournamentDashboard.vue'
+import EditTournament from '@/views/EditTournament.vue'
 
 const routes = [
     {
@@ -56,6 +59,20 @@ const routes = [
         name: 'AllTournaments',
         component: AllTournaments,
     },
+    {
+        path: '/tournament/:id',
+        component: TournamentDetails,
+    },
+    {
+        path: '/tournament/:id/dashboard',
+        component: TournamentDashboard,
+    },
+    {
+        path: '/tournament/:id/edit',
+        component: EditTournament,
+    },
+    
+
 ]
 
 const router = createRouter({

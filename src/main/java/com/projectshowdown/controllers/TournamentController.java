@@ -1,9 +1,10 @@
 package com.projectshowdown.controllers;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import com.projectshowdown.dto.UserDTO;
 import com.projectshowdown.entities.Tournament;
@@ -15,9 +16,20 @@ import jakarta.validation.Valid;
 import java.util.concurrent.ExecutionException;
 import java.util.List;
 import java.util.Map;
+import java.io.IOException;
+import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.DocumentReference;
+import com.google.api.core.ApiFuture;
+import com.google.cloud.firestore.WriteResult;
+import com.google.firebase.cloud.FirestoreClient;
+
 
 @RestController
 public class TournamentController {
+    public Firestore getFirestore() {
+        return FirestoreClient.getFirestore();
+    }
+    
     @Autowired
     TournamentService tournamentService;
 
@@ -27,16 +39,50 @@ public class TournamentController {
         return tournamentService.getAllTournaments();
     }
 
-    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/tournaments")
-    public String addPlayer(@Valid @RequestBody Tournament tournamentData)
-            throws ExecutionException, InterruptedException {
-        return tournamentService.addTournament(tournamentData);
+    @ResponseStatus(HttpStatus.CREATED)
+    public String addTournament(
+            @RequestParam("name") String name,
+            @RequestParam("date") String date,
+            @RequestParam("type") String type,
+            @RequestParam("numPlayers") int numPlayers,
+            @RequestParam("minMMR") double minMMR,
+            @RequestParam("maxMMR") double maxMMR,
+            @RequestParam("country") String country,
+            @RequestParam("venue") String venue,
+            @RequestParam("status") String status,
+            @RequestParam("logo") MultipartFile file) throws ExecutionException, InterruptedException, IOException {
+    
+        // Create the Tournament object with only the relevant fields
+        Tournament tournament = new Tournament();
+        tournament.setName(name);
+        tournament.setDate(date);
+        tournament.setType(type);
+        tournament.setNumPlayers(numPlayers);
+        tournament.setMinMMR(minMMR);
+        tournament.setMaxMMR(maxMMR);
+        tournament.setCountry(country);
+        tournament.setVenue(venue);
+        tournament.setStatus(status);
+    
+        // Save the tournament to Firestore to generate an ID
+        String generatedId = tournamentService.addTournament(tournament);
+        if (generatedId == null) {
+            throw new RuntimeException("Failed to create tournament");
+        }
+    
+        // Upload logo to Firebase Storage using only the generated ID as the filename
+        tournamentService.uploadLogoToFirebase(generatedId, file);
+    
+        return "Tournament created successfully with ID: " + generatedId;
     }
+    
+    
 
     @GetMapping("/tournament/{id}")
-    public Tournament getPlayer(@PathVariable String id) throws ExecutionException, InterruptedException {
-        Tournament tournament = tournamentService.getTournament(id);
+    public Map<String, Object> displayTournament(@PathVariable String id)
+            throws ExecutionException, InterruptedException {
+        Map<String, Object> tournament = tournamentService.displayTournament(id);
 
         // Need to handle "player not found" error using proper HTTP status code
         // In this case it should be HTTP 404
@@ -72,5 +118,20 @@ public class TournamentController {
     public String progressTournament(@PathVariable String tournamentId)
             throws ExecutionException, InterruptedException {
         return tournamentService.progressTournament(tournamentId);
+    }
+
+    // upload logo to firebase storage
+    @PostMapping("/tournament/{id}/uploadLogo")
+    public ResponseEntity<String> uploadLogo(@PathVariable String id, @RequestParam("file") MultipartFile file) {
+        try {
+            // Upload file and get URL
+            String logoUrl = tournamentService.uploadLogoToFirebase(id, file);
+            // Update tournament with the logo URL
+            // tournamentService.updateTournamentLogoUrl(id, logoUrl);
+            return ResponseEntity.ok("Logo uploaded successfully!");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to upload logo: " + e.getMessage());
+        }
     }
 }

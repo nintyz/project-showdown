@@ -83,7 +83,9 @@ public class SecurityConfig {
 
                         // tournaments CRUD
                         .requestMatchers(HttpMethod.GET, "/tournaments", "/tournaments/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/tournaments").hasAnyAuthority("admin","organizer")
+                        .requestMatchers(HttpMethod.POST, "/tournaments").permitAll() 
+                        .requestMatchers(HttpMethod.PUT, "/tournament").permitAll() 
+                        // .requestMatchers(HttpMethod.POST, "/tournaments").hasAnyAuthority("admin","organizer")
                         .requestMatchers(HttpMethod.PUT, "/tournaments/**").hasAnyAuthority("admin","organizer")
                         .requestMatchers(HttpMethod.PUT, "/tournaments/*/register/*").hasAuthority("player")
                         .requestMatchers(HttpMethod.PUT, "/tournaments/*/cancelRegistration/*").hasAuthority("player")

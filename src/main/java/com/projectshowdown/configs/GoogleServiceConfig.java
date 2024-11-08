@@ -29,6 +29,7 @@ public class GoogleServiceConfig {
 
         FirebaseOptions options = FirebaseOptions.builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                .setStorageBucket("projectshowdown-df5f2.firebasestorage.app")
                 //.setDatabaseUrl(pathToFirebase)
                 .build();
 

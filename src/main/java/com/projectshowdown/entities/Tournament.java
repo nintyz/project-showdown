@@ -21,27 +21,27 @@ public class Tournament {
     @NotNull(message = "Tournament name should not be empty")
     private String name;
 
-    private int year;
+    // private int year;
     private String type;
     private String venue;
+    private String country;
     private String date;
     private int numPlayers;
     private String status;
-
     private double minMMR;
     private double maxMMR;
-
+    private String logoUrl;
     private List<Round> rounds;
 
     private List<String> users = new ArrayList<>();
 
-    public Tournament(String id, String name, int year, String type, String venue, String date, int numPlayers,
+    public Tournament(String id, String name, String type, String venue, String country, String date, int numPlayers,
             String status, double minMMR, double maxMMR, List<Round> rounds) {
         this.id = id;
         this.name = name;
-        this.year = year;
         this.type = type;
         this.venue = venue;
+        this.country = country;
         this.date = date;
         this.numPlayers = numPlayers;
         this.status = status;
@@ -67,13 +67,13 @@ public class Tournament {
         this.name = name;
     }
 
-    public int getYear() {
-        return year;
-    }
+    // public int getYear() {
+    //     return year;
+    // }
 
-    public void setYear(int year) {
-        this.year = year;
-    }
+    // public void setYear(int year) {
+    //     this.year = year;
+    // }
 
     public String getType() {
         return type;
@@ -89,6 +89,14 @@ public class Tournament {
 
     public void setVenue(String venue) {
         this.venue = venue;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
     }
 
     public String getDate() {

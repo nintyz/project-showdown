@@ -9,10 +9,17 @@ import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
 import com.google.firebase.cloud.FirestoreClient;
+import com.google.api.client.util.Strings;
+import com.google.api.core.ApiFuture;
+import com.google.cloud.firestore.DocumentReference;
+import com.google.cloud.firestore.WriteResult;
+import com.google.firebase.cloud.StorageClient;
+import org.springframework.web.multipart.MultipartFile;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -28,10 +35,10 @@ import com.projectshowdown.entities.Round;
 import com.projectshowdown.entities.Tournament;
 import com.projectshowdown.exceptions.TournamentNotFoundException;
 import com.projectshowdown.entities.User;
+import com.projectshowdown.events.MatchUpdatedEvent;
 
 @Service
 public class TournamentService {
-
     @Autowired
     UserService userService;
 
@@ -68,19 +75,19 @@ public class TournamentService {
     }
 
     // Method to save tournament details to Firestore
-    public String addTournament(Tournament tournament) throws ExecutionException, InterruptedException {
-        Firestore db = getFirestore();
-        // Generate a new document reference with a random ID
-        DocumentReference docRef = db.collection("tournaments").document();
-        // Get the generated document ID
-        String generatedId = docRef.getId();
-        tournament.setId(generatedId);
+    public String addTournament(Tournament tournament) {
+        try {
+            Firestore db = getFirestore();
+            DocumentReference docRef = db.collection("tournaments").document();
+            String generatedId = docRef.getId();
+            tournament.setId(generatedId);
 
-        // Save the tournament to Firestore
-        ApiFuture<WriteResult> writeResult = docRef.set(tournament);
-
-        // Return success message with timestamp
-        return "Tournament created successfully with ID: " + generatedId + " at: " + writeResult.get().getUpdateTime();
+            ApiFuture<WriteResult> writeResult = docRef.set(tournament);
+            return generatedId;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error adding tournament: " + e.getMessage();
+        }
     }
 
     // Method to get specific tournament from firebase.
@@ -102,7 +109,72 @@ public class TournamentService {
         }
     }
 
-    // Method to update a tournament document in the 'tournaments' collection
+    // Method to get specific tournament from firebase.
+    public Map<String, Object> displayTournament(String tournamentId) throws ExecutionException, InterruptedException {
+        Firestore db = getFirestore();
+        Map<String, Object> response = new HashMap<>();
+
+        // Fetch Tournament
+        DocumentReference tournamentRef = db.collection("tournaments").document(tournamentId);
+        DocumentSnapshot tournamentSnapshot = tournamentRef.get().get();
+        if (!tournamentSnapshot.exists()) {
+            throw new IllegalArgumentException("Tournament not found");
+        }
+        response.putAll(tournamentSnapshot.getData());
+
+        // Generate the logo URL and add it to the response
+        String logoUrl = String.format(
+                "https://firebasestorage.googleapis.com/v0/b/%s/o/tournament-logo%%2F%s.jpg?alt=media",
+                StorageClient.getInstance().bucket().getName(),
+                tournamentId);
+        response.put("logoUrl", logoUrl); // Adding the logo URL to the response
+
+        List<Map<String, Object>> roundsData = new ArrayList<>();
+
+        // Check if rounds are available before iterating
+        List<Map<String, Object>> rounds = (List<Map<String, Object>>) tournamentSnapshot.get("rounds");
+        if (rounds != null) { // Only proceed if rounds is not null
+            for (Map<String, Object> round : rounds) {
+                Map<String, Object> roundData = new HashMap<>();
+                roundData.put("name", round.get("name"));
+
+                List<String> matchIds = (List<String>) round.get("matches");
+                List<Map<String, Object>> matchesData = new ArrayList<>();
+
+                for (String matchId : matchIds) {
+                    DocumentReference matchRef = db.collection("matches").document(matchId);
+                    DocumentSnapshot matchSnapshot = matchRef.get().get();
+                    if (matchSnapshot.exists()) {
+                        Map<String, Object> matchData = matchSnapshot.getData();
+                        String player1Id = (String) matchData.get("player1Id");
+                        String player2Id = (String) matchData.get("player2Id");
+
+                        DocumentReference player1Ref = db.collection("users").document(player1Id);
+                        DocumentReference player2Ref = db.collection("users").document(player2Id);
+
+                        DocumentSnapshot player1Snapshot = player1Ref.get().get();
+                        DocumentSnapshot player2Snapshot = player2Ref.get().get();
+
+                        if (player1Snapshot.exists() && player2Snapshot.exists()) {
+                            matchData.put("player1", player1Snapshot.getData());
+                            matchData.put("player2", player2Snapshot.getData());
+                        }
+                        matchesData.add(matchData);
+                    }
+                }
+                roundData.put("matches", matchesData);
+                roundsData.add(roundData);
+            }
+        } else {
+            // if the rounds are null
+            response.put("rounds", Collections.emptyList());
+        }
+
+        response.put("rounds", roundsData);
+
+        return response;
+    }
+
     public String updateTournament(String tournamentId, Map<String, Object> tournamentData)
             throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
@@ -124,6 +196,11 @@ public class TournamentService {
 
         // Perform the update operation
         ApiFuture<WriteResult> writeResult = docRef.update(filteredUpdates);
+
+        // Check if the "status" key exists and is set to "cancelled"
+        if ("cancelled".equals(tournamentData.get("status"))) {
+            // EMAIL NOTIFICATION TO LET REGISTERED PLAYERS KNOW ABOUT ITS CANCELLATION
+        }
 
         // Return success message with the update time
         return "Tournament with ID: " + tournamentId + " updated successfully at: " + writeResult.get().getUpdateTime();
@@ -228,7 +305,7 @@ public class TournamentService {
         try {
             List<User> users = userService.getRegisteredUsers(tournament.getUsers());
             Collections.sort(users, Comparator.comparingDouble(user -> user.getPlayerDetails().calculateMMR()));
-            
+
             if (users.size() != tournament.getNumPlayers()) {
                 return "The required amount of registered players have not been met!";
             }
@@ -299,4 +376,43 @@ public class TournamentService {
 
     }
 
+    // Upload logo to Firebase Storage
+    public String uploadLogoToFirebase(String tournamentId, MultipartFile file) throws IOException, ExecutionException, InterruptedException {
+        String fileName = "tournament-logo/" + tournamentId + ".jpg";
+        StorageClient.getInstance().bucket().create(fileName, file.getInputStream(), file.getContentType());
+
+        // Generate logo URL
+        String logoUrl = String.format("https://firebasestorage.googleapis.com/v0/b/%s/o/%s?alt=media",
+                StorageClient.getInstance().bucket().getName(), fileName.replace("/", "%2F"));
+
+        // Update Firestore with logo URL
+        Firestore db = getFirestore();
+        DocumentReference docRef = db.collection("tournaments").document(tournamentId);
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("logoUrl", logoUrl);
+        docRef.update(updates).get();
+
+        return logoUrl;
+    }
+//     // Generates logo URL for a tournament without storing it in Firestore
+//     public String getLogoUrl(String tournamentId) {
+//         String fileName = "tournament-logo/" + tournamentId + ".jpg";
+//         return String.format("https://firebasestorage.googleapis.com/v0/b/%s/o/%s?alt=media",
+//                 StorageClient.getInstance().bucket().getName(),
+//                 fileName.replace("/", "%2F"));
+//     }
+
+//     public Tournament getTournamentWithLogo(String tournamentId) throws ExecutionException, InterruptedException {
+//         DocumentReference documentReference = getFirestore().collection("tournaments").document(tournamentId);
+//         DocumentSnapshot document = documentReference.get().get();
+
+//         if (document.exists()) {
+//             Tournament tournament = document.toObject(Tournament.class);
+//             tournament.setId(tournamentId);
+//             tournament.setLogoUrl(getLogoUrl(tournamentId)); // Dynamically set logo URL
+//             return tournament;
+//         } else {
+//             throw new TournamentNotFoundException(tournamentId);
+//         }
+//     }
 }

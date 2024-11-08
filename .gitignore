@@ -37,3 +37,4 @@ build/
 serviceAccountKey.env
 serviceAccountKey.json
 .env
+env
