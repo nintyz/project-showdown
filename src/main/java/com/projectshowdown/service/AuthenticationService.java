@@ -22,9 +22,12 @@ public class AuthenticationService {
     private UserService userService;
 
     public void verifyUser(VerifyUserDto input) throws ExecutionException, InterruptedException {
-        Optional<UserDTO> optionalUser = Optional.ofNullable(userService.getPlayer(userService.getUserIdByEmail(input.getEmail())));
+        Optional<UserDTO> optionalUser = Optional.ofNullable(userService.getUser(userService.getUserIdByEmail(input.getEmail())));
         if (optionalUser.isPresent()) {
             UserDTO user = optionalUser.get();
+            if (user.isEnabled()) {
+                throw new RuntimeException("Account is already verified");
+            }
             if (DateTimeUtils.isExpired(user.getVerificationCodeExpiresAt())) {
                 throw new RuntimeException("Verification code has expired");
             }
@@ -32,7 +35,7 @@ public class AuthenticationService {
                 user.setEnabled(true);
                 user.setVerificationCode(null);
                 user.setVerificationCodeExpiresAt(null);
-                userService.updatePlayer(userService.getUserIdByEmail(input.getEmail()), UserMapper.toUser(user));
+                userService.updateUser(userService.getUserIdByEmail(input.getEmail()), UserMapper.toMap(user));
             } else {
                 throw new RuntimeException("Invalid verification code");
             }
@@ -42,16 +45,16 @@ public class AuthenticationService {
     }
 
     public void resendVerificationCode(String email) throws ExecutionException, InterruptedException {
-        Optional<UserDTO> optionalUser = Optional.ofNullable(userService.getPlayer(userService.getUserIdByEmail(email)));
+        Optional<UserDTO> optionalUser = Optional.ofNullable(userService.getUser(userService.getUserIdByEmail(email)));
         if (optionalUser.isPresent()) {
             UserDTO user = optionalUser.get();
             if (user.isEnabled()) {
                 throw new RuntimeException("Account is already verified");
             }
             user.setVerificationCode(userService.generateVerificationCode());
-            user.setVerificationCodeExpiresAt(DateTimeUtils.toFirebaseTimestamp(LocalDateTime.now().plusHours(1)));
+            user.setVerificationCodeExpiresAt(DateTimeUtils.toEpochSeconds(LocalDateTime.now().plusHours(1)));
             sendVerificationEmail(user);
-            userService.updatePlayer(userService.getUserIdByEmail(email), UserMapper.toUser(user));
+            userService.updateUser(userService.getUserIdByEmail(email), UserMapper.toMap(user));
         } else {
             throw new RuntimeException("User not found");
         }

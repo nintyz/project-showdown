@@ -13,9 +13,7 @@ import com.google.firebase.cloud.FirestoreClient;
 import com.google.zxing.WriterException;
 import com.projectshowdown.dto.UserDTO;
 import com.projectshowdown.dto.UserMapper;
-import com.projectshowdown.entities.Match;
 import com.projectshowdown.entities.Player;
-import com.projectshowdown.entities.Round;
 import com.projectshowdown.entities.User;
 import com.projectshowdown.exceptions.PlayerNotFoundException;
 
@@ -32,18 +30,17 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService implements UserDetailsService {
 
   @Autowired
   private TwoFactorAuthService twoFactorAuthService;
-
-  @Autowired
-  private MatchService matchService;
 
   public UserService() {
     super();
@@ -81,16 +78,7 @@ public class UserService implements UserDetailsService {
   public List<User> getRegisteredUsers(List<String> listOfUserIds) throws ExecutionException, InterruptedException {
     List<User> response = new ArrayList<>();
     for (String userId : listOfUserIds) {
-      response.add(UserMapper.toUser(getPlayer(userId)));
-    }
-
-    return response;
-  }
-
-  public List<User> getWinningUsers(List<String> matches) throws ExecutionException, InterruptedException {
-    List<User> response = new ArrayList<>();
-    for (Match match : matchService.getMatches(matches)) {
-      response.add(UserMapper.toUser(getPlayer(match.winnerId())));
+      response.add(UserMapper.toUser(getUser(userId)));
     }
 
     return response;
@@ -116,7 +104,6 @@ public class UserService implements UserDetailsService {
 
       }
     }
-
     return players; // Return the list of players
   }
 
@@ -135,7 +122,7 @@ public class UserService implements UserDetailsService {
   }
 
   // Method to get specific player from firebase.
-  public UserDTO getPlayer(String userId) throws ExecutionException, InterruptedException {
+  public UserDTO getUser(String userId) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
     DocumentReference documentReference = db.collection("users").document(userId);
     ApiFuture<DocumentSnapshot> future = documentReference.get();
@@ -170,7 +157,7 @@ public class UserService implements UserDetailsService {
 
     // User disabled on creation
     userData.setVerificationCode(generateVerificationCode());
-    userData.setVerificationCodeExpiresAt(DateTimeUtils.toFirebaseTimestamp(LocalDateTime.now().plusMinutes(15)));
+    userData.setVerificationCodeExpiresAt(DateTimeUtils.toEpochSeconds(LocalDateTime.now().plusMinutes(15)));
     userData.setEnabled(false);
 
     // Convert User object to UserDTO and set the generated ID
@@ -185,23 +172,26 @@ public class UserService implements UserDetailsService {
   }
 
   // Method to update a player's document in the 'players' collection
-  public String updatePlayer(String userId, User userData) throws ExecutionException, InterruptedException {
+  public String updateUser(String userId, Map<String, Object> userData)
+      throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
 
     // Check if the user document exists
     DocumentReference docRef = db.collection("users").document(userId);
+
     ApiFuture<DocumentSnapshot> future = docRef.get();
     DocumentSnapshot document = future.get();
-
     if (!document.exists()) {
       throw new PlayerNotFoundException("User with ID: " + userId + " does not exist.");
     }
 
-    // Convert User object to UserDTO
-    UserDTO userDTO = UserMapper.toUserDTO(userData);
+    // Filter out null values from the update data
+    Map<String, Object> filteredUpdates = userData.entrySet().stream()
+        .filter(entry -> entry.getValue() != null) // Only include non-null fields
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
     // Update the user document
-    ApiFuture<WriteResult> writeResult = docRef.set(userDTO);
+    ApiFuture<WriteResult> writeResult = docRef.update(filteredUpdates);
 
     // Return success message
     return "User with ID: " + userId + " updated successfully at: " + writeResult.get().getUpdateTime();
@@ -227,10 +217,10 @@ public class UserService implements UserDetailsService {
 
   public String enableTwoFactorAuth(String userid)
       throws ExecutionException, InterruptedException, IOException, WriterException {
-    UserDTO user = getPlayer(userid);
+    UserDTO user = getUser(userid);
     String secret = twoFactorAuthService.generateSecretKey();
     user.setTwoFactorSecret(secret);
-    updatePlayer(userid, UserMapper.toUser(user));
+    updateUser(userid, UserMapper.toMap(user));
     String qrCodeUri = twoFactorAuthService.generateQrCodeImageUri(secret);
     return twoFactorAuthService.generateQrCodeImage(qrCodeUri);
   }
@@ -270,7 +260,7 @@ public class UserService implements UserDetailsService {
             country, bio, achievements);
 
         UserDTO currentRowUser = new UserDTO("", email, fixedPassword, "player", null, currentRowPlayerDetails, null,
-            DateTimeUtils.toFirebaseTimestamp(LocalDateTime.now().plusMinutes(15)), false);
+            DateTimeUtils.toEpochSeconds(LocalDateTime.now().plusMinutes(15)), false);
 
         DocumentReference docRef = usersCollection.document(); // Create a new document reference with a unique ID
         currentRowUser.setId(docRef.getId());

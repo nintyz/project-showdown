@@ -6,9 +6,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import com.projectshowdown.dto.UserDTO;
 import com.projectshowdown.entities.Tournament;
-import com.projectshowdown.exceptions.PlayerNotFoundException;
 import com.projectshowdown.service.TournamentService;
 
 import jakarta.validation.Valid;
@@ -18,9 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.io.IOException;
 import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.DocumentReference;
-import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.WriteResult;
 import com.google.firebase.cloud.FirestoreClient;
 
 
@@ -80,8 +75,7 @@ public class TournamentController {
     
 
     @GetMapping("/tournament/{id}")
-    public Map<String, Object> displayTournament(@PathVariable String id)
-            throws ExecutionException, InterruptedException {
+    public Map<String, Object> displayTournament(@PathVariable String id) throws ExecutionException, InterruptedException {
         Map<String, Object> tournament = tournamentService.displayTournament(id);
 
         // Need to handle "player not found" error using proper HTTP status code

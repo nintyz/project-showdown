@@ -25,11 +25,11 @@
   
           <!-- Google & Facebook Login Buttons -->
           <button class="google-btn" @click="handleGoogleSignIn">
-            <img src="@/assets/google-icon.png" />
+            <img src="@/assets/google-icon.png"  alt="google icon"/>
             Continue with Google
           </button>
           <button class="facebook-btn" @click="handleFacebookSignIn">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/F_icon.svg/512px-F_icon.svg.png" />
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/F_icon.svg/512px-F_icon.svg.png"  alt="facebook icon"/>
             Continue with Facebook
           </button>
   
@@ -75,10 +75,12 @@
       handleGoogleSignIn() {
         console.log("Google Sign-In");
         // Add logic for Google sign-in
+        window.location.href = 'http://localhost:8080/oauth2/authorization/google';
       },
       handleFacebookSignIn() {
         console.log("Facebook Sign-In");
         // Add logic for Facebook sign-in
+        window.location.href = 'http://localhost:8080/oauth2/authorization/facebook';
       },
       goToSignUp() {
         // Redirect to sign-up page

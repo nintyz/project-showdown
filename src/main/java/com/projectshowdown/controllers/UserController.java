@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 
 import java.util.concurrent.ExecutionException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 public class UserController {
@@ -35,8 +36,8 @@ public class UserController {
 
     // get specific player
     @GetMapping("/user/{id}")
-    public UserDTO getPlayer(@PathVariable String id) throws ExecutionException, InterruptedException {
-        UserDTO player = userService.getPlayer(id);
+    public UserDTO getUser(@PathVariable String id) throws ExecutionException, InterruptedException {
+        UserDTO player = userService.getUser(id);
 
         // Need to handle "player not found" error using proper HTTP status code
         // In this case it should be HTTP 404
@@ -59,10 +60,9 @@ public class UserController {
 
     @PutMapping("/user/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public String updatePlayer(@PathVariable String id, @RequestBody User playerData)
+    public String updateUser(@PathVariable String id, @RequestBody Map<String, Object> userData)
             throws ExecutionException, InterruptedException {
-        playerData.setId(id);
-        return userService.updatePlayer(id, playerData);
+        return userService.updateUser(id, userData);
     }
 
     @DeleteMapping("/user/{id}")

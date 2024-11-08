@@ -1,5 +1,7 @@
 package com.projectshowdown.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import com.google.api.core.ApiFuture;
@@ -9,15 +11,18 @@ import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.WriteResult;
 import com.google.firebase.cloud.FirestoreClient;
 import com.projectshowdown.entities.Match;
-import com.projectshowdown.entities.Tournament;
-import com.projectshowdown.exceptions.TournamentNotFoundException;
+import com.projectshowdown.events.MatchUpdatedEvent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Service
 public class MatchService {
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     // Helper method to get Firestore instance
     private Firestore getFirestore() {
@@ -27,29 +32,69 @@ public class MatchService {
     public String addMatch(Match matchToSave) throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
         // Generate a new document reference with a random ID
-        DocumentReference docRef = db.collection("matches").document();
-        // Get the generated document ID
-        String generatedId = docRef.getId();
-        matchToSave.setId(generatedId);
+        DocumentReference docRef = db.collection("matches").document(matchToSave.getId());
 
         // Save the tournament to Firestore
 
         ApiFuture<WriteResult> writeResult = docRef.set(matchToSave);
-        return generatedId;
+        return matchToSave.getId();
 
     }
 
-    public Match getMatch(String matchId) throws ExecutionException, InterruptedException {
+    // Method to update a tournament document in the 'tournaments' collection
+    public String updateMatch(String id, Map<String, Object> matchData)
+            throws ExecutionException, InterruptedException {
+        Firestore db = getFirestore();
 
+        matchData.put("completed", true);
+
+        // Get a reference to the document
+        DocumentReference docRef = db.collection("matches").document(id);
+
+        // Check if the document exists
+        ApiFuture<DocumentSnapshot> future = docRef.get();
+        DocumentSnapshot document = future.get();
+        if (!document.exists()) {
+            throw new RuntimeException("Unable to find match with id: " + id);
+        }
+
+        String tournamentId = (String) document.get("tournamentId");
+
+        // Filter out null values from the update data
+        Map<String, Object> filteredUpdates = matchData.entrySet().stream()
+                .filter(entry -> entry.getValue() != null) // Only include non-null fields
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        // Perform the update operation
+        ApiFuture<WriteResult> writeResult = docRef.update(filteredUpdates);
+
+        // check if Round has been completed
+        // Publish event
+        Match match = document.toObject(Match.class);
+        eventPublisher.publishEvent(new MatchUpdatedEvent(this, tournamentId, match));
+
+        // Return success message with the update time
+        return "Match with ID: " + id + " updated successfully at: " + writeResult.get().getUpdateTime();
+    }
+
+    public boolean checkCurrentRoundCompletion(List<String> currentRound)
+            throws ExecutionException, InterruptedException {
+        for (Match match : getMatches(currentRound)) {
+            if (!match.isCompleted()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public Match getMatch(String matchId) throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
         // Generate a new document reference with a random ID
         DocumentReference documentReference = db.collection("matches").document(matchId);
         ApiFuture<DocumentSnapshot> future = documentReference.get();
         DocumentSnapshot document = future.get();
-
         // If the document exists, convert it to a Player object
         if (document.exists()) {
-
             Match matchToReturn = document.toObject(Match.class);
             matchToReturn.setId(matchId);
             return matchToReturn;
@@ -62,11 +107,9 @@ public class MatchService {
 
     public List<Match> getMatches(List<String> matchIds) throws ExecutionException, InterruptedException {
         List<Match> response = new ArrayList<>();
-
         for (String matchId : matchIds) {
             response.add(getMatch(matchId));
         }
         return response;
-
     }
 }

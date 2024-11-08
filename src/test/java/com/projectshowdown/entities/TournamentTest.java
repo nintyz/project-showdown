@@ -6,14 +6,15 @@ import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TreeMap;
 
 import static org.junit.jupiter.api.Assertions.*;
+
+import com.projectshowdown.dto.UserDTO;
 
 public class TournamentTest {
 
     private Tournament tournament;
-    private List<User> mockPlayers;
+    private List<UserDTO> mockPlayers;
 
     @BeforeEach
     public void setUp() {
@@ -21,87 +22,227 @@ public class TournamentTest {
         mockPlayers = new ArrayList<>();
 
         for (int i = 1; i <= 32; i++) {
-            User mockPlayer = Mockito.mock(User.class);
+            UserDTO mockPlayer = Mockito.mock(UserDTO.class);
             Player mockPlayerDetails = Mockito.mock(Player.class);
             Mockito.when(mockPlayer.getPlayerDetails()).thenReturn(mockPlayerDetails);
-            Mockito.when(mockPlayer.getId()).thenReturn("Player" + i); // Mock player ID
-            Mockito.when(mockPlayerDetails.calculateMMR()).thenReturn((double) (1200 + i * 10)); // MMR between 1210 and 1520
+            Mockito.when(mockPlayer.getId()).thenReturn("Player" + i);
+            Mockito.when(mockPlayerDetails.calculateMMR()).thenReturn((double) (1200 + i * 10));
             mockPlayers.add(mockPlayer);
         }
 
-        // Set MMR range between 1000 and 1500
-        tournament = new Tournament("T001", "Showdown Tournament", 2024, "Single Elimination", "Stadium", "2024-10-15", 32, "ongoing", 1000, 1500);
+        tournament = new Tournament();
+        tournament.setId("T001");
+        tournament.setName("Showdown Tournament");
+        tournament.setYear(2024);
+        tournament.setType("Single Elimination");
+        tournament.setVenue("Stadium");
+        tournament.setDate("2024-10-15");
+        tournament.setNumPlayers(32);
+        tournament.setStatus("ongoing");
+        tournament.setMinMMR(1000);
+        tournament.setMaxMMR(1500);
+        tournament.setRounds(new ArrayList<>());
+    }
+
+    @Test
+    public void testConstructorAndGetters() {
+        assertNotNull(tournament);
+        assertEquals("T001", tournament.getId());
+        assertEquals("Showdown Tournament", tournament.getName());
+        assertEquals(2024, tournament.getYear());
+        assertEquals("Single Elimination", tournament.getType());
+        assertEquals("Stadium", tournament.getVenue());
+        assertEquals("2024-10-15", tournament.getDate());
+        assertEquals(32, tournament.getNumPlayers());
+        assertEquals("ongoing", tournament.getStatus());
+        assertEquals(1000, tournament.getMinMMR());
+        assertEquals(1500, tournament.getMaxMMR());
+        assertNotNull(tournament.getUsers());
+        assertTrue(tournament.getUsers().isEmpty());
     }
 
     @Test
     public void testAddPlayerWithinMMRRange() {
-        // Act & Assert: Players with MMR between 1000 and 1500 should be added
-        for (User player : mockPlayers.subList(0, 30)) { // First 30 players are within the range
-            tournament.addUser(player);
+        // Add players within MMR range
+        for (UserDTO player : mockPlayers.subList(0, 30)) {
+            assertTrue(tournament.checkUserEligibility(player));
+            tournament.getUsers().add(player.getId());
         }
-        assertEquals(30, tournament.getUsers().size(), "Tournament should have added 30 players within the MMR range.");
+        assertEquals(30, tournament.getUsers().size());
     }
 
     @Test
     public void testAddPlayerOutsideMMRRange() {
-        // Act & Assert: Players outside the MMR range should throw an exception
-        User outsideMMRPlayer = mockPlayers.get(31); // Last player has MMR 1520, which is out of range
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> tournament.addUser(outsideMMRPlayer));
-        assertEquals("Player with MMR 1520.0 is not eligible for this tournament (Allowed range: 1000.0 - 1500.0)", exception.getMessage());
+        // Test player with MMR outside range
+        UserDTO outsideMMRPlayer = mockPlayers.get(31); // Last player has MMR 1520
+        assertFalse(tournament.checkUserEligibility(outsideMMRPlayer));
     }
 
     @Test
-    public void testGetSeedings() {
-        // Add only players within the MMR range
-        for (User player : mockPlayers.subList(0, 30)) {
-            tournament.addUser(player);
-        }
+    public void testTotalMatches() {
+        // Create and add a round with matches
+        List<String> matchIds = new ArrayList<>();
+        matchIds.add("match1");
+        matchIds.add("match2");
 
-        // Act
-        TreeMap<Integer, User> seedings = tournament.getSeedings();
+        Round round = new Round();
+        round.setName("Round 1");
+        round.setMatches(matchIds);
 
-        // Assert
-        assertNotNull(seedings, "Seedings should not be null.");
-        assertEquals(30, seedings.size(), "Seedings should contain 30 players.");
+        List<Round> rounds = new ArrayList<>();
+        rounds.add(round);
+        tournament.setRounds(rounds);
 
-        // Verify the correct seeding based on calculated MMR
-        for (int i = 0; i < 30; i++) {
-            User expectedPlayer = mockPlayers.get(i);
-            assertEquals(expectedPlayer, seedings.get(i + 1), "Player with MMR should be seeded correctly.");
-        }
+        assertEquals(2, tournament.totalMatches());
     }
 
     @Test
-    public void testCreateMatches() {
-        // Add players within MMR range
-        for (User player : mockPlayers.subList(0, 32)) {
-            tournament.addUser(player);
-        }
+    public void testSettersAndGetters() {
+        tournament.setId("T002");
+        tournament.setName("New Tournament");
+        tournament.setYear(2025);
+        tournament.setType("Double Elimination");
+        tournament.setVenue("New Stadium");
+        tournament.setDate("2025-10-15");
+        tournament.setNumPlayers(16);
+        tournament.setStatus("completed");
+        tournament.setMinMMR(1100);
+        tournament.setMaxMMR(1600);
 
-        // Act
-        List<Match> matches = tournament.createMatches();
-
-        // Assert
-        assertNotNull(matches, "Matches should not be null.");
-        assertEquals(16, matches.size(), "There should be 16 matches in the first round.");
-
-        // Check the first match
-        Match firstMatch = matches.get(0);
-        assertEquals(mockPlayers.get(0).getId(), firstMatch.getPlayer1Id(), "Player 1 of the first match should be the highest seeded player.");
-        assertEquals(mockPlayers.get(31).getId(), firstMatch.getPlayer2Id(), "Player 2 of the first match should be the lowest seeded player.");
-
-        // Check the second match
-        Match secondMatch = matches.get(1);
-        assertEquals(mockPlayers.get(1).getId(), secondMatch.getPlayer1Id(), "Player 1 of the second match should be the second highest seeded player.");
-        assertEquals(mockPlayers.get(30).getId(), secondMatch.getPlayer2Id(), "Player 2 of the second match should be the second lowest seeded player.");
-
-        // Validate the match IDs according to the specified mapping
-        int[] expectedMatchNumbers = {1, 16, 3, 14, 5, 12, 7, 10, 2, 15, 4, 13, 6, 11, 8, 9};
-
-        for (int i = 0; i < matches.size(); i++) {
-            Match match = matches.get(i);
-            String expectedMatchId = "Showdown Tournament_Round 1_" + expectedMatchNumbers[i];
-            assertEquals(expectedMatchId, match.getMatchId(), "Match ID should be generated correctly for match number " + expectedMatchNumbers[i]);
-        }
+        assertEquals("T002", tournament.getId());
+        assertEquals("New Tournament", tournament.getName());
+        assertEquals(2025, tournament.getYear());
+        assertEquals("Double Elimination", tournament.getType());
+        assertEquals("New Stadium", tournament.getVenue());
+        assertEquals("2025-10-15", tournament.getDate());
+        assertEquals(16, tournament.getNumPlayers());
+        assertEquals("completed", tournament.getStatus());
+        assertEquals(1100, tournament.getMinMMR());
+        assertEquals(1600, tournament.getMaxMMR());
     }
+
+    @Test
+    public void testConstructorWithRounds() {
+        // Create test rounds
+        List<Round> testRounds = new ArrayList<>();
+        Round round = new Round();
+        round.setName("Round 1");
+        List<String> matches = new ArrayList<>();
+        matches.add("match1");
+        matches.add("match2");
+        round.setMatches(matches);
+        testRounds.add(round);
+
+        // Create tournament
+        Tournament tournamentWithRounds = new Tournament("T002", "Test Tournament", 2024,
+                "Single Elimination", "Venue", "2024-10-15", 32, "ongoing", 1000, 1500, testRounds);
+
+        // Set rounds after construction since constructor creates new ArrayList
+        tournamentWithRounds.setRounds(testRounds);
+
+        assertEquals("T002", tournamentWithRounds.getId());
+        assertEquals(1, tournamentWithRounds.getRounds().size());
+        assertEquals(2, tournamentWithRounds.totalMatches());
+    }
+
+    @Test
+    public void testCheckUserEligibilityWithinRange() {
+        UserDTO mockUser = Mockito.mock(UserDTO.class);
+        Player mockPlayerDetails = Mockito.mock(Player.class);
+        Mockito.when(mockUser.getPlayerDetails()).thenReturn(mockPlayerDetails);
+        Mockito.when(mockPlayerDetails.calculateMMR()).thenReturn(1250.0);
+
+        assertTrue(tournament.checkUserEligibility(mockUser),
+                "User with MMR within range should be eligible");
+    }
+
+    @Test
+    public void testCheckUserEligibilityBelowRange() {
+        UserDTO mockUser = Mockito.mock(UserDTO.class);
+        Player mockPlayerDetails = Mockito.mock(Player.class);
+        Mockito.when(mockUser.getPlayerDetails()).thenReturn(mockPlayerDetails);
+        Mockito.when(mockPlayerDetails.calculateMMR()).thenReturn(900.0);
+
+        assertFalse(tournament.checkUserEligibility(mockUser),
+                "User with MMR below range should not be eligible");
+    }
+
+    @Test
+    public void testCheckUserEligibilityAboveRange() {
+        UserDTO mockUser = Mockito.mock(UserDTO.class);
+        Player mockPlayerDetails = Mockito.mock(Player.class);
+        Mockito.when(mockUser.getPlayerDetails()).thenReturn(mockPlayerDetails);
+        Mockito.when(mockPlayerDetails.calculateMMR()).thenReturn(1600.0);
+
+        assertFalse(tournament.checkUserEligibility(mockUser),
+                "User with MMR above range should not be eligible");
+    }
+
+    @Test
+    public void testTotalMatchesWithMultipleRounds() {
+        // Create first round
+        Round round1 = new Round();
+        round1.setName("Round 1");
+        List<String> matches1 = new ArrayList<>();
+        matches1.add("match1");
+        matches1.add("match2");
+        round1.setMatches(matches1);
+
+        // Create second round
+        Round round2 = new Round();
+        round2.setName("Round 2");
+        List<String> matches2 = new ArrayList<>();
+        matches2.add("match3");
+        round2.setMatches(matches2);
+
+        // Add rounds to tournament
+        List<Round> rounds = new ArrayList<>();
+        rounds.add(round1);
+        rounds.add(round2);
+        tournament.setRounds(rounds);
+
+        assertEquals(3, tournament.totalMatches(),
+                "Total matches should be sum of matches in all rounds");
+    }
+
+    @Test
+    public void testEmptyTournament() {
+        Tournament emptyTournament = new Tournament();
+        assertNull(emptyTournament.getId());
+        assertNull(emptyTournament.getName());
+        assertEquals(0, emptyTournament.getYear());
+        assertNull(emptyTournament.getType());
+        assertNull(emptyTournament.getVenue());
+        assertNull(emptyTournament.getDate());
+        assertEquals(0, emptyTournament.getNumPlayers());
+        assertNull(emptyTournament.getStatus());
+        assertEquals(0.0, emptyTournament.getMinMMR());
+        assertEquals(0.0, emptyTournament.getMaxMMR());
+        assertNotNull(emptyTournament.getUsers());
+        assertTrue(emptyTournament.getUsers().isEmpty());
+    }
+
+    @Test
+    public void testTotalMatchesWithEmptyRounds() {
+        tournament.setRounds(new ArrayList<>());
+        assertEquals(0, tournament.totalMatches(),
+                "Tournament with no rounds should have 0 matches");
+    }
+
+    @Test
+    public void testAddAndRemoveUsers() {
+        List<String> users = new ArrayList<>();
+        users.add("user1");
+        users.add("user2");
+
+        tournament.setUsers(users);
+        assertEquals(2, tournament.getUsers().size());
+
+        users.remove("user1");
+        tournament.setUsers(users);
+        assertEquals(1, tournament.getUsers().size());
+        assertEquals("user2", tournament.getUsers().get(0));
+    }
+
+
 }

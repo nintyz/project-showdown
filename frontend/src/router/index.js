@@ -12,6 +12,9 @@ import AllTournaments from '@/views/AllTournaments.vue'
 import TournamentDetails from '@/views/TournamentDetails.vue'
 import TournamentDashboard from '@/views/TournamentDashboard.vue'
 import EditTournament from '@/views/EditTournament.vue'
+import OAuthCallback from "@/views/OAuthCallback.vue";
+import Verify from "@/views/VerifyAccount.vue";
+import Verify2FA from "@/views/Verify2FA.vue";
 
 const routes = [
     {
@@ -71,8 +74,21 @@ const routes = [
         path: '/tournament/:id/edit',
         component: EditTournament,
     },
-    
-
+    {
+        path: '/oauth2/callback',
+        name: 'OAuthCallback',
+        component: OAuthCallback,
+    },
+    {
+        path: '/verify',
+        name: 'Verify',
+        component: Verify,
+    },
+    {
+        path: '/verify-2fa',
+        name: 'Verify2FA',
+        component: Verify2FA,
+    }
 ]
 
 const router = createRouter({

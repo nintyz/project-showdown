@@ -2,6 +2,7 @@ package com.projectshowdown.configs;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
@@ -26,6 +27,7 @@ import java.util.List;
 
 @EnableWebSecurity
 @Configuration
+@Profile("!test")
 public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
@@ -76,7 +78,7 @@ public class SecurityConfig {
 
                         // users CRUD
                         .requestMatchers(HttpMethod.GET, "/users", "/user/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/users").hasAuthority("admin")
+                        .requestMatchers(HttpMethod.POST, "/users").permitAll()
                         .requestMatchers(HttpMethod.POST, "/addRandomData").permitAll()
                         .requestMatchers(HttpMethod.PUT, "/user/*").hasAuthority("admin")
                         .requestMatchers(HttpMethod.DELETE, "/user/*").hasAuthority("admin")
@@ -89,7 +91,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/tournaments/**").hasAnyAuthority("admin","organizer")
                         .requestMatchers(HttpMethod.PUT, "/tournaments/*/register/*").hasAuthority("player")
                         .requestMatchers(HttpMethod.PUT, "/tournaments/*/cancelRegistration/*").hasAuthority("player")
-                        .requestMatchers(HttpMethod.PUT, "/tournament/*/matches").hasAnyAuthority("admin", "organizer")
+
+                        // matches CRUD
+                        .requestMatchers(HttpMethod.PUT, "/match/*").hasAnyAuthority("admin", "organizer")
 
                         // chat bot
                         .requestMatchers(HttpMethod.POST, "/chatbot/message").permitAll()

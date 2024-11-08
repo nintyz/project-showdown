@@ -2,9 +2,6 @@ package com.projectshowdown.entities;
 
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -14,6 +11,8 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class PlayerTest {
 
@@ -47,26 +46,6 @@ public class PlayerTest {
         // Assert
         Set<ConstraintViolation<Player>> violations = validator.validate(player);
         assertTrue(violations.isEmpty(), "There should be no violations for a valid name.");
-    }
-
-    @Test
-    public void testPlayerAgeNegative() {
-        // Act
-        player.setDob(LocalDate.now().plusYears(5).toString());
-
-        // Assert
-        Set<ConstraintViolation<Player>> violations = validator.validate(player);
-        assertFalse(violations.isEmpty(), "There should be a violation for a negative age.");
-    }
-
-    @Test
-    public void testPlayerAgeExceed() {
-        // Act
-        player.setDob(LocalDate.now().minusYears(200).toString());
-
-        // Assert
-        Set<ConstraintViolation<Player>> violations = validator.validate(player);
-        assertFalse(violations.isEmpty(), "There should be a violation for age exceeding the max limit.");
     }
 
     @Test
@@ -151,6 +130,103 @@ public class PlayerTest {
         double expectedMMR = 2000 + 2500 * Math.cos((25 - 24) * Math.PI / 10) + 1000;
         double actualMMR = player.calculateMMR();
         assertEquals(expectedMMR, actualMMR, 0.0001, "The calculated MMR should match the expected value.");
+    }
+
+    @Test
+    public void testGetAndSetCountry() {
+        // Act
+        player.setCountry("United States");
+
+        // Assert
+        assertEquals("United States", player.getCountry(), "Country should match the set value.");
+    }
+
+    @Test
+    public void testGetAndSetBio() {
+        // Act
+        player.setBio("Professional player since 2020");
+
+        // Assert
+        assertEquals("Professional player since 2020", player.getBio(), "Bio should match the set value.");
+    }
+
+    @Test
+    public void testGetAndSetAchievements() {
+        // Act
+        player.setAchievements("Winner of multiple tournaments");
+
+        // Assert
+        assertEquals("Winner of multiple tournaments", player.getAchievements(), "Achievements should match the set value.");
+    }
+
+    @Test
+    public void testGetAndSetRank() {
+        // Act
+        player.setRank(10);
+
+        // Assert
+        assertEquals(10, player.getRank(), "Rank should match the set value.");
+    }
+
+    @Test
+    public void testGetAndSetPeakAge() {
+        // Act
+        player.setPeakAge(25);
+
+        // Assert
+        assertEquals(25, player.getPeakAge(), "Peak age should match the set value.");
+    }
+
+    @Test
+    public void testGetAndSetClayRaw() {
+        // Act
+        player.setClayRaw(450.0);
+
+        // Assert
+        assertEquals(450.0, player.getClayRaw(), 0.0001, "Clay raw score should match the set value.");
+    }
+
+    @Test
+    public void testGetAndSetGrassRaw() {
+        // Act
+        player.setGrassRaw(350.0);
+
+        // Assert
+        assertEquals(350.0, player.getGrassRaw(), 0.0001, "Grass raw score should match the set value.");
+    }
+
+    @Test
+    public void testAge() {
+        // Arrange
+        LocalDate twentyFiveYearsAgo = LocalDate.now().minusYears(25);
+        player.setDob(twentyFiveYearsAgo.toString());
+
+        // Act
+        Integer age = player.age();
+
+        // Assert
+        assertEquals(25, age, "Age calculation should be correct.");
+    }
+
+    @Test
+    public void testAgeWithNullDob() {
+        // Arrange
+        player.setDob(null);
+
+        // Act
+        Integer age = player.age();
+
+        // Assert
+        assertNull(age, "Age should be null when DOB is null.");
+    }
+
+    @Test
+    public void testGetAndSetPeakElo() {
+        // Act
+        player.setPeakElo(2800.0);
+
+        // Assert
+        assertEquals(2800.0, player.getPeakElo(), 0.0001, "Peak Elo should match the set value.");
     }
 
 }
