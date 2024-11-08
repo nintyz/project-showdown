@@ -78,7 +78,7 @@ public class SecurityConfig {
 
                         // users CRUD
                         .requestMatchers(HttpMethod.GET, "/users", "/user/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/users").hasAuthority("admin")
+                        .requestMatchers(HttpMethod.POST, "/users").permitAll()
                         .requestMatchers(HttpMethod.POST, "/addRandomData").permitAll()
                         .requestMatchers(HttpMethod.PUT, "/user/*").hasAuthority("admin")
                         .requestMatchers(HttpMethod.DELETE, "/user/*").hasAuthority("admin")
