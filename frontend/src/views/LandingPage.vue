@@ -3,111 +3,24 @@
         <div class="navbar">
             <img src="@/assets/logo.png" alt="Logo" class="logo" />
         </div>
-        <div class="landing-body">
-            <div class="d-flex justify-content-between">
-                <div class="left-content d-flex align-items-center flex-column">
-                    <h3 class="showdown-title">
-                        <span v-for="(letter, index) in letters" :key="index" 
-                              :style="{ animationDelay: `${index * 0.1}s` }" 
-                              class="letter">{{ letter }}</span>
-                    </h3>
-                    <p class="showdown-description">
-                        Showdown is a powerful tournament management system featuring a state-of-the-art matchmaking algorithm that ensures fair, competitive matchups.
-                    </p>
-                    <p @click="goToLogin" class="get-started">
-                        Get Started
-                        <font-awesome-icon :icon="['fas', 'arrow-right']" />
-                    </p>
-                </div>
-                <div class="right-content">
-                    <img src="@/assets/tennis-man.png" class="animated-image"/>
-                </div>
+        <div class="d-flex justify-content-between landing-body">
+            <div class="left-content d-flex align-items-center flex-column">
+                <h3 class="showdown-title">
+                    <span v-for="(letter, index) in letters" :key="index" 
+                        :style="{ animationDelay: `${index * 0.1}s` }" 
+                        class="letter">{{ letter }}</span>
+                </h3>
+                <p class="showdown-description">
+                    Showdown is a powerful tournament management system featuring a state-of-the-art matchmaking algorithm that ensures fair, competitive matchups.
+                </p>
+                <p @click="goToLogin" class="get-started">
+                    Get Started
+                    <font-awesome-icon :icon="['fas', 'arrow-right']" />
+                </p>
             </div>
-            <!-- <div class="d-flex tournament-content">
-                <div class="tournament-header"> 
-                    <h1 class="tournament-title"> TOURNAMENTS </h1>
-                </div>
-                <div class="tournament-body d-flex">
-                    <div class="tournament-one">
-                        <div class="tournament-image-header">
-                            <img src="@/assets/tennis-tournament-one.jpg"/>
-                        </div>
-                        <h2 class="tournament-name">
-                            Tournament 1
-                        </h2>
-                        <div class="tournament-location">
-                            <font-awesome-icon :icon="['fas', 'location-dot']" class="icon-yellow" />
-                            <span class="m-3">Acapulca, Mexico</span>
-                        </div>
-                        <div class="tournament-date">
-                            <font-awesome-icon :icon="['fas', 'calendar']" class="icon-yellow" />
-                            <span class="m-3">Oct 22 - Oct 30, 2024</span>
-                        </div>
-                        <div class="divider"></div>
-                        <div class="tournament-surface">
-                            <span class="m-3">Surface: Outdoor Clay</span>
-                        </div>                        
-                        <div class="tournament-prize">
-                            <span class="m-3">Prize: $1,642,128</span>
-                        </div>
-                        <div class="tournament-register">
-                            <button @click="goToLogin" class="tournament-btn">Register</button>
-                        </div>
-                    </div>
-                    <div class="tournament-two">
-                        <div class="tournament-image-header">
-                            <img src="@/assets/tennis-tournament-two.jpg"/>
-                        </div>
-                        <h2 class="tournament-name">
-                            Tournament 2
-                        </h2>
-                        <div class="tournament-location">
-                            <font-awesome-icon :icon="['fas', 'location-dot']" class="icon-yellow" />
-                            <span class="m-3">San Juan, Puerto Rico</span>
-                        </div>
-                        <div class="tournament-date">
-                            <font-awesome-icon :icon="['fas', 'calendar']" class="icon-yellow" />
-                            <span class="m-3">Nov 16 - Nov 28, 2024</span>
-                        </div>
-                        <div class="divider"></div>
-                        <div class="tournament-surface">
-                            <span class="m-3">Surface: Outdoor Hard</span>
-                        </div>                        
-                        <div class="tournament-prize">
-                            <span class="m-3">Prize: $5,342,128</span>
-                        </div>
-                        <div class="tournament-register">
-                            <button @click="goToLogin" class="tournament-btn">Register</button>
-                        </div>
-                    </div>
-                    <div class="tournament-three">
-                        <div class="tournament-image-header">
-                            <img src="@/assets/tennis-tournament-three.jpg"/>
-                        </div>
-                        <h2 class="tournament-name">
-                            Tournament 3
-                        </h2>
-                        <div class="tournament-location">
-                            <font-awesome-icon :icon="['fas', 'location-dot']" class="icon-yellow" />
-                            <span class="m-3">Miami, FL, USA</span>
-                        </div>
-                        <div class="tournament-date">
-                            <font-awesome-icon :icon="['fas', 'calendar']" class="icon-yellow" />
-                            <span class="m-3">Dec 1 - Dec 7, 2024</span>
-                        </div>
-                        <div class="divider"></div>
-                        <div class="tournament-surface">
-                            <span class="m-3">Surface: Outdoor Hard</span>
-                        </div>                        
-                        <div class="tournament-prize">
-                            <span class="m-3">Prize: $7,642,328</span>
-                        </div>
-                        <div class="tournament-register">
-                            <button @click="goToLogin" class="tournament-btn">Register</button>
-                        </div>
-                    </div>
-                </div>
-            </div> -->
+            <div class="right-content">
+                <img src="@/assets/tennis-man.png" class="animated-image"/>
+            </div>
         </div>
     </div>
   </template>
@@ -150,6 +63,10 @@
         background-color: #f3eeea;
         min-height: 100vh;
         overflow: hidden;
+    }
+
+    .landing-body {
+        height: 90vh;
     }
 
     .logo {
@@ -219,106 +136,6 @@
         to {
             transform: translateX(0);
         }
-    }
-
-    .tournament-content {
-        height:100vh;
-        background-color:white;
-        flex-direction: column;
-    }
-
-    .tournament-header {
-        margin-left: 5%;
-        margin-top: 7%;
-    }
-
-    .tournament-body {
-        justify-content: space-around;
-        margin-top: 25px;
-        padding-left: 3%;
-        padding-right: 3%;
-        align-items: center;
-        text-align: left;
-    }
-
-    .tournament-title {
-        font-weight: 700;
-        letter-spacing: 3px;
-    }
-
-    .tournament-one,
-    .tournament-two,
-    .tournament-three {
-        background-color: #f3eeea;
-        width: 50vh;
-        height: 65vh;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: center;
-        font-size: 24px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .tournament-image-header {
-        width: 100%;
-        display: flex;
-        justify-content: center;
-    }
-
-    .tournament-image-header img {
-        width: 100%;
-        height: 250px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); 
-    }
-
-    .tournament-name {
-        align-self: flex-start;
-        text-align: left;
-        font-weight: bold;
-        margin-left: 5%;
-        margin-top: 5%;
-        font-size: 28px;
-    }
-
-    .tournament-location,
-    .tournament-date {
-        align-self: flex-start;
-        text-align: left;
-        margin-left: 5%;
-        margin-top: 2%;
-        font-size: 18px;
-    }
-
-    .divider {
-        width: 90%;
-        height: 2px;
-        background-color: #ccc; 
-        margin-top: 3%;
-    }
-
-    .tournament-surface,
-    .tournament-prize {
-        align-self: flex-start;
-        text-align: left;
-        margin-left: 2%;
-        margin-top: 2%;
-        font-size: 18px;
-    }
-
-    .tournament-btn {
-        background-color: #fea006;
-        color: white;
-        border: white;
-        padding: 1%;
-        width: 40vh;
-        margin-top: 5%;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .tournament-btn:hover {
-        transform: scale(1.05); /* Scale up the button */
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* Add a shadow effect */
     }
 
   </style>
