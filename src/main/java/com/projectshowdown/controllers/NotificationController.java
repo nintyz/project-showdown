@@ -28,16 +28,16 @@ public class NotificationController {
         }
     }
 
-    @GetMapping("/tournamentCancelled")
-    public String notifyTournamentCancelled(@RequestParam String email, @RequestParam String tournamentName) {
-        try {
-            notificationService.notifyTournamentCancelled(email, tournamentName);
-            return "Tournament cancellation notification sent successfully!";
-        } catch (MessagingException e) {
-            e.printStackTrace();
-            return "Failed to send tournament cancellation notification.";
-        }
-    }
+    // @GetMapping("/tournamentCancelled")
+    // public String notifyTournamentCancelled(@RequestParam String email, @RequestParam String tournamentName) {
+    //     try {
+    //         notificationService.notifyTournamentCancelled(email, tournamentName);
+    //         return "Tournament cancellation notification sent successfully!";
+    //     } catch (MessagingException e) {
+    //         e.printStackTrace();
+    //         return "Failed to send tournament cancellation notification.";
+    //     }
+    // }
 
     @GetMapping("/playerMatched")
     public String notifyPlayerMatched(@RequestParam String email, @RequestParam String playerName, @RequestParam String opponentName, @RequestParam String tournamentName) {

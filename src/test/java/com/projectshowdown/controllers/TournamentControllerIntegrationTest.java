@@ -160,6 +160,45 @@ public class TournamentControllerIntegrationTest {
         assertEquals(HttpStatus.OK, updateResponse.getStatusCode());
     }
 
+@Test
+void testCancelTournament() throws Exception {
+        // First, create a tournament
+        HttpEntity<Tournament> createRequest = new HttpEntity<>(testTournament, headers);
+        ResponseEntity<String> createResponse = restTemplate.postForEntity(
+                baseUrl + "/tournaments",
+                createRequest,
+                String.class
+        );
+        String tournamentId = extractTournamentId(createResponse.getBody());
+        createdTournamentIds.add(tournamentId); // Track it for cleanup
+
+        // Prepare cancellation data
+        Map<String, Object> cancelData = new HashMap<>();
+        cancelData.put("status", "cancelled");
+
+        // Send cancellation update request
+        HttpEntity<Map<String, Object>> cancelRequest = new HttpEntity<>(cancelData, headers);
+        ResponseEntity<String> cancelResponse = restTemplate.exchange(
+                baseUrl + "/tournament/" + tournamentId,
+                HttpMethod.PUT,
+                cancelRequest,
+                String.class
+        );
+
+        // Assertions to verify cancellation
+        assertEquals(HttpStatus.OK, cancelResponse.getStatusCode());
+        assertTrue(cancelResponse.getBody().contains("updated successfully"));
+        
+        // Fetch the tournament to verify its status is now "cancelled"
+        ResponseEntity<Map> tournamentResponse = restTemplate.getForEntity(
+                baseUrl + "/tournament/" + tournamentId,
+                Map.class
+        );
+
+        assertEquals(HttpStatus.OK, tournamentResponse.getStatusCode());
+        assertEquals("cancelled", tournamentResponse.getBody().get("status"));
+}
+
     @Test
     void testRegisterUser() throws Exception {
         // First create a test user
