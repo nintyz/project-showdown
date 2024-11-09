@@ -185,7 +185,7 @@ public class TournamentService {
         ApiFuture<WriteResult> writeResult = docRef.update(filteredUpdates);
 
         // if (((String) tournamentData.get("status")).equals("cancelled")) {
-        //     // EMAIL NOTIFICATION TO LET REGISTERED PLAYERS KNOW ABOUT ITS CANCELLATION
+        // // EMAIL NOTIFICATION TO LET REGISTERED PLAYERS KNOW ABOUT ITS CANCELLATION
         // }
 
         // Return success message with the update time
@@ -207,8 +207,21 @@ public class TournamentService {
             throw new TournamentNotFoundException(tournamentId);
         }
 
+        // fetch data
         UserDTO user = userService.getUser(userId);
         Tournament tournament = getTournament(tournamentId);
+
+        // check tournament started
+        if (tournament.getRounds().size() != 0) {
+            return "Tournament's has already begin";
+        }
+
+        // check registration date over
+        if (!tournament.checkDate(user)) {
+            return "Tournament's registration date is already over!";
+        }
+
+        // check mmr
         if (!tournament.checkUserEligibility(user)) {
             return "Player with MMR " + user.getPlayerDetails().calculateMMR()
                     + " is not eligible for this tournament (Allowed range: " + tournament.getMinMMR() + " - "
@@ -294,8 +307,7 @@ public class TournamentService {
             throws ExecutionException, InterruptedException {
         UserDTO user = userService.getUser(userId);
         HashMap<String, Object> achievements = new HashMap<>();
-        String newAchievement = " Obtained " + (gold ? "Gold" : "Silver") + " from " + tournament.getName() + " at "
-                + tournament.getDate();
+        String newAchievement = " Obtained " + (gold ? "Gold" : "Silver") + " from " + tournament.getName();
         achievements.put("playerDetails.achievements", user.getPlayerDetails().getAchievements() + newAchievement);
 
         userService.updateUser(userId, achievements);
@@ -430,7 +442,7 @@ public class TournamentService {
             matches.add(createMatch(tournament, stage, user1, user2, totalMatches + matches.size() + 1));
             tempMatches.add(new Match("", tournament.getId(), user1.getId(), user2.getId(), 0, 0,
                     Math.abs(user1.getPlayerDetails().calculateMMR() - user2.getPlayerDetails().calculateMMR()),
-                    tournament.getDate(), stage, false));
+                    tournament.getDateTime(), stage, false));
         }
         return matches;
     }
@@ -440,7 +452,7 @@ public class TournamentService {
         String matchId = tournament.getId() + "m_" + matchIndex;
         Match match = new Match(matchId, tournament.getId(), user1.getId(), user2.getId(), 0, 0,
                 Math.abs(user1.getPlayerDetails().calculateMMR() - user2.getPlayerDetails().calculateMMR()),
-                tournament.getDate(), stage, false);
+                tournament.getDateTime(), stage, false);
         return matchService.addMatch(match);
     }
 
