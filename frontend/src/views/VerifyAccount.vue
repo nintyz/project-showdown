@@ -73,6 +73,7 @@ export default {
   },
   created() {
     this.email = this.$route.query.email;
+    this.verificationCode = this.$route.query.code || '';
     if (!this.email) {
       this.$router.push('/login');
     }
@@ -125,7 +126,6 @@ export default {
         }
 
         this.success = response.data.message || 'Account verified successfully!';
-        localStorage.setItem("role", "player");
 
         if (response.data.status === 'requires_2fa') {
           this.startRedirectCountdown(1.5);
@@ -133,7 +133,12 @@ export default {
             this.$router.push(`/verify-2fa?email=${this.email}`);
           }, 1500);
         } else if (response.data.token) {
-          localStorage.setItem('token', response.data.token);
+          const token = response.data.token;
+          const role = this.extractRoleFromToken(token);
+
+          localStorage.setItem('token', token);
+          localStorage.setItem('role', role);
+
           this.startRedirectCountdown(1.5);
           setTimeout(() => {
             this.$router.push('/dashboard');
@@ -151,6 +156,17 @@ export default {
         }
       } finally {
         this.isLoading = false;
+      }
+    },
+    extractRoleFromToken(token) {
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(window.atob(base64));
+        return payload.role || 'player'; // Default to PLAYER if no role found
+      } catch (error) {
+        console.error('Error extracting role from token:', error);
+        return 'player';
       }
     },
     async resendCode() {
