@@ -187,6 +187,9 @@ public class TournamentService {
                 .filter(entry -> entry.getValue() != null) // Only include non-null fields
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
+        // Perform the update operation
+        ApiFuture<WriteResult> writeResult = docRef.update(filteredUpdates);
+
         // check if the update is to cancel tournament
         if (tournamentData.containsKey("status") && ((String) tournamentData.get("status")).equalsIgnoreCase("Cancelled")) {
             // check if tournament has begun
@@ -212,9 +215,6 @@ public class TournamentService {
 
             return "Tournament with ID: " + tournamentId + " has been cancelled!";
         }
-
-        // Perform the update operation
-        ApiFuture<WriteResult> writeResult = docRef.update(filteredUpdates);
 
         // Return success message with the update time
         return "Tournament with ID: " + tournamentId + " updated successfully at: " + writeResult.get().getUpdateTime();
