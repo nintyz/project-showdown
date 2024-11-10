@@ -20,24 +20,28 @@
 
                     <!-- Links for Player Pages -->
                     <li class="nav-item">
-                        <router-link :to="'/player-profile'" class="nav-link"
+                        <router-link :to="'/profile'" class="nav-link"
                             :class="{ active: isActive('/player-profile') }">Player Profile</router-link>
                     </li>
 
                     <!-- All Tournaments Link for Players -->
                     <li class="nav-item">
                         <router-link :to="'/all-tournaments'" class="nav-link"
-                            :class="{ active: isActive('/all-tournaments') }">All Tournaments</router-link>
+                            :class="{ active: isActive('/all-tournaments') }">All Tournaments (Players)</router-link>
                     </li>
 
                     <!-- Links for Admin Pages -->
                     <li class="nav-item">
                         <router-link :to="'/admin-dashboard'" class="nav-link"
-                            :class="{ active: isActive('/admin-dashboard') }">Admin Dashboard</router-link>
+                            :class="{ active: isActive('/admin-dashboard') }">All Tournaments (Admin)</router-link>
                     </li>
                     <li class="nav-item">
                         <router-link :to="'/new-tournament'" class="nav-link"
                             :class="{ active: isActive('/new-tournament') }">Add Tournament</router-link>
+                    </li>
+                    <li class="nav-item">
+                        <router-link :to="'/all-players'" class="nav-link"
+                            :class="{ active: isActive('/all-players') }">All Players</router-link>
                     </li>
 
                     <!-- Links for Auth Pages -->

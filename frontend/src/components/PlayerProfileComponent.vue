@@ -1,6 +1,5 @@
 <template>
     <div class="profile-container">
-
         <Navbar />
         <div class="container-fluid p-5">
             <!-- Player Profile Header -->
@@ -19,7 +18,7 @@
                         Add your biography here.
                     </p>
 
-                    <div class="action-buttons">
+                    <div class="action-buttons" v-if="isPersonalProfile">
                         <button class="btn btn-secondary" @click="redirectToEditProfile">Update Profile</button>
                     </div>
                 </div>
@@ -85,7 +84,6 @@
             </div>
         </div>
     </div>
-
 </template>
 
 <script>
@@ -96,6 +94,12 @@ import '@/assets/main.css';
 export default {
     components: {
         Navbar,
+    },
+    props: {
+        userId: {
+            type: String,
+            default: null,
+        },
     },
     data() {
         return {
@@ -114,28 +118,34 @@ export default {
             tournaments: [],
         };
     },
+    computed: {
+        isPersonalProfile() {
+            return !this.userId;
+        },
+        computedUserId() {
+            return this.userId || localStorage.getItem("userId");
+        },
+    },
     created() {
         this.fetchPlayerData();
         this.fetchTournaments();
     },
     methods: {
         async fetchPlayerData() {
-            const userId = localStorage.getItem("userId");
             try {
-                const response = await axios.get(`http://localhost:8080/user/${userId}`);
+                const response = await axios.get(`http://localhost:8080/user/${this.computedUserId}`);
                 this.player = response.data.playerDetails;
             } catch (error) {
                 console.error("Error fetching player data:", error);
             }
         },
         async fetchTournaments() {
-            // const userId = localStorage.getItem("userId");
-            // try {
-            //     const response = await axios.get(`http://localhost:8080/tournaments/user/${userId}`);
-            //     this.tournaments = response.data;
-            // } catch (error) {
-            //     console.error("Error fetching tournaments:", error);
-            // }
+            try {
+                const response = await axios.get(`http://localhost:8080/tournaments/user/${this.computedUserId}`);
+                this.tournaments = response.data;
+            } catch (error) {
+                console.error("Error fetching tournaments:", error);
+            }
         },
         calculateAge(dob) {
             if (!dob) return '';

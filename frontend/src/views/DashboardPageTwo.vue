@@ -84,7 +84,6 @@ export default {
 .register-container {
     background-color: #f3eeea;
     min-height: 100vh;
-    padding-bottom: 50px;
 }
 
 /* Tournament Details Section */
