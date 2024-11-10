@@ -13,6 +13,8 @@ import com.google.firebase.cloud.FirestoreClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -227,6 +229,7 @@ public class TournamentService {
             if (tournament.inProgress()) {
                 return "You are not allowed to cancel a tournament that has already begun!";
             }
+
             // EMAIL NOTIFICATION TO LET REGISTERED PLAYERS KNOW ABOUT ITS CANCELLATION
             // Retrieve the tournament name from the document
             String tournamentName = document.getString("name");
@@ -249,11 +252,8 @@ public class TournamentService {
             return "Tournament with ID: " + tournamentId + " has been cancelled!";
         }
 
-        // Perform the update operation
-        ApiFuture<WriteResult> writeResult = docRef.update(filteredUpdates);
-
         // Return success message with the update time
-        return "Tournament with ID: " + tournamentId + " updated successfully at: " + writeResult.get().getUpdateTime();
+        return "Tournament with ID: " + tournamentId + " updated successfully at: " + updateWritResult.get().getUpdateTime();
     }
 
     // Method to register a new player
