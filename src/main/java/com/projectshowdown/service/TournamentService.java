@@ -78,7 +78,7 @@ public class TournamentService {
     public List<Tournament> getTournamentsByOrganizerId(String organizerId)
             throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
-        Query tournamentsCollection = db.collection("tournaments").whereEqualTo("role", organizerId);
+        Query tournamentsCollection = db.collection("tournaments").whereEqualTo("organizerId", organizerId);
         ApiFuture<QuerySnapshot> future = tournamentsCollection.get();
         List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 
