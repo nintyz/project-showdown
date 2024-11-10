@@ -442,7 +442,9 @@ public class TournamentService {
             matches.add(createMatch(tournament, stage, user1, user2, totalMatches + matches.size() + 1));
             tempMatches.add(new Match("", tournament.getId(), user1.getId(), user2.getId(), 0, 0,
                     Math.abs(user1.getPlayerDetails().calculateMMR() - user2.getPlayerDetails().calculateMMR()),
-                    tournament.getDateTime(), stage, false));
+                    "TBC", stage, false));
+
+            //HERE to send emails to user1 and user2 of their matching with dateTime as TBC
         }
         return matches;
     }
@@ -452,7 +454,7 @@ public class TournamentService {
         String matchId = tournament.getId() + "m_" + matchIndex;
         Match match = new Match(matchId, tournament.getId(), user1.getId(), user2.getId(), 0, 0,
                 Math.abs(user1.getPlayerDetails().calculateMMR() - user2.getPlayerDetails().calculateMMR()),
-                tournament.getDateTime(), stage, false);
+                "TBC", stage, false);
         return matchService.addMatch(match);
     }
 

@@ -55,9 +55,20 @@ public class MatchService {
         ApiFuture<DocumentSnapshot> future = docRef.get();
         DocumentSnapshot document = future.get();
         if (!document.exists()) {
-            throw new RuntimeException("Unable to find match with id: " + id);
+            return "Unable to find match with id: " + id;
         }
 
+        // if current match dateTime is TBC, and you're not trying to update the
+        // dateTime, should prompt to update dateTime
+        if (((String) document.get("dateTime")).equals("TBC") || matchData.containsKey("dateTime")) {
+            return "Please update match's date and time details before attempting to update the scores";
+        }
+
+        if(matchData.containsKey("dateTime")){
+            //here to inform players of their match timing.
+            String user1Id = (String) document.get("player1Id");
+            String user2Id = (String) document.get("player2Id");
+        }
         String tournamentId = (String) document.get("tournamentId");
 
         // Filter out null values from the update data
