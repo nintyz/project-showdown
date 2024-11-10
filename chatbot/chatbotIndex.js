@@ -169,7 +169,16 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
 
   // Get Date by Tournament Name (Context)
   function getDateByTournamentName_Context(agent) {
-    const context = agent.getContext('tournament_venue_context');
+    const venueContext = agent.getContext('tournament_venue_context');
+    const winnerContext = agent.getContext('tournament_winner_context');
+
+    // Determine which context to use based on lifespan
+    let context;
+    if (winnerContext && venueContext) {
+      context = winnerContext.lifespan > venueContext.lifespan ? winnerContext : venueContext;
+    } else {
+      context = winnerContext || venueContext;
+    }
 
     const tournamentName = context.parameters.tournament_name;
     if (!tournamentName) {
@@ -262,9 +271,19 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
 
   // Get Venue by Tournament Name (Context)
   function getVenueByTournamentName_Context(agent) {
-    const context = agent.getContext('tournament_date_context');
+    const dateContext = agent.getContext('tournament_date_context');
+    const winnerContext = agent.getContext('tournament_winner_context');
+
+    // Determine which context to use based on lifespan
+    let context;
+    if (winnerContext && dateContext) {
+      context = winnerContext.lifespan > dateContext.lifespan ? winnerContext : dateContext;
+    } else {
+      context = winnerContext || dateContext;
+    }
 
     const tournamentName = context.parameters.tournament_name;
+
     if (!tournamentName) {
       agent.add(`Which tournament are you interested in?`);
       return;
@@ -301,6 +320,106 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
   // Get Winner of a Tournament
   function getTournamentWinner(agent) {
     const tournamentName = agent.parameters.tournament_name;
+
+    if (!tournamentName) {
+      agent.add("Please provide a tournament name.");
+      return;
+    }
+
+    agent.setContext({ 
+      name: 'tournament_winner_context', 
+      lifespan: 5,
+      parameters: {tournament_name : tournamentName}
+    });
+
+    return db.collection('tournaments')
+      .get()
+      .then(snapshot => {
+        let foundTournament = null;
+
+        snapshot.forEach(doc => {
+          const storedTournamentName = doc.data().name;
+          if (storedTournamentName.toLowerCase() === tournamentName.toLowerCase()) {
+            foundTournament = doc;
+          }
+        });
+
+        if (!foundTournament) {
+          agent.add(`We couldn't find any tournament with the name: "${tournamentName}". Please check the name and try again.`);
+          return;
+        }
+
+        const tournamentId = foundTournament.data().id;
+        const resultTournamentName = foundTournament.data().name;
+
+        return db.collection('matches')
+          .where('tournamentId', '==', tournamentId)
+          .where('stage', '==', 'Finals')
+          .get()
+          .then(matchSnapshot => {
+            if (matchSnapshot.empty) {
+              agent.add(`No matches found for the tournament finals: "${tournamentName}".`);
+              return;
+            }
+
+            const matchDoc = matchSnapshot.docs[0].data();
+            const player1Id = matchDoc.player1Id;
+            const player2Id = matchDoc.player2Id;
+            const player1Score = matchDoc.player1Score;
+            const player2Score = matchDoc.player2Score;
+
+            // Determine winner
+            const isPlayer1Winner = player1Score > player2Score;
+            const winnerId = isPlayer1Winner ? player1Id : player2Id;
+
+            const userPromises = [player1Id, player2Id].map(playerId => {
+              return db.collection('users')
+                .doc(playerId)
+                .get()
+                .then(userDoc => {
+                  if (userDoc.exists) {
+                    return userDoc.data().playerDetails.name;
+                  } else {
+                    return null;
+                  }
+                });
+            });
+
+            return Promise.all(userPromises)
+              .then(names => {
+                const validNames = names.filter(name => name !== null);
+
+                if (validNames.length < 2) {
+                  agent.add(`Could not retrieve all player names for the tournament finals: "${tournamentName}".`);
+                  return;
+                }
+
+                const winnerName = validNames[isPlayer1Winner ? 0 : 1]; // Get the name of the winner
+
+                agent.add(`The winner of the ${resultTournamentName} is ${winnerName}!`);
+              });
+          });
+      })
+      .catch(error => {
+        console.error('Error retrieving Firestore documents:', error);
+        agent.add('There was an error retrieving data from Firestore. Please try again later.');
+      });
+  }
+
+  // Get Winner of a Tournament (Context)
+  function getTournamentWinner_Context(agent) {
+    const venueContext = agent.getContext('tournament_venue_context');
+    const dateContext = agent.getContext('tournament_date_context');
+
+    // Determine which context to use based on lifespan
+    let context;
+    if (venueContext && dateContext) {
+      context = venueContext.lifespan > dateContext.lifespan ? venueContext : dateContext;
+    } else {
+      context = venueContext || dateContext;
+    }
+
+    const tournamentName = context.parameters.tournament_name;
 
     if (!tournamentName) {
       agent.add("Please provide a tournament name.");
@@ -552,6 +671,7 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
   intentMap.set('TournamentVenue', getVenueByTournamentName);
   intentMap.set('TournamentVenue_Context', getVenueByTournamentName_Context);
   intentMap.set('TournamentWinner', getTournamentWinner);
+  intentMap.set('TournamentWinner_Context', getTournamentWinner_Context);
 
   // Match Intents
   intentMap.set('MatchFinalsPlayers', getTournamentFinalsPlayers);
