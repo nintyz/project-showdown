@@ -2,7 +2,7 @@
     <div class="login-container">
       <img src="@/assets/logo.png" alt="Logo" class="logo" />
   
-      <div class="login-box-wrapper">
+      <div class="login-box-wrapper" :class="{ 'has-error': error }">
   
         <div class="login-box">
           <h1>Welcome Back!</h1>
@@ -16,9 +16,18 @@
             <label for="password">Password</label>
             <input type="password" id="password" v-model="password" placeholder="Enter your password" />
           </div>
-  
+
+          <!-- Error message -->
+          <transition name="fade-slide">
+            <div v-if="error" class="error-message">
+              {{ error }}
+            </div>
+          </transition>
+
           <!-- Sign In Button -->
-          <button @click="handleSignIn" class="sign-in-btn">Next</button>
+          <button @click="handleSignIn" class="sign-in-btn" :disabled="isLoading">
+            {{ isLoading ? 'Signing in...' : 'Next' }}
+          </button>
   
           <!-- OR Divider -->
           <div class="divider">OR</div>
@@ -49,27 +58,66 @@
   </template>
   
   <script>
+  import axios from 'axios';
   export default {
     data() {
       return {
         email: "",
-        password: ""
+        password: "",
+        error: null,
+        isLoading: false
       };
     },
     methods: {
-      handleSignIn() {
-        // Admin login logic
-        if (this.email === "admin@gmail.com") {
-          localStorage.setItem("role", "admin");
-          this.$router.push("/admin-dashboard");
-        } 
-        // Player login logic
-        else if (this.email === "player@gmail.com") {
-          localStorage.setItem("role", "player");
-          this.$router.push("/dashboard");
-        } else {
-          console.log("Invalid email");
-          // Handle other login cases (show error message etc.)
+      async handleSignIn() {
+        this.isLoading = true;
+        this.error = null;
+
+        try {
+          const response = await axios.post('http://localhost:8080/login', {
+            email: this.email,
+            password: this.password
+          });
+
+          if (response.data.requiresTwoFactor) {
+            this.$router.push(`/verify-2fa?email=${this.email}`);
+          } else {
+            const token = response.data.token;
+            localStorage.setItem('token', token);
+
+            // Extract role from JWT
+            const role = this.extractRoleFromToken(token);
+            localStorage.setItem('role', role);
+
+            // Redirect based on role
+            if (role === 'admin') {
+              this.$router.push('/admin-dashboard');
+            } else {
+              this.$router.push('/dashboard');
+            }
+          }
+        } catch (error) {
+          console.error('Login error:', error);
+          if (error.response?.data === "Account not verified. Please verify your account.") {
+            await axios.post(`http://localhost:8080/resend?email=${this.email}`);
+            this.$router.push(`/verify?email=${this.email}`);
+          } else {
+            localStorage.setItem('role', 'guest');
+            this.error = error.response?.data || 'Login failed. Please try again.';
+          }
+        } finally {
+          this.isLoading = false;
+        }
+      },
+      extractRoleFromToken(token) {
+        try {
+          const base64Url = token.split('.')[1];
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          const payload = JSON.parse(window.atob(base64));
+          return payload.role || 'player'; // Default to PLAYER if no role found
+        } catch (error) {
+          console.error('Error extracting role from token:', error);
+          return 'player';
         }
       },
       handleGoogleSignIn() {
@@ -91,9 +139,40 @@
   </script>
   
   <style scoped>
+  .error-message {
+    color: #dc3545;
+    background-color: #f8d7da;
+    padding: 0.75rem;
+    border-radius: 5px;
+    width: 100%;
+    text-align: center;
+    font-size: 0.875rem;
+  }
+
+  .fade-slide-enter-active,
+  .fade-slide-leave-active {
+    transition: all 0.3s ease;
+    max-height: 100px;
+  }
+
+  .fade-slide-enter-from,
+  .fade-slide-leave-to {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(0px);
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .form-group input {
+    margin-top: 0.25rem;
+  }
+
   .divider {
     text-align: center;
-    margin: 20px 0;
+    margin: 10px 0;
   }
   
   .google-btn, .facebook-btn {
@@ -152,8 +231,14 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
     overflow: hidden;
+    transition: height 0.3s ease; /* Add smooth transition */
   }
-  
+
+  /* Add this class for when error exists */
+  .login-box-wrapper.has-error {
+    height: 600px;
+  }
+
   .login-box {
     background-color: #ebe3d5; 
     padding: 30px; 
