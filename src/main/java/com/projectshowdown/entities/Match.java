@@ -18,7 +18,7 @@ public class Match {
     private int player1Score;
     private int player2Score;
     private double mmrDifference;
-    private String date;
+    private String dateTime;
     private String stage;
     private boolean completed;
 
@@ -105,13 +105,13 @@ public class Match {
     }
 
     // Getter for matchDate
-    public String getDate() {
-        return date;
+    public String getDateTime() {
+        return dateTime;
     }
 
     // Setter for matchDate
-    public void setMatchDate(String date) {
-        this.date = date;
+    public void setMatchDate(String dateTime) {
+        this.dateTime = dateTime;
     }
 
     // Getter for stage

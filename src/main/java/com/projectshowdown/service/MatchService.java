@@ -60,7 +60,7 @@ public class MatchService {
 
         // if current match dateTime is TBC, and you're not trying to update the
         // dateTime, should prompt to update dateTime
-        if (((String) document.get("dateTime")).equals("TBC") || matchData.containsKey("dateTime")) {
+        if (((String) document.get("dateTime")).equals("TBC") && !matchData.containsKey("dateTime")) {
             return "Please update match's date and time details before attempting to update the scores";
         }
 
