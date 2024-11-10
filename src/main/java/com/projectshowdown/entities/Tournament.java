@@ -108,6 +108,10 @@ public class Tournament {
         this.numPlayers = numPlayers;
     }
 
+    public boolean inProgress(){
+        return status.equalsIgnoreCase("in progress");
+    }
+
     public double getMinMMR() {
         return minMMR;
     }
@@ -150,8 +154,6 @@ public class Tournament {
             return false;
         }
     }
-
-    
 
     public boolean checkDate(UserDTO player) {
         if (LocalDateTime.now().isAfter(LocalDateTime.parse(dateTime))) {

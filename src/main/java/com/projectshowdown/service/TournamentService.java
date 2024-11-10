@@ -187,13 +187,12 @@ public class TournamentService {
                 .filter(entry -> entry.getValue() != null) // Only include non-null fields
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        // Perform the update operation
-        ApiFuture<WriteResult> writeResult = docRef.update(filteredUpdates);
-
         // check if the update is to cancel tournament
-        if (tournamentData.containsKey("status") && ((String) tournamentData.get("status")).equalsIgnoreCase("Cancelled")) {
+        if (tournamentData.containsKey("status")
+                && ((String) tournamentData.get("status")).equalsIgnoreCase("Cancelled")) {
             // check if tournament has begun
-            if (((ArrayList<String>) document.get("rounds")).size() != 0) {
+            Tournament tournament = getTournament(tournamentId);
+            if (tournament.inProgress()) {
                 return "You are not allowed to cancel a tournament that has already begun!";
             }
             // EMAIL NOTIFICATION TO LET REGISTERED PLAYERS KNOW ABOUT ITS CANCELLATION
@@ -213,8 +212,13 @@ public class TournamentService {
                 }
             }
 
+            docRef.update(filteredUpdates);
+
             return "Tournament with ID: " + tournamentId + " has been cancelled!";
         }
+
+        // Perform the update operation
+        ApiFuture<WriteResult> writeResult = docRef.update(filteredUpdates);
 
         // Return success message with the update time
         return "Tournament with ID: " + tournamentId + " updated successfully at: " + writeResult.get().getUpdateTime();
@@ -399,6 +403,7 @@ public class TournamentService {
             }
 
             List<String> matches = generateMatchesWithSeed(tournament, users, roundName, 0);
+            tournament.setStatus("In Progress");
             addRoundToTournament(tournament, "Initial", matches);
 
             return matches.size() + " matches have been generated for tournament id " + tournament.getId();
@@ -478,11 +483,13 @@ public class TournamentService {
             try {
                 System.out.println("Sending player match email ....");
                 notificationService.notifyPlayerMatched(
-                        user1.getEmail(), user1.getPlayerDetails().getName(), user2.getPlayerDetails().getName(), tournament.getName());
+                        user1.getEmail(), user1.getPlayerDetails().getName(), user2.getPlayerDetails().getName(),
+                        tournament.getName());
                 notificationService.notifyPlayerMatched(
-                        user2.getEmail(), user2.getPlayerDetails().getName(), user1.getPlayerDetails().getName(), tournament.getName());
+                        user2.getEmail(), user2.getPlayerDetails().getName(), user1.getPlayerDetails().getName(),
+                        tournament.getName());
             } catch (MessagingException e) {
-                System.out.println("Failed to send match notification for players: " 
+                System.out.println("Failed to send match notification for players: "
                         + user1.getId() + " and " + user2.getId());
                 e.printStackTrace();
             }
