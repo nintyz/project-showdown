@@ -106,7 +106,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable()) // CSRF protection is needed only for browser based attacks
                 .formLogin(form -> form.disable())
                 .oauth2Login((oauth2) -> oauth2
-                        .successHandler(oAuth2AuthenticationSuccessHandler))
+                        .successHandler(oAuth2AuthenticationSuccessHandler)
+                        .loginPage("http://localhost:3000/login"))
                 .headers(header -> header.disable()) // disable the security headers, as we do not return HTML in our
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
                 .authenticationProvider(authenticationProvider());
