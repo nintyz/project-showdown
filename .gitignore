@@ -37,3 +37,6 @@ build/
 serviceAccountKey.env
 serviceAccountKey.json
 .env
+
+# Ignore Node Modules
+node_modules/

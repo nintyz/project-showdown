@@ -28,6 +28,9 @@ import com.projectshowdown.entities.Match;
 import com.projectshowdown.entities.Round;
 import com.projectshowdown.entities.Tournament;
 import com.projectshowdown.exceptions.TournamentNotFoundException;
+
+import jakarta.mail.MessagingException;
+
 import com.projectshowdown.entities.User;
 import com.projectshowdown.events.MatchUpdatedEvent;
 
@@ -39,6 +42,9 @@ public class TournamentService {
 
     @Autowired
     MatchService matchService;
+
+    @Autowired
+    NotificationService notificationService;
 
     // Helper method to get Firestore instance
     private Firestore getFirestore() {
@@ -181,6 +187,9 @@ public class TournamentService {
                 .filter(entry -> entry.getValue() != null) // Only include non-null fields
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
+        // Perform the update operation
+        ApiFuture<WriteResult> writeResult = docRef.update(filteredUpdates);
+
         // check if the update is to cancel tournament
         if (tournamentData.containsKey("status") && ((String) tournamentData.get("status")).equalsIgnoreCase("Cancelled")) {
             // check if tournament has begun
@@ -188,11 +197,24 @@ public class TournamentService {
                 return "You are not allowed to cancel a tournament that has already begun!";
             }
             // EMAIL NOTIFICATION TO LET REGISTERED PLAYERS KNOW ABOUT ITS CANCELLATION
+            // Retrieve the tournament name from the document
+            String tournamentName = document.getString("name");
 
+            // Retrieve the list of registered users
+            List<String> registeredUsers = (List<String>) document.get("users");
+            for (String userId : registeredUsers) {
+                UserDTO user = userService.getUser(userId);
+                try {
+                    // Send cancellation notification to each user
+                    notificationService.notifyTournamentCancelled(user.getEmail(), tournamentName);
+                } catch (MessagingException e) {
+                    System.out.println("Failed to send cancellation notification to user: " + userId);
+                    e.printStackTrace();
+                }
+            }
+
+            return "Tournament with ID: " + tournamentId + " has been cancelled!";
         }
-
-        // Perform the update operation
-        ApiFuture<WriteResult> writeResult = docRef.update(filteredUpdates);
 
         // Return success message with the update time
         return "Tournament with ID: " + tournamentId + " updated successfully at: " + writeResult.get().getUpdateTime();
@@ -336,6 +358,8 @@ public class TournamentService {
         Tournament tournament = getTournament(tournamentId);
         String roundName = determineNextRoundName(tournament);
 
+        System.out.println("Progressing tournament ...");
+
         if ("Error".equals(roundName)) {
             return "The tournament has already completed!";
         } else if ("Round 1".equals(roundName)) {
@@ -451,6 +475,17 @@ public class TournamentService {
                     "TBC", stage, false));
 
             // HERE to send emails to user1 and user2 of their matching with dateTime as TBC
+            try {
+                System.out.println("Sending player match email ....");
+                notificationService.notifyPlayerMatched(
+                        user1.getEmail(), user1.getPlayerDetails().getName(), user2.getPlayerDetails().getName(), tournament.getName());
+                notificationService.notifyPlayerMatched(
+                        user2.getEmail(), user2.getPlayerDetails().getName(), user1.getPlayerDetails().getName(), tournament.getName());
+            } catch (MessagingException e) {
+                System.out.println("Failed to send match notification for players: " 
+                        + user1.getId() + " and " + user2.getId());
+                e.printStackTrace();
+            }
         }
         return matches;
     }
