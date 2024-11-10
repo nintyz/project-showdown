@@ -13,29 +13,29 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <!-- Links for All Pages -->
-                    <li v-if="role === 'player' || role === 'admin'" class="nav-item">
+                    <li class="nav-item">
                         <router-link :to="'/dashboard'" class="nav-link"
                             :class="{ active: isActive('/dashboard') }">Dashboard</router-link>
                     </li>
 
                     <!-- Links for Player Pages -->
-                    <li v-if="role === 'player'" class="nav-item">
+                    <li class="nav-item">
                         <router-link :to="'/player-profile'" class="nav-link"
                             :class="{ active: isActive('/player-profile') }">Player Profile</router-link>
                     </li>
 
                     <!-- All Tournaments Link for Players -->
-                    <li v-if="role === 'player'" class="nav-item">
+                    <li class="nav-item">
                         <router-link :to="'/all-tournaments'" class="nav-link"
                             :class="{ active: isActive('/all-tournaments') }">All Tournaments</router-link>
                     </li>
 
                     <!-- Links for Admin Pages -->
-                    <li v-if="role === 'admin'" class="nav-item">
+                    <li class="nav-item">
                         <router-link :to="'/admin-dashboard'" class="nav-link"
                             :class="{ active: isActive('/admin-dashboard') }">Admin Dashboard</router-link>
                     </li>
-                    <li v-if="role === 'admin'" class="nav-item">
+                    <li class="nav-item">
                         <router-link :to="'/new-tournament'" class="nav-link"
                             :class="{ active: isActive('/new-tournament') }">Add Tournament</router-link>
                     </li>
@@ -64,7 +64,7 @@
 export default {
     data() {
         return {
-            role: localStorage.getItem("role") || "guest", // Get role from localStorage
+            role: localStorage.getItem("role"), // Get role from localStorage
         };
     },
     computed: {

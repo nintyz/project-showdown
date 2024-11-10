@@ -3,103 +3,156 @@
         <img src="@/assets/logo.png" alt="Logo" class="logo" />
 
         <div class="signup-box-wrapper">
-            <!-- Left side with an image -->
             <div class="left-side">
                 <img src="@/assets/signup-photo.jpg" alt="Illustration" class="full-size-img" />
             </div>
 
-            <!-- Right side form for signup -->
             <div class="signup-box">
-                <h1>Sign Up</h1>
+                <h1>Verify Email and Sign Up</h1>
 
-                <!-- Email and Password -->
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" v-model="email" placeholder="Enter your email" />
+                <!-- Sign Up Form -->
+                <div v-if="!isVerificationStep">
+                    <!-- Email Input -->
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" v-model="email" placeholder="Enter your email" />
+                    </div>
+
+                    <!-- Password Input with Strength Indicator -->
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <div class="password-input-container">
+                            <input :type="showPassword ? 'text' : 'password'" id="password" v-model="password"
+                                placeholder="Create a password" />
+                            <button type="button" @click="togglePasswordVisibility">
+                                {{ showPassword ? 'Hide' : 'Show' }}
+                            </button>
+                        </div>
+                        <div class="password-strength-bar">
+                            <span v-for="(block, index) in 5" :key="index"
+                                :class="{ 'strength-item': true, valid: index < requirementsMetCount }"></span>
+                        </div>
+                        <p class="password-requirements">
+                            Min. 8 characters, 1 lowercase, 1 uppercase, 1 number. Allowed special characters: !@#$%^
+                        </p>
+                    </div>
+
+                    <!-- Role Dropdown -->
+                    <div class="form-group">
+                        <label for="role">Role</label>
+                        <select id="role" v-model="role">
+                            <option value="" disabled>Select your role</option>
+                            <option value="player">Player</option>
+                            <option value="organiser">Organiser</option>
+                        </select>
+                    </div>
+
+                    <!-- Sign Up Button -->
+                    <button @click="handleSignUp" class="sign-up-btn" :disabled="!isPasswordValid">
+                        Verify Email and Sign Up
+                    </button>
                 </div>
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" v-model="password" placeholder="Create a password" />
-                </div>
 
-                <!-- Sign Up Button -->
-                <button @click="handleSignUp" class="sign-up-btn">Sign Up</button>
-
-                <!-- OR Divider -->
-                <div class="divider">OR</div>
-
-                <!-- Google & Facebook Sign Up Buttons -->
-                <button class="google-btn" @click="handleGoogleSignUp">
-                    <img src="@/assets/google-icon.png" />
-                    Continue with Google
-                </button>
-                <button class="facebook-btn" @click="handleFacebookSignUp">
-                    <img
-                        src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/F_icon.svg/512px-F_icon.svg.png" />
-                    Continue with Facebook
-                </button>
-
-                <!-- Already have an account? Link -->
-                <div class="account-exists">
-                    <p>Already have an account?
-                        <a @click="goToLogin" class="login-link">Login here</a>
-                    </p>
-                </div>
+                <!-- Display Success/Error Messages -->
+                <p v-if="message" :class="{ success: success, error: !success }">{{ message }}</p>
             </div>
         </div>
     </div>
 </template>
 
-
 <script>
+import axios from 'axios';
+
 export default {
     data() {
         return {
             email: '',
-            password: ''
+            password: '',
+            showPassword: false,
+            role: '',
+            message: '',
+            success: false,
+            isVerificationStep: false
         };
     },
+    computed: {
+        hasUpperCase() {
+            return /[A-Z]/.test(this.password);
+        },
+        hasLowerCase() {
+            return /[a-z]/.test(this.password);
+        },
+        hasNumber() {
+            return /[0-9]/.test(this.password);
+        },
+        hasSpecialChar() {
+            return /[!@#$%^&*]/.test(this.password);
+        },
+        isMinLength() {
+            return this.password.length >= 8;
+        },
+        requirementsMetCount() {
+            return [this.isMinLength, this.hasLowerCase, this.hasUpperCase, this.hasNumber, this.hasSpecialChar].filter(Boolean).length;
+        },
+        isPasswordValid() {
+            return this.requirementsMetCount === 5;
+        },
+    },
     methods: {
-        handleSignUp() {
-            // Perform email/password sign-up
-            localStorage.setItem("role", "player");
-            // After successful sign-up, redirect to the next page to collect more information
-            this.$router.push('/user-details');
-            
+        async handleSignUp() {
+            if (!this.email || !this.password || !this.role) {
+                this.message = "Please fill out all fields.";
+                this.success = false;
+                return;
+            }
+
+            if (!this.isPasswordValid) {
+                this.message = "Password does not meet the requirements.";
+                this.success = false;
+                return;
+            }
+
+            try {
+                // Call the backend to create the user and initiate email verification
+                const response = await axios.post('http://localhost:8080/users', {
+                    email: this.email,
+                    password: this.password,
+                    role: this.role,
+                });
+                localStorage.setItem("role", this.role);
+                this.success = true;
+
+                console.log(response);
+
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // Call send-verification-email after successful user creation
+                const sendEmail = await axios.post('http://localhost:8080/send-verification-email', this.email, {
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    }
+                });
+                this.message = "Verification code sent to your email.";
+                this.isVerificationStep = true;
+                console.log(sendEmail);
+
+                // Redirect to the /verify page with the email as a query parameter
+                this.$router.push({ path: '/verify', query: { email: this.email, source: 'signup' } });
+
+            } catch (error) {
+                this.message = error.response?.data || "Sign-up failed. Please try again.";
+                this.success = false;
+            }
         },
-        handleGoogleSignUp() {
-            // Perform Google sign-up
-            this.$router.push('/user-details');
+
+        togglePasswordVisibility() {
+            this.showPassword = !this.showPassword;
         },
-        handleFacebookSignUp() {
-            // Perform Facebook sign-up
-            this.$router.push('/user-details');
-        },
-        goToLogin() {
-            // Redirect to login page
-            this.$router.push('/login');
-        }
-    }
+    },
 };
 </script>
 
-
 <style scoped>
-.account-exists {
-    margin-top: 15px;
-    text-align: center;
-}
-
-.login-link {
-    color: #776b5d;
-    text-decoration: underline;
-    cursor: pointer;
-}
-
-.login-link:hover {
-    color: #b0a695;
-}
-
 .signup-container {
     display: flex;
     flex-direction: column;
@@ -122,7 +175,7 @@ export default {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
     overflow: hidden;
-    height: 550px;
+    height: 660px;
 }
 
 .signup-box {
@@ -143,12 +196,55 @@ h1 {
     margin-bottom: 10px;
 }
 
-input {
+.password-input-container {
+    display: flex;
+    align-items: center;
+}
+
+.password-input-container input {
+    flex: 1;
+}
+
+.password-input-container button {
+    background: none;
+    border: none;
+    color: #776b5d;
+    cursor: pointer;
+    padding: 0 10px;
+    width: 15%;
+}
+
+input,
+select {
     width: 100%;
     padding: 8px;
     border: 1px solid #b0a695;
     border-radius: 5px;
     background-color: #f3eeea;
+}
+
+.password-strength-bar {
+    display: flex;
+    margin-top: 5px;
+}
+
+.strength-item {
+    height: 5px;
+    width: 20%;
+    background-color: #ccc;
+    margin-right: 2px;
+    border-radius: 3px;
+    transition: background-color 0.3s ease;
+}
+
+.strength-item.valid {
+    background-color: green;
+}
+
+.password-requirements {
+    font-size: 12px;
+    color: #d9534f;
+    margin-top: 5px;
 }
 
 .sign-up-btn {
@@ -166,29 +262,9 @@ input {
     background-color: #b0a695;
 }
 
-.divider {
-    text-align: center;
-    margin: 20px 0;
-}
-
-.google-btn,
-.facebook-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    cursor: pointer;
-    background-color: white;
-}
-
-.google-btn img,
-.facebook-btn img {
-    width: 20px;
-    margin-right: 10px;
+.sign-up-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
 }
 
 .left-side {
@@ -199,5 +275,19 @@ input {
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+.success {
+    color: green;
+    font-size: 14px;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.error {
+    color: red;
+    font-size: 14px;
+    margin-top: 10px;
+    text-align: center;
 }
 </style>

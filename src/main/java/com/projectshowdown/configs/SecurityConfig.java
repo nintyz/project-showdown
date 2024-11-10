@@ -78,9 +78,11 @@ public class SecurityConfig {
 
                         // users CRUD
                         .requestMatchers(HttpMethod.GET, "/users", "/user/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/send-verification-email").permitAll()
                         .requestMatchers(HttpMethod.POST, "/users").permitAll()
                         .requestMatchers(HttpMethod.POST, "/addRandomData").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/user/*").hasAuthority("admin")
+                        // .requestMatchers(HttpMethod.PUT, "/user/*").hasAuthority("admin")
+                        .requestMatchers(HttpMethod.PUT, "/user/*").permitAll()
                         .requestMatchers(HttpMethod.DELETE, "/user/*").hasAuthority("admin")
 
                         // tournaments CRUD

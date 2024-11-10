@@ -168,7 +168,7 @@ public class UserService implements UserDetailsService {
     ApiFuture<WriteResult> writeResult = docRef.set(userDTO);
 
     // Return success message with timestamp
-    return "Player created successfully with ID: " + generatedId + " at: " + writeResult.get().getUpdateTime();
+    return generatedId;
   }
 
   // Method to update a player's document in the 'players' collection
