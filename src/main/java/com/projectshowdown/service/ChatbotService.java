@@ -21,7 +21,7 @@ public class ChatbotService {
     private GoogleServiceConfig googleServiceConfig;
 
     public String getResponse(String userInput) {
-        String SESSION_ID = generateSessionId();;
+        String SESSION_ID = "1234";
         String url = String.format("https://dialogflow.googleapis.com/v2/projects/%s/agent/sessions/%s:detectIntent", PROJECT_ID, SESSION_ID);
         
         // Create request JSON body
@@ -53,9 +53,5 @@ public class ChatbotService {
             e.printStackTrace();
             return "Error processing request"; // Return an error message instead of null
         }
-    }
-
-    private String generateSessionId() {
-        return UUID.randomUUID().toString();
     }
 }

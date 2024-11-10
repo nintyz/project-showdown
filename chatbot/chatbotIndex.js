@@ -132,7 +132,11 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
       return;
     }
 
-    console.log('Tournament Name:', tournamentName); // Log the tournament name being queried
+    agent.setContext({ 
+      name: 'tournament_date_context', 
+      lifespan: 5,
+      parameters: { tournament_name: tournamentName }   
+    });
 
     return db.collection('tournaments')
       .get()
@@ -151,9 +155,47 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
           return;
         }
 
-        const tournamentDate = foundTournament.data().date;
+        const tournamentDate = foundTournament.data().dateTime;
         const formattedDate = formatDate(tournamentDate);
-        
+        const resultTournamentName = foundTournament.data().name;
+
+        agent.add(`${resultTournamentName} is held on ${formattedDate}.`);
+      })
+      .catch(error => {
+        console.error('Error retrieving Firestore documents:', error);
+        agent.add('There was an error retrieving data from Firestore. Please try again later.');
+      });
+  }
+
+  // Get Date by Tournament Name (Context)
+  function getDateByTournamentName_Context(agent) {
+    const context = agent.getContext('tournament_venue_context');
+
+    const tournamentName = context.parameters.tournament_name;
+    if (!tournamentName) {
+      agent.add(`Which tournament are you interested in?`);
+      return;
+    }
+
+    return db.collection('tournaments')
+      .get()
+      .then(snapshot => {
+        let foundTournament = null;
+
+        snapshot.forEach(doc => {
+          const storedTournamentName = doc.data().name;
+          if (storedTournamentName.toLowerCase() === tournamentName.toLowerCase()) {
+            foundTournament = doc;
+          }
+        });
+
+        if (!foundTournament) {
+          agent.add(`We couldn't find any tournament with the name: "${tournamentName}". Please check the name and try again.`);
+          return;
+        }
+
+        const tournamentDate = foundTournament.data().dateTime;
+        const formattedDate = formatDate(tournamentDate);
         const resultTournamentName = foundTournament.data().name;
 
         agent.add(`${resultTournamentName} is held on ${formattedDate}.`);
@@ -172,8 +214,8 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
     const month = date.toLocaleString('default', { month: 'long' });
     const year = date.getFullYear();
 
-    return `${day} ${month} ${year}`; 
-}
+    return `${day} ${month} ${year}`;
+  }
 
   // Get Venue by Tournament Name
   function getVenueByTournamentName(agent) {
@@ -183,6 +225,12 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
       agent.add("Please provide a tournament name.");
       return;
     }
+
+    agent.setContext({ 
+      name: 'tournament_venue_context', 
+      lifespan: 5,
+      parameters: {tournament_name : tournamentName}
+    });
 
     return db.collection('tournaments')
       .get()
@@ -462,6 +510,7 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
 
   // Tournament Intents
   intentMap.set('TournamentDate', getDateByTournamentName);
+  intentMap.set('TournamentDate_Context', getDateByTournamentName_Context);
   intentMap.set('TournamentVenue', getVenueByTournamentName);
   intentMap.set('TournamentWinner', getTournamentWinner);
 
