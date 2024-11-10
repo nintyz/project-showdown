@@ -13,6 +13,8 @@ import com.google.firebase.cloud.FirestoreClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -187,15 +189,13 @@ public class TournamentService {
                 .filter(entry -> entry.getValue() != null) // Only include non-null fields
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        // Perform the update operation
-        ApiFuture<WriteResult> writeResult = docRef.update(filteredUpdates);
-
         // check if the update is to cancel tournament
         if (tournamentData.containsKey("status") && ((String) tournamentData.get("status")).equalsIgnoreCase("Cancelled")) {
-            // check if tournament has begun
+            // check if tournament has begun, if begun throw a bad request so front end knows
             if (((ArrayList<String>) document.get("rounds")).size() != 0) {
-                return "You are not allowed to cancel a tournament that has already begun!";
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You are not allowed to cancel a tournament that has already begun!");
             }
+
             // EMAIL NOTIFICATION TO LET REGISTERED PLAYERS KNOW ABOUT ITS CANCELLATION
             // Retrieve the tournament name from the document
             String tournamentName = document.getString("name");
@@ -212,12 +212,17 @@ public class TournamentService {
                     e.printStackTrace();
                 }
             }
+            // Perform the update operation
+            ApiFuture<WriteResult> cancelWriteResult = docRef.update(filteredUpdates);
 
             return "Tournament with ID: " + tournamentId + " has been cancelled!";
         }
 
+        // Perform the update operation
+        ApiFuture<WriteResult> updateWriteResult = docRef.update(filteredUpdates);
+
         // Return success message with the update time
-        return "Tournament with ID: " + tournamentId + " updated successfully at: " + writeResult.get().getUpdateTime();
+        return "Tournament with ID: " + tournamentId + " updated successfully at: " + updateWritResult.get().getUpdateTime();
     }
 
     // Method to register a new player
