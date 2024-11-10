@@ -75,6 +75,30 @@ public class TournamentService {
         return allTournaments; // Return the list of tournament
     }
 
+    public List<Tournament> getTournamentsByOrganizerId(String organizerId)
+            throws ExecutionException, InterruptedException {
+        Firestore db = getFirestore();
+        Query tournamentsCollection = db.collection("tournaments").whereEqualTo("role", organizerId);
+        ApiFuture<QuerySnapshot> future = tournamentsCollection.get();
+        List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+
+        // Prepare a list to hold each document's data
+        List<Tournament> allTournaments = new ArrayList<>();
+
+        // Iterate through the documents and add their data to the list
+        for (DocumentSnapshot document : documents) {
+            if (document.exists()) {
+                // Add document data to the listt
+                Tournament currTournament = document.toObject(Tournament.class);
+                // set id.
+                currTournament.setId(document.getId());
+                allTournaments.add(currTournament);
+
+            }
+        }
+        return allTournaments; // Return the list of tournament
+    }
+
     // Method to save tournament details to Firestore
     public String addTournament(Tournament tournament, String userId) throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
