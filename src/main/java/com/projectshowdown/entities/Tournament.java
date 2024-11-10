@@ -34,6 +34,7 @@ public class Tournament {
 
     private List<Round> rounds;
 
+    private String organizerId;
     private List<String> users = new ArrayList<>();
 
     public Tournament(String id, String name, int year, String type, String venue, String dateTime, int numPlayers,

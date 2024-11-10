@@ -76,13 +76,14 @@ public class TournamentService {
     }
 
     // Method to save tournament details to Firestore
-    public String addTournament(Tournament tournament) throws ExecutionException, InterruptedException {
+    public String addTournament(Tournament tournament, String userId) throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
         // Generate a new document reference with a random ID
         DocumentReference docRef = db.collection("tournaments").document();
         // Get the generated document ID
         String generatedId = docRef.getId();
         tournament.setId(generatedId);
+        tournament.setOrganizerId(userId);
 
         // Save the tournament to Firestore
         ApiFuture<WriteResult> writeResult = docRef.set(tournament);
@@ -168,7 +169,7 @@ public class TournamentService {
     }
 
     // Method to update a tournament document in the 'tournaments' collection
-    public String updateTournament(String tournamentId, Map<String, Object> tournamentData)
+    public String updateTournament(String tournamentId, String organizerId, Map<String, Object> tournamentData)
             throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
 
@@ -180,6 +181,10 @@ public class TournamentService {
         DocumentSnapshot document = future.get();
         if (!document.exists()) {
             throw new TournamentNotFoundException(tournamentId);
+        }
+
+        if (!organizerId.equals(document.get("organizerId"))) {
+            return "You are not allowed to edit another organizer's tournament!";
         }
 
         // Filter out null values from the update data
@@ -521,7 +526,7 @@ public class TournamentService {
             throws ExecutionException, InterruptedException {
         Round newRound = new Round(roundName, matches);
         tournament.getRounds().add(newRound);
-        updateTournament(tournament.getId(), Map.of("rounds", tournament.getRounds()));
+        updateTournament(tournament.getId(), tournament.getOrganizerId(), Map.of("rounds", tournament.getRounds()));
     }
 
 }
