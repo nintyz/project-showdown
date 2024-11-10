@@ -21,6 +21,12 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
       return;
     }
 
+    agent.setContext({ 
+      name: 'player_age_context', 
+      lifespan: 5,
+      parameters: { player_name: userName }   
+    });
+
     return db.collection('users')
       .where('playerDetails.name', '==', userName.name)
       .get()
@@ -45,6 +51,50 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
       });
   }
 
+// Get Player's Age by Name (Context)
+function getAgeByName_Context(agent) {
+  const eloContext = agent.getContext('player_elo_context');
+  const rankContext = agent.getContext('player_rank_context');
+
+  // Determine which context to use based on lifespan
+  let context;
+  if (eloContext && rankContext) {
+    context = eloContext.lifespan > rankContext.lifespan ? eloContext : rankContext;
+  } else {
+    context = eloContext || rankContext;
+  }
+
+  const userName = context.parameters.player_name;
+
+  if (!userName) {
+    agent.add("Please provide a name.");
+    return;
+  }
+
+  return db.collection('users')
+    .where('playerDetails.name', '==', userName.name)
+    .get()
+    .then(snapshot => {
+      if (snapshot.empty) {
+        agent.add(`We couldn't find any user with the name: ${userName.name}. Please check the name and try again.`);
+        return;
+      }
+
+      let userAge = 0;
+      snapshot.forEach(doc => {
+        let dob = doc.data().playerDetails.dob;
+
+        userAge = calculateAge(dob);
+      });
+
+      agent.add(`${userName.name} is ${userAge} years old.`);
+    })
+    .catch(error => {
+      console.error('Error retrieving Firestore documents:', error);
+      agent.add('Error retrieving data from Firestore: ' + error.message);
+      });
+  }
+
   // Helper function to calculate age based on DOB
   function calculateAge(dob) {
     const dobDate = new Date(dob);
@@ -64,6 +114,54 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
   // Get Player's Elo by Name
   function getEloByName(agent) {
     const userName = agent.parameters.name_elo;
+
+    if (!userName) {
+      agent.add("Please provide a name.");
+      return;
+    }
+
+    agent.setContext({ 
+      name: 'player_elo_context', 
+      lifespan: 5,
+      parameters: { player_name: userName }   
+    });
+
+    return db.collection('users')
+      .where('playerDetails.name', '==', userName.name)
+      .get()
+      .then(snapshot => {
+        if (snapshot.empty) {
+          agent.add(`We couldn't find any user with the name: ${userName.name}. Please check the name and try again.`);
+          return;
+        }
+
+        let userElo = 0;
+        snapshot.forEach(doc => {
+          userElo = doc.data().playerDetails.elo;
+        });
+
+        agent.add(`${userName.name} has an elo rating of ${userElo}.`);
+      })
+      .catch(error => {
+        console.error('Error retrieving Firestore documents:', error);
+        agent.add('Error retrieving data from Firestore: ' + error.message);
+      });
+  }
+
+  // Get Player's Elo by Name (Context)
+  function getEloByName_Context(agent) {
+    const ageContext = agent.getContext('player_age_context');
+    const rankContext = agent.getContext('player_rank_context');
+
+    // Determine which context to use based on lifespan
+    let context;
+    if (ageContext && rankContext) {
+      context = ageContext.lifespan > rankContext.lifespan ? ageContext : rankContext;
+    } else {
+      context = ageContext || rankContext;
+    }
+
+    const userName = context.parameters.player_name;
 
     if (!userName) {
       agent.add("Please provide a name.");
@@ -95,6 +193,54 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
   // Get Player's Rank by Name
   function getRankByName(agent) {
     const userName = agent.parameters.name_rank;
+
+    if (!userName) {
+      agent.add("Please provide a name.");
+      return;
+    }
+
+    agent.setContext({ 
+      name: 'player_rank_context', 
+      lifespan: 5,
+      parameters: { player_name: userName }   
+    });
+
+    return db.collection('users')
+      .where('playerDetails.name', '==', userName.name)
+      .get()
+      .then(snapshot => {
+        if (snapshot.empty) {
+          agent.add(`We couldn't find any user with the name: ${userName.name}. Please check the name and try again.`);
+          return;
+        }
+
+        let userRank = 0;
+        snapshot.forEach(doc => {
+          userRank = doc.data().playerDetails.rank;
+        });
+
+        agent.add(`${userName.name} is rank ${userRank}.`);
+      })
+      .catch(error => {
+        console.error('Error retrieving Firestore documents:', error);
+        agent.add('Error retrieving data from Firestore: ' + error.message);
+      });
+  }
+
+  // Get Player's Rank by Name (Context)
+  function getRankByName_Context(agent) {
+    const ageContext = agent.getContext('player_age_context');
+    const eloContext = agent.getContext('player_elo_context');
+
+    // Determine which context to use based on lifespan
+    let context;
+    if (ageContext && eloContext) {
+      context = ageContext.lifespan > eloContext.lifespan ? ageContext : eloContext;
+    } else {
+      context = ageContext || eloContext;
+    }
+
+    const userName = context.parameters.player_name;
 
     if (!userName) {
       agent.add("Please provide a name.");
@@ -662,8 +808,11 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
   let intentMap = new Map();
   // Player Intents
   intentMap.set('PlayerAge', getAgeByName);
+  intentMap.set('PlayerAge_Context', getAgeByName_Context);
   intentMap.set('PlayerElo', getEloByName);
+  intentMap.set('PlayerElo_Context', getEloByName_Context);
   intentMap.set('PlayerRank', getRankByName);
+  intentMap.set('PlayerRank_Context', getRankByName_Context);
 
   // Tournament Intents
   intentMap.set('TournamentDate', getDateByTournamentName);
