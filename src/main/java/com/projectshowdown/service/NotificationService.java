@@ -26,11 +26,11 @@ public class NotificationService {
         String htmlMessage = String.format("""
             <html>
             <body style="font-family: Arial, sans-serif; background-color: #f3eeea; padding: 20px;">
-                <div style="max-width: 1500px; margin: auto; background-color: #f3eeea; padding: 20px; border-radius: 8px;">
+                <div style="max-width: 800px; margin: auto; background-color: #f3eeea; padding: 20px; border-radius: 8px;">
                     <h2 style="text-align: center; color: #333;">%s</h2>
                     <p style="text-align: center; color: #333; font-size: 16px;">%s</p>
                     <div style="text-align: center; margin: 20px 0;">
-                        <img src="cid:showdown-logo.png" alt="Showdown Logo" style="width: 500px; height: auto;">
+                        <img src="cid:showdown-logo.png" alt="Showdown Logo" style="width: 400px; height: auto;">
                     </div>
                     <p style="text-align: center; color: #888; font-size: 12px;">This is an auto-generated email. Please do not reply to this email.</p>
                 </div>
