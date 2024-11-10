@@ -73,6 +73,7 @@ export default {
   },
   created() {
     this.email = this.$route.query.email;
+    this.verificationCode = this.$route.query.code || '';
     if (!this.email) {
       this.$router.push('/signup');
     }
@@ -98,13 +99,52 @@ export default {
         this.isEmailVerified = true;
         this.resendCooldown = 0; // Hide the resend section
 
+        // if (response.data.status === 'requires_2fa') {
+        //   this.$router.push({ path: '/verify-2fa', query: { email: this.email } });
+        // }
+        if (response.data === "Account is already verified") {
+          this.success = "Account is already verified.";
+          this.startRedirectCountdown(1.5);
+          setTimeout(() => {
+            this.$router.push('/dashboard');
+          }, 1500);
+          return;
+        }
+
+        this.success = response.data.message || 'Account verified successfully!';
+
         if (response.data.status === 'requires_2fa') {
-          this.$router.push({ path: '/verify-2fa', query: { email: this.email } });
+          this.startRedirectCountdown(1.5);
+          setTimeout(() => {
+            this.$router.push(`/verify-2fa?email=${this.email}`);
+          }, 1500);
+        } else if (response.data.token) {
+          const token = response.data.token;
+          const role = this.extractRoleFromToken(token);
+
+          localStorage.setItem('token', token);
+          localStorage.setItem('role', role);
+
+          this.startRedirectCountdown(1.5);
+          setTimeout(() => {
+            this.$router.push('/dashboard');
+          }, 1500);
         }
       } catch (error) {
         this.error = error.response?.data || 'Verification failed. Please try again.';
       } finally {
         this.isLoading = false;
+      }
+    },
+    extractRoleFromToken(token) {
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(window.atob(base64));
+        return payload.role || 'player'; // Default to PLAYER if no role found
+      } catch (error) {
+        console.error('Error extracting role from token:', error);
+        return 'player';
       }
     },
     async resendCode() {

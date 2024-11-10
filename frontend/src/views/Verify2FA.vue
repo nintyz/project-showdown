@@ -54,9 +54,19 @@ export default {
         });
 
         if (response.data.token) {
-          localStorage.setItem('token', response.data.token);
+          const token = response.data.token;
+          const role = this.extractRoleFromToken(token);
+
+          localStorage.setItem('token', token);
+          localStorage.setItem('role', role);
+
           this.success = 'Two-factor authentication successful!';
           this.redirectBasedOnRole();
+
+          this.startRedirectCountdown(1.5);
+          setTimeout(() => {
+            this.$router.push('/dashboard');
+          }, 1500);
         } else {
           this.error = 'Authentication failed. Please try again.';
         }
@@ -77,6 +87,17 @@ export default {
       const charCode = event.which ? event.which : event.keyCode;
       if (charCode > 31 && (charCode < 48 || charCode > 57)) {
         event.preventDefault();
+      }
+    },
+    extractRoleFromToken(token) {
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(window.atob(base64));
+        return payload.role || 'player'; // Default to PLAYER if no role found
+      } catch (error) {
+        console.error('Error extracting role from token:', error);
+        return 'player';
       }
     }
   }

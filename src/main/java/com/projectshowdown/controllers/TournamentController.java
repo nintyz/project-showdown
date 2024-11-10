@@ -70,12 +70,17 @@ public class TournamentController {
         tournamentService.uploadLogoToFirebase(generatedId, file);
     
         return "Tournament created successfully with ID: " + generatedId;
+    @GetMapping("/tournaments/organizerId/{organizerId}")
+    public List<Tournament> getTournaments(@PathVariable String organizerId)
+            throws ExecutionException, InterruptedException {
+        return tournamentService.getTournamentsByOrganizerId(organizerId);
     }
     
     
 
     @GetMapping("/tournament/{id}")
-    public Map<String, Object> displayTournament(@PathVariable String id) throws ExecutionException, InterruptedException {
+    public Map<String, Object> displayTournament(@PathVariable String id)
+            throws ExecutionException, InterruptedException {
         Map<String, Object> tournament = tournamentService.displayTournament(id);
 
         // Need to handle "player not found" error using proper HTTP status code
@@ -86,11 +91,19 @@ public class TournamentController {
         return tournament;
     }
 
-    @PutMapping("/tournament/{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public String updateTournament(@PathVariable String id, @RequestBody Map<String, Object> tournamentData)
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/tournaments/{organizerId}")
+    public String addTournament(@Valid @RequestBody Tournament tournamentData, @PathVariable String organizerId)
             throws ExecutionException, InterruptedException {
-        return tournamentService.updateTournament(id, tournamentData);
+        return tournamentService.addTournament(tournamentData, organizerId);
+    }
+
+    @PutMapping("/tournament/{id}/{organizerId}")
+    @ResponseStatus(HttpStatus.OK)
+    public String updateTournament(@PathVariable String id, @PathVariable String organizerId,
+            @RequestBody Map<String, Object> tournamentData)
+            throws ExecutionException, InterruptedException {
+        return tournamentService.updateTournament(id, organizerId, tournamentData);
     }
 
     @PutMapping("/tournament/{id}/register/{userId}")

@@ -55,7 +55,7 @@ public class TournamentControllerIntegrationTest {
                 2024,
                 "Single Elimination",
                 "Test Venue",
-                "2024-12-31",
+                "2024-12-31T10:15:30",
                 32,
                 "pending",
                 1000.0,
@@ -65,7 +65,7 @@ public class TournamentControllerIntegrationTest {
     }
 
     @Test
-    void testAddTournament() throws Exception {
+    void testAddTournament() {
         HttpEntity<Tournament> request = new HttpEntity<>(testTournament, headers);
         ResponseEntity<String> response = restTemplate.postForEntity(
                 baseUrl + "/tournaments",
@@ -104,7 +104,7 @@ public class TournamentControllerIntegrationTest {
     }
 
     @Test
-    void testDisplayTournament() throws Exception {
+    void testDisplayTournament() {
         // First create a tournament
         HttpEntity<Tournament> createRequest = new HttpEntity<>(testTournament, headers);
         ResponseEntity<String> createResponse = restTemplate.postForEntity(
@@ -126,7 +126,7 @@ public class TournamentControllerIntegrationTest {
     }
 
     @Test
-    void testUpdateTournament() throws Exception {
+    void testUpdateTournament() {
         // First create a tournament
         HttpEntity<Tournament> createRequest = new HttpEntity<>(testTournament, headers);
         ResponseEntity<String> createResponse = restTemplate.postForEntity(
@@ -160,8 +160,47 @@ public class TournamentControllerIntegrationTest {
         assertEquals(HttpStatus.OK, updateResponse.getStatusCode());
     }
 
+@Test
+void testCancelTournament() throws Exception {
+        // First, create a tournament
+        HttpEntity<Tournament> createRequest = new HttpEntity<>(testTournament, headers);
+        ResponseEntity<String> createResponse = restTemplate.postForEntity(
+                baseUrl + "/tournaments",
+                createRequest,
+                String.class
+        );
+        String tournamentId = extractTournamentId(createResponse.getBody());
+        createdTournamentIds.add(tournamentId); // Track it for cleanup
+
+        // Prepare cancellation data
+        Map<String, Object> cancelData = new HashMap<>();
+        cancelData.put("status", "cancelled");
+
+        // Send cancellation update request
+        HttpEntity<Map<String, Object>> cancelRequest = new HttpEntity<>(cancelData, headers);
+        ResponseEntity<String> cancelResponse = restTemplate.exchange(
+                baseUrl + "/tournament/" + tournamentId,
+                HttpMethod.PUT,
+                cancelRequest,
+                String.class
+        );
+
+        // Assertions to verify cancellation
+        assertEquals(HttpStatus.OK, cancelResponse.getStatusCode());
+        assertTrue(cancelResponse.getBody().contains("updated successfully"));
+        
+        // Fetch the tournament to verify its status is now "cancelled"
+        ResponseEntity<Map> tournamentResponse = restTemplate.getForEntity(
+                baseUrl + "/tournament/" + tournamentId,
+                Map.class
+        );
+
+        assertEquals(HttpStatus.OK, tournamentResponse.getStatusCode());
+        assertEquals("cancelled", tournamentResponse.getBody().get("status"));
+}
+
     @Test
-    void testRegisterUser() throws Exception {
+    void testRegisterUser() {
         // First create a test user
         Player playerDetails = new Player(1, "Test Player", "2000-01-01", 24, 1500.0, 2500.0, 500.0, 400.0, 300.0, "", "", "");
         UserDTO testUser = new UserDTO(
@@ -171,6 +210,7 @@ public class TournamentControllerIntegrationTest {
                 "player",
                 null,
                 playerDetails,
+                null,
                 null,
                 null,
                 true
@@ -206,7 +246,6 @@ public class TournamentControllerIntegrationTest {
                 new HttpEntity<>(headers),
                 String.class
         );
-
         assertEquals(HttpStatus.OK, registerResponse.getStatusCode());
     }
 

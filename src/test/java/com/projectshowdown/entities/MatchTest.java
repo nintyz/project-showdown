@@ -15,7 +15,7 @@ class MatchTest {
         assertEquals(0, match.getPlayer1Score());
         assertEquals(0, match.getPlayer2Score());
         assertEquals(0.0, match.getMmrDifference());
-        assertNull(match.getDate());
+        assertNull(match.getDateTime());
         assertNull(match.getStage());
         assertFalse(match.isCompleted());
     }
@@ -31,7 +31,7 @@ class MatchTest {
         assertEquals(3, match.getPlayer1Score());
         assertEquals(1, match.getPlayer2Score());
         assertEquals(100.0, match.getMmrDifference());
-        assertEquals("2024-03-20", match.getDate());
+        assertEquals("2024-03-20", match.getDateTime());
         assertEquals("finals", match.getStage());
         assertTrue(match.isCompleted());
     }
@@ -47,7 +47,7 @@ class MatchTest {
         match.setPlayer1Score(3);
         match.setPlayer2Score(1);
         match.setMmrDifference(100.0);
-        match.setDate("2024-03-20");
+        match.setDateTime("2024-03-20");
         match.setStage("finals");
         match.setCompleted(true);
 
@@ -58,7 +58,7 @@ class MatchTest {
         assertEquals(3, match.getPlayer1Score());
         assertEquals(1, match.getPlayer2Score());
         assertEquals(100.0, match.getMmrDifference());
-        assertEquals("2024-03-20", match.getDate());
+        assertEquals("2024-03-20", match.getDateTime());
         assertEquals("finals", match.getStage());
         assertTrue(match.isCompleted());
     }

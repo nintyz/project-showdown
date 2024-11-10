@@ -81,7 +81,7 @@ export default {
             return this.$route.path === path;
         },
         logout() {
-            localStorage.removeItem("role"); // Clear role or any other user information
+            localStorage.clear(); // Clear all localStorage
             this.role = "guest"; // Reset the role to guest
             this.$router.push("/login"); // Redirect to login page
         },
