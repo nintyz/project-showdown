@@ -65,6 +65,13 @@ public class UserController {
         return userService.updateUser(id, userData);
     }
 
+    @PutMapping("/organizer/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public String verifyOrganizer(@PathVariable String id)
+            throws ExecutionException, InterruptedException {
+        return userService.verifyOrganizer(id);
+    }
+
     @DeleteMapping("/user/{id}")
     public String deletePlayer(@PathVariable String id) throws ExecutionException, InterruptedException {
         return userService.deletePlayer(id);

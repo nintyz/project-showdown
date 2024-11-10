@@ -28,7 +28,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -192,7 +194,6 @@ public class UserService implements UserDetailsService {
     // Check if "organizerDetails" contains "verified" and remove it if present
     if (userData.containsKey("organizerDetails")) {
       Map<String, Object> organizerDetails = (Map<String, Object>) userData.get("organizerDetails");
-
       // Remove the "verified" field if it's present
       if (organizerDetails.containsKey("verified")) {
         organizerDetails.put("verified", false);
@@ -209,6 +210,31 @@ public class UserService implements UserDetailsService {
 
     // Return success message
     return "User with ID: " + userId + " updated successfully at: " + writeResult.get().getUpdateTime();
+  }
+
+  // Method to verify organizer account
+  public String verifyOrganizer(String userId)
+      throws ExecutionException, InterruptedException {
+    Firestore db = getFirestore();
+
+    // Check if the user document exists
+    DocumentReference docRef = db.collection("users").document(userId);
+    ApiFuture<DocumentSnapshot> future = docRef.get();
+    DocumentSnapshot document = future.get();
+    if (!document.exists()) {
+      throw new PlayerNotFoundException("User with ID: " + userId + " does not exist.");
+    }
+    if (document.get("organizerDetails") == null) {
+      return "This is not an Organizer account!";
+    }
+
+    Map<String, Object> updates = new HashMap<>();
+    updates.put("organizerDetails.verified", true);
+    updates.put("organizerDetails.dateVerified",
+        LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")).toString());
+    ApiFuture<WriteResult> writeResult = docRef.update(updates);
+    // Return success message
+    return "Organizer with ID: " + userId + " has been verified successfully at: " + writeResult.get().getUpdateTime();
   }
 
   public String deletePlayer(String userId) throws ExecutionException, InterruptedException {
