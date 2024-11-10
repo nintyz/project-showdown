@@ -36,7 +36,7 @@ public class TournamentTest {
         tournament.setYear(2024);
         tournament.setType("Single Elimination");
         tournament.setVenue("Stadium");
-        tournament.setDate("2024-10-15");
+        tournament.setDateTime("2024-10-15");
         tournament.setNumPlayers(32);
         tournament.setStatus("ongoing");
         tournament.setMinMMR(1000);
@@ -52,7 +52,7 @@ public class TournamentTest {
         assertEquals(2024, tournament.getYear());
         assertEquals("Single Elimination", tournament.getType());
         assertEquals("Stadium", tournament.getVenue());
-        assertEquals("2024-10-15", tournament.getDate());
+        assertEquals("2024-10-15", tournament.getDateTime());
         assertEquals(32, tournament.getNumPlayers());
         assertEquals("ongoing", tournament.getStatus());
         assertEquals(1000, tournament.getMinMMR());
@@ -103,7 +103,7 @@ public class TournamentTest {
         tournament.setYear(2025);
         tournament.setType("Double Elimination");
         tournament.setVenue("New Stadium");
-        tournament.setDate("2025-10-15");
+        tournament.setDateTime("2025-10-15");
         tournament.setNumPlayers(16);
         tournament.setStatus("completed");
         tournament.setMinMMR(1100);
@@ -114,7 +114,7 @@ public class TournamentTest {
         assertEquals(2025, tournament.getYear());
         assertEquals("Double Elimination", tournament.getType());
         assertEquals("New Stadium", tournament.getVenue());
-        assertEquals("2025-10-15", tournament.getDate());
+        assertEquals("2025-10-15", tournament.getDateTime());
         assertEquals(16, tournament.getNumPlayers());
         assertEquals("completed", tournament.getStatus());
         assertEquals(1100, tournament.getMinMMR());
@@ -213,7 +213,7 @@ public class TournamentTest {
         assertEquals(0, emptyTournament.getYear());
         assertNull(emptyTournament.getType());
         assertNull(emptyTournament.getVenue());
-        assertNull(emptyTournament.getDate());
+        assertNull(emptyTournament.getDateTime());
         assertEquals(0, emptyTournament.getNumPlayers());
         assertNull(emptyTournament.getStatus());
         assertEquals(0.0, emptyTournament.getMinMMR());

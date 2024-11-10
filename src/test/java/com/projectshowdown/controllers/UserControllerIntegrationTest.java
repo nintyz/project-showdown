@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.projectshowdown.config.TestSecurityConfig;
 import com.projectshowdown.dto.UserDTO;
+import com.projectshowdown.entities.Organizer;
 import com.projectshowdown.entities.Player;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,21 +39,21 @@ public class UserControllerIntegrationTest {
     private String baseUrl;
     private UserDTO testUserDTO;
     private HttpHeaders headers;
-    private String authToken;
 
     private List<String> createdUserIds = new ArrayList<>();
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         baseUrl = "http://localhost:" + port;
         Player playerDetails = new Player(1, "Test Player", "2000-01-01", 24, 2000.0, 2500.0, 500.0, 400.0, 300.0, "", "", "");
-        testUserDTO = new UserDTO(null, "test" + System.currentTimeMillis() + "@example.com" , "Password1@", "player", null, playerDetails, null, null, true);
+        Organizer organizerDetails = new Organizer("Test Organizer", true, "2000-01-01", "", "Singpore", "test.com");
+        testUserDTO = new UserDTO(null, "test" + System.currentTimeMillis() + "@example.com" , "Password1@", "player", null, playerDetails, organizerDetails, null, null, true);
         headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
     }
 
     @AfterEach
-    void tearDown() throws Exception {
+    void tearDown() {
         // Delete all users created during the test
         for (String userId : createdUserIds) {
             try {
@@ -71,13 +72,13 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    void testAddPlayer() throws Exception {
+    void testAddPlayer() {
         HttpEntity<UserDTO> request = new HttpEntity<>(testUserDTO, headers);
         ResponseEntity<String> response = restTemplate.postForEntity(baseUrl + "/users", request, String.class);
         extractUserId(response.getBody());
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertTrue(response.getBody().contains("Player created successfully with ID:"));
+        assertTrue(response.getBody().contains("User created successfully with ID:"));
     }
 
     @Test
@@ -148,8 +149,8 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    void testUpdateNonExistentPlayer() throws Exception {
-        UserDTO updatedUser = new UserDTO(null, "updated@example.com", "NewPassword1@", "player", null, null,null, null, false);
+    void testUpdateNonExistentPlayer() {
+        UserDTO updatedUser = new UserDTO(null, "test" + System.currentTimeMillis() + "@example.com" , "Password1@", "player", null, null, null, null, null, true);
         HttpEntity<UserDTO> updateRequest = new HttpEntity<>(updatedUser, headers);
         ResponseEntity<String> updateResponse = restTemplate.exchange(
                 baseUrl + "/user/nonExistentId",
@@ -162,7 +163,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    void testDeletePlayer() throws Exception {
+    void testDeletePlayer() {
         // First, add a player
         HttpEntity<UserDTO> addRequest = new HttpEntity<>(testUserDTO, headers);
         ResponseEntity<String> addResponse = restTemplate.postForEntity(baseUrl + "/users", addRequest, String.class);
@@ -190,7 +191,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    void testDeleteNonExistentPlayer() throws Exception {
+    void testDeleteNonExistentPlayer() {
         ResponseEntity<String> deleteResponse = restTemplate.exchange(
                 baseUrl + "/user/nonExistentId",
                 HttpMethod.DELETE,
@@ -202,7 +203,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    void testAddPlayerWithInvalidData() throws Exception {
+    void testAddPlayerWithInvalidData() {
         // Create invalid player data (missing required fields)
         testUserDTO.setEmail(null);
 
