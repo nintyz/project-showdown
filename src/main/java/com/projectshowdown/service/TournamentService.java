@@ -181,12 +181,18 @@ public class TournamentService {
                 .filter(entry -> entry.getValue() != null) // Only include non-null fields
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
+        // check if the update is to cancel tournament
+        if (tournamentData.containsKey("status") && ((String) tournamentData.get("status")).equalsIgnoreCase("Cancelled")) {
+            // check if tournament has begun
+            if (((ArrayList<String>) document.get("rounds")).size() != 0) {
+                return "You are not allowed to cancel a tournament that has already begun!";
+            }
+            // EMAIL NOTIFICATION TO LET REGISTERED PLAYERS KNOW ABOUT ITS CANCELLATION
+
+        }
+
         // Perform the update operation
         ApiFuture<WriteResult> writeResult = docRef.update(filteredUpdates);
-
-        // if (((String) tournamentData.get("status").equals("cancelled")) {
-        // // EMAIL NOTIFICATION TO LET REGISTERED PLAYERS KNOW ABOUT ITS CANCELLATION
-        // }
 
         // Return success message with the update time
         return "Tournament with ID: " + tournamentId + " updated successfully at: " + writeResult.get().getUpdateTime();
@@ -444,7 +450,7 @@ public class TournamentService {
                     Math.abs(user1.getPlayerDetails().calculateMMR() - user2.getPlayerDetails().calculateMMR()),
                     "TBC", stage, false));
 
-            //HERE to send emails to user1 and user2 of their matching with dateTime as TBC
+            // HERE to send emails to user1 and user2 of their matching with dateTime as TBC
         }
         return matches;
     }
