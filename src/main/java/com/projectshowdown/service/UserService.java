@@ -159,6 +159,10 @@ public class UserService implements UserDetailsService {
     userData.setVerificationCode(generateVerificationCode());
     userData.setVerificationCodeExpiresAt(DateTimeUtils.toEpochSeconds(LocalDateTime.now().plusMinutes(15)));
     userData.setEnabled(false);
+    // if its an organizer, set verified as false.
+    if (userData.getOrganizerDetails() != null) {
+      userData.getOrganizerDetails().setVerified(false);
+    }
 
     // Convert User object to UserDTO and set the generated ID
     UserDTO userDTO = UserMapper.toUserDTO(userData);
@@ -168,7 +172,7 @@ public class UserService implements UserDetailsService {
     ApiFuture<WriteResult> writeResult = docRef.set(userDTO);
 
     // Return success message with timestamp
-    return "Player created successfully with ID: " + generatedId + " at: " + writeResult.get().getUpdateTime();
+    return "User created successfully with ID: " + generatedId + " at: " + writeResult.get().getUpdateTime();
   }
 
   // Method to update a player's document in the 'players' collection
@@ -183,6 +187,16 @@ public class UserService implements UserDetailsService {
     DocumentSnapshot document = future.get();
     if (!document.exists()) {
       throw new PlayerNotFoundException("User with ID: " + userId + " does not exist.");
+    }
+
+    // Check if "organizerDetails" contains "verified" and remove it if present
+    if (userData.containsKey("organizerDetails")) {
+      Map<String, Object> organizerDetails = (Map<String, Object>) userData.get("organizerDetails");
+
+      // Remove the "verified" field if it's present
+      if (organizerDetails.containsKey("verified")) {
+        organizerDetails.put("verified", false);
+      }
     }
 
     // Filter out null values from the update data
@@ -260,6 +274,7 @@ public class UserService implements UserDetailsService {
             country, bio, achievements);
 
         UserDTO currentRowUser = new UserDTO("", email, fixedPassword, "player", null, currentRowPlayerDetails, null,
+            null,
             DateTimeUtils.toEpochSeconds(LocalDateTime.now().plusMinutes(15)), false);
 
         DocumentReference docRef = usersCollection.document(); // Create a new document reference with a unique ID

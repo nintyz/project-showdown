@@ -1,5 +1,6 @@
 package com.projectshowdown.dto;
 
+import com.projectshowdown.entities.Organizer;
 import com.projectshowdown.entities.Player;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,6 +19,7 @@ public class UserDTO {
     private String role;
     private String twoFactorSecret;
     private Player playerDetails;
+    private Organizer organizerDetails;
     private String verificationCode;
     private Long verificationCodeExpiresAt;
     private boolean enabled;
@@ -80,5 +82,15 @@ public class UserDTO {
     // Setter for playerDetails
     public void setPlayerDetails(Player playerDetails) {
         this.playerDetails = playerDetails;
+    }
+
+    // Getter for organizerDetails
+    public Organizer getOrganizerDetails() {
+        return organizerDetails;
+    }
+
+    // Setter for organizerDetails
+    public void setOrganizerDetails(Organizer organizerDetails) {
+        this.organizerDetails = organizerDetails;
     }
 }

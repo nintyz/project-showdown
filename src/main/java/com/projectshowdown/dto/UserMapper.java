@@ -11,7 +11,7 @@ import java.util.Map;
 public class UserMapper {
     public static UserDTO toUserDTO(User user) {
         return new UserDTO(user.getId(), user.getEmail(), user.getPassword(), user.getRole(), user.getTwoFactorSecret(),
-                user.getPlayerDetails(), user.getVerificationCode(), user.getVerificationCodeExpiresAt(),
+                user.getPlayerDetails(), user.getOrganizerDetails(), user.getVerificationCode(), user.getVerificationCodeExpiresAt(),
                 user.isEnabled());
     }
 

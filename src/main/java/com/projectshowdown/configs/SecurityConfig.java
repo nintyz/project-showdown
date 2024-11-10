@@ -80,7 +80,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/users", "/user/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/users").permitAll()
                         .requestMatchers(HttpMethod.POST, "/addRandomData").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/user/*").hasAuthority("admin")
+                        .requestMatchers(HttpMethod.PUT, "/user/*").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/user/*").hasAuthority("admin")
 
                         // tournaments CRUD

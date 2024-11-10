@@ -38,12 +38,13 @@ public class User implements UserDetails {
     private String password;
 
     @NotBlank(message = "Role is mandatory")
-    @Pattern(regexp = "^(admin|player)$", message = "Role must be either 'admin' or 'player'")
+    @Pattern(regexp = "^(admin|player|organizer)$", message = "Role must be either player/organizer")
     private String role;
 
     private String twoFactorSecret;
 
     private Player playerDetails;
+    private Organizer organizerDetails;
 
     private String verificationCode;
     private Long verificationCodeExpiresAt;
@@ -58,7 +59,8 @@ public class User implements UserDetails {
     }
 
     // Full parameterized constructor
-    public User(String id, String email, String password, String role, String twoFactorSecret, Player playerDetails, String verificationCode, Long verificationCodeExpiresAt, boolean enabled) {
+    public User(String id, String email, String password, String role, String twoFactorSecret, Player playerDetails,
+            String verificationCode, Long verificationCodeExpiresAt, boolean enabled) {
         this.id = id;
         this.email = email;
         this.password = password;
@@ -113,6 +115,16 @@ public class User implements UserDetails {
 
     public void setPlayerDetails(Player playerDetails) {
         this.playerDetails = playerDetails;
+    }
+
+    // Getter for organizerDetails
+    public Organizer getOrganizerDetails() {
+        return organizerDetails;
+    }
+
+    // Setter for organizerDetails
+    public void setOrganizerDetails(Organizer organizerDetails) {
+        this.organizerDetails = organizerDetails;
     }
 
     @Override
