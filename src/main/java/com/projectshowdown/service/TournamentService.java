@@ -194,7 +194,6 @@ public class TournamentService {
                 return "You are not allowed to cancel a tournament that has already begun!";
             }
             // EMAIL NOTIFICATION TO LET REGISTERED PLAYERS KNOW ABOUT ITS CANCELLATION
-            
             // Retrieve the tournament name from the document
             String tournamentName = document.getString("name");
 
@@ -210,14 +209,12 @@ public class TournamentService {
                     e.printStackTrace();
                 }
             }
+
+            return "Tournament with ID: " + tournamentId + " has been cancelled!";
         }
 
         // Perform the update operation
         ApiFuture<WriteResult> writeResult = docRef.update(filteredUpdates);
-
-        if(tournamentData.get("status").equals("cancelled")){
-            // EMAIL NOTIFICATION TO LET REGISTERED PLAYERS KNOW ABOUT ITS CANCELLATION
-        }
 
         // Return success message with the update time
         return "Tournament with ID: " + tournamentId + " updated successfully at: " + writeResult.get().getUpdateTime();
@@ -361,6 +358,8 @@ public class TournamentService {
         Tournament tournament = getTournament(tournamentId);
         String roundName = determineNextRoundName(tournament);
 
+        System.out.println("Progressing tournament ...");
+
         if ("Error".equals(roundName)) {
             return "The tournament has already completed!";
         } else if ("Round 1".equals(roundName)) {
@@ -476,6 +475,17 @@ public class TournamentService {
                     "TBC", stage, false));
 
             // HERE to send emails to user1 and user2 of their matching with dateTime as TBC
+            try {
+                System.out.println("Sending player match email ....");
+                notificationService.notifyPlayerMatched(
+                        user1.getEmail(), user1.getPlayerDetails().getName(), user2.getPlayerDetails().getName(), tournament.getName());
+                notificationService.notifyPlayerMatched(
+                        user2.getEmail(), user2.getPlayerDetails().getName(), user1.getPlayerDetails().getName(), tournament.getName());
+            } catch (MessagingException e) {
+                System.out.println("Failed to send match notification for players: " 
+                        + user1.getId() + " and " + user2.getId());
+                e.printStackTrace();
+            }
         }
         return matches;
     }

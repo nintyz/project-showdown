@@ -26,7 +26,7 @@ public class NotificationService {
         String htmlMessage = String.format("""
             <html>
             <body style="font-family: Arial, sans-serif; background-color: #f3eeea; padding: 20px;">
-                <div style="max-width: 600px; margin: auto; background-color: #f3eeea; padding: 20px; border-radius: 8px;">
+                <div style="max-width: 1500px; margin: auto; background-color: #f3eeea; padding: 20px; border-radius: 8px;">
                     <h2 style="text-align: center; color: #333;">%s</h2>
                     <p style="text-align: center; color: #333; font-size: 16px;">%s</p>
                     <div style="text-align: center; margin: 20px 0;">
@@ -89,14 +89,13 @@ public class NotificationService {
      * @param tournamentName Name of the tournament.
      * @param date Date of the tournament.
      * @param time Time of the opponent.
-     * @param venue Venue of the tournament.
      */
-    public void notifyMatchDetailsUpdated(String email, String playerName, String opponentName, String tournamentName, String date, String time, String venue) throws MessagingException {
+    public void notifyMatchDetailsUpdated(String email, String playerName, String opponentName, String tournamentName, String date, String time) throws MessagingException {
         String subject = "Match Details Updated: Tournament Notification";
         String header = "Match Details Updated";
         String message = "Dear " + playerName + ", the match details for your upcoming game against " + opponentName +
         " in the tournament '" + tournamentName + "' have been updated. The match is scheduled for " +
-        date + " at " + time + " at " + venue + ". Please mark your calendar and prepare accordingly.";
+        date + " at " + time + ". Please mark your calendar and prepare accordingly.";
 
         notifyCustomMessage(email, subject, header, message);
     }

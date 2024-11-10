@@ -51,9 +51,9 @@ public class NotificationController {
     }
 
     @GetMapping("/matchDetailsUpdated")
-    public String notifyMatchDetailsUpdated(@RequestParam String email, @RequestParam String playerName, @RequestParam String opponentName, @RequestParam String tournamentName, @RequestParam String date, @RequestParam String time, @RequestParam String venue) {
+    public String notifyMatchDetailsUpdated(@RequestParam String email, @RequestParam String playerName, @RequestParam String opponentName, @RequestParam String tournamentName, @RequestParam String date, @RequestParam String time) {
         try {
-            notificationService.notifyMatchDetailsUpdated(email, playerName, opponentName, tournamentName, date, time, venue);
+            notificationService.notifyMatchDetailsUpdated(email, playerName, opponentName, tournamentName, date, time);
             return "Match details updated notification sent successfully!";
         } catch (MessagingException e) {
             e.printStackTrace();
