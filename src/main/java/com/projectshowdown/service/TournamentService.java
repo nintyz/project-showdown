@@ -183,7 +183,10 @@ public class TournamentService {
             throw new TournamentNotFoundException(tournamentId);
         }
 
-        if (!organizerId.equals(document.get("organizerId"))) {
+        UserDTO editingUser = userService.getUser(organizerId);
+        // if the user is an organizer role and trying to edit another organizer's
+        // tournament
+        if (editingUser.getRole().equalsIgnoreCase("organizer") && !organizerId.equals(document.get("organizerId"))) {
             return "You are not allowed to edit another organizer's tournament!";
         }
 
