@@ -24,6 +24,12 @@ public class TournamentController {
         return tournamentService.getAllTournaments();
     }
 
+    @GetMapping("/tournaments/organizerId/{organizerId}")
+    public List<Tournament> getTournaments(@PathVariable String organizerId)
+            throws ExecutionException, InterruptedException {
+        return tournamentService.getTournamentsByOrganizerId(organizerId);
+    }
+
     @GetMapping("/tournament/{id}")
     public Map<String, Object> displayTournament(@PathVariable String id)
             throws ExecutionException, InterruptedException {

@@ -77,7 +77,7 @@ public class SecurityConfig {
                         .requestMatchers("/login").permitAll()
 
                         // users CRUD
-                        .requestMatchers(HttpMethod.GET, "/users", "/user/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/users", "/user/*").permitAll()
                         .requestMatchers(HttpMethod.POST, "/users").permitAll()
                         .requestMatchers(HttpMethod.DELETE, "/organizer/*").hasAuthority("admin")
                         .requestMatchers(HttpMethod.POST, "/addRandomData").permitAll()
@@ -85,9 +85,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/user/*").hasAuthority("admin")
 
                         // tournaments CRUD
-                        .requestMatchers(HttpMethod.GET, "/tournaments", "/tournaments/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/tournaments").hasAnyAuthority("admin","organizer")
-                        .requestMatchers(HttpMethod.PUT, "/tournaments/**").hasAnyAuthority("admin","organizer")
+                        .requestMatchers(HttpMethod.GET, "/tournaments", "/tournaments/*", "/tournaments/organizerId/*").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/tournaments/*/*").hasAnyAuthority("admin","organizer")
+                        .requestMatchers(HttpMethod.PUT, "/tournaments/*/*").hasAnyAuthority("admin","organizer")
                         .requestMatchers(HttpMethod.PUT, "/tournaments/*/register/*").hasAuthority("player")
                         .requestMatchers(HttpMethod.PUT, "/tournaments/*/cancelRegistration/*").hasAuthority("player")
 
