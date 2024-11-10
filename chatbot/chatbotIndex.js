@@ -260,6 +260,44 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
       });
   }
 
+  // Get Venue by Tournament Name (Context)
+  function getVenueByTournamentName_Context(agent) {
+    const context = agent.getContext('tournament_date_context');
+
+    const tournamentName = context.parameters.tournament_name;
+    if (!tournamentName) {
+      agent.add(`Which tournament are you interested in?`);
+      return;
+    }
+
+    return db.collection('tournaments')
+      .get()
+      .then(snapshot => {
+        let foundTournament = null;
+
+        snapshot.forEach(doc => {
+          const storedTournamentName = doc.data().name;
+          if (storedTournamentName.toLowerCase() === tournamentName.toLowerCase()) {
+            foundTournament = doc;
+          }
+        });
+
+        if (!foundTournament) {
+          agent.add(`We couldn't find any tournament with the name: "${tournamentName}". Please check the name and try again.`);
+          return;
+        }
+
+        const tournamentVenue = foundTournament.data().venue;
+        const resultTournamentName = foundTournament.data().name;
+
+        agent.add(`${resultTournamentName} is held at ${tournamentVenue}.`);
+      })
+      .catch(error => {
+        console.error('Error retrieving Firestore documents:', error);
+        agent.add('There was an error retrieving data from Firestore. Please try again later.');
+      });
+  }
+
   // Get Winner of a Tournament
   function getTournamentWinner(agent) {
     const tournamentName = agent.parameters.tournament_name;
@@ -512,6 +550,7 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
   intentMap.set('TournamentDate', getDateByTournamentName);
   intentMap.set('TournamentDate_Context', getDateByTournamentName_Context);
   intentMap.set('TournamentVenue', getVenueByTournamentName);
+  intentMap.set('TournamentVenue_Context', getVenueByTournamentName_Context);
   intentMap.set('TournamentWinner', getTournamentWinner);
 
   // Match Intents
