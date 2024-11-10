@@ -55,9 +55,20 @@ public class MatchService {
         ApiFuture<DocumentSnapshot> future = docRef.get();
         DocumentSnapshot document = future.get();
         if (!document.exists()) {
-            throw new RuntimeException("Unable to find match with id: " + id);
+            return "Unable to find match with id: " + id;
         }
 
+        // if current match dateTime is TBC, and you're not trying to update the
+        // dateTime, should prompt to update dateTime
+        if (((String) document.get("dateTime")).equals("TBC") && !matchData.containsKey("dateTime")) {
+            return "Please update match's date and time details before attempting to update the scores";
+        }
+
+        if(matchData.containsKey("dateTime")){
+            //here to inform players of their match timing.
+            String user1Id = (String) document.get("player1Id");
+            String user2Id = (String) document.get("player2Id");
+        }
         String tournamentId = (String) document.get("tournamentId");
 
         // Filter out null values from the update data
@@ -88,16 +99,13 @@ public class MatchService {
     }
 
     public Match getMatch(String matchId) throws ExecutionException, InterruptedException {
-
         Firestore db = getFirestore();
         // Generate a new document reference with a random ID
         DocumentReference documentReference = db.collection("matches").document(matchId);
         ApiFuture<DocumentSnapshot> future = documentReference.get();
         DocumentSnapshot document = future.get();
-
         // If the document exists, convert it to a Player object
         if (document.exists()) {
-
             Match matchToReturn = document.toObject(Match.class);
             matchToReturn.setId(matchId);
             return matchToReturn;
@@ -110,11 +118,9 @@ public class MatchService {
 
     public List<Match> getMatches(List<String> matchIds) throws ExecutionException, InterruptedException {
         List<Match> response = new ArrayList<>();
-
         for (String matchId : matchIds) {
             response.add(getMatch(matchId));
         }
         return response;
-
     }
 }

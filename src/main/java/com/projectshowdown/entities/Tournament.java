@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +25,7 @@ public class Tournament {
     private int year;
     private String type;
     private String venue;
-    private String date;
+    private String dateTime;
     private int numPlayers;
     private String status;
 
@@ -35,14 +36,14 @@ public class Tournament {
 
     private List<String> users = new ArrayList<>();
 
-    public Tournament(String id, String name, int year, String type, String venue, String date, int numPlayers,
+    public Tournament(String id, String name, int year, String type, String venue, String dateTime, int numPlayers,
             String status, double minMMR, double maxMMR, List<Round> rounds) {
         this.id = id;
         this.name = name;
         this.year = year;
         this.type = type;
         this.venue = venue;
-        this.date = date;
+        this.dateTime = dateTime;
         this.numPlayers = numPlayers;
         this.status = status;
         this.minMMR = minMMR;
@@ -91,12 +92,12 @@ public class Tournament {
         this.venue = venue;
     }
 
-    public String getDate() {
-        return date;
+    public String getDateTime() {
+        return dateTime;
     }
 
-    public void setDate(String date) {
-        this.date = date;
+    public void setDateTime(String dateTime) {
+        this.dateTime = dateTime;
     }
 
     public int getNumPlayers() {
@@ -150,6 +151,15 @@ public class Tournament {
         }
     }
 
+    
+
+    public boolean checkDate(UserDTO player) {
+        if (LocalDateTime.now().isAfter(LocalDateTime.parse(dateTime))) {
+            return false;
+        }
+        return true;
+    }
+
     // public TreeMap<Integer, User> getSeedings() {
     // TreeMap<Integer, User> seedings = new TreeMap<>();
     // List<String> users = this.getUsers();
@@ -177,7 +187,7 @@ public class Tournament {
     // user.getPlayerDetails().calculateMMR()));
 
     // if (users.size() != numPlayers) {
-    // throw new IllegalStateException("The required amount of registered players
+    // throw new IllegalStateException("The required amount of registered player
     // have not been met!");
     // }
 
