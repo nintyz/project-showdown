@@ -26,7 +26,7 @@ public class UserTest {
         validator = factory.getValidator();
 
         // Arrange
-        user = new User("test@example.com", "Password1@", "player", null);
+        user = new User();
     }
 
     @Test
