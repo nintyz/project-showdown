@@ -5,13 +5,23 @@
     <div class="details-box-wrapper">
       <h1>Complete Your Profile</h1>
 
+      <!-- Display User ID -->
+      <p v-if="userId" class="user-id-display">User ID: {{ userId }}</p>
+
+      <!-- New Player Checkbox -->
+      <div class="form-group">
+        <label>
+          <input type="checkbox" v-model="isNewPlayer" /> I am a new player (I have not participated in any tournaments)
+        </label>
+      </div>
+
       <!-- Full Name -->
       <div class="form-group">
         <label for="fullname">Full Name</label>
         <input type="text" id="fullname" v-model="fullname" placeholder="Enter your full name" />
       </div>
-      <div class="form-grid">
 
+      <div class="form-grid">
         <!-- Country -->
         <div class="form-group">
           <label for="country">Country</label>
@@ -21,51 +31,29 @@
         <!-- Date of Birth -->
         <div class="form-group">
           <label for="dob">Date of Birth</label>
-          <input type="date" id="dob" v-model="dob" />
-        </div>
-
-        <!-- Age -->
-        <div class="form-group">
-          <label for="age">Age</label>
-          <input type="number" id="age" v-model="age" placeholder="Enter your age" />
+          <input type="date" id="dob" v-model="dob" @change="calculatePeakAge" />
         </div>
 
         <!-- Ranking and ELO -->
         <div class="form-group">
           <label for="rank">Ranking</label>
-          <input type="number" id="rank" v-model="rank" placeholder="Enter your ranking" />
+          <input type="number" id="rank" v-model="rank" placeholder="Enter your ranking" :disabled="isNewPlayer" />
         </div>
 
         <div class="form-group">
           <label for="elo">ELO</label>
-          <input type="number" id="elo" v-model="elo" placeholder="Enter your ELO" />
-        </div>
-
-        <!-- Raw Scores for Clay, Grass, and Hard Surfaces -->
-        <div class="form-group">
-          <label for="clayRaw">Clay Raw</label>
-          <input type="number" id="clayRaw" v-model="clayRaw" placeholder="Enter Clay Raw score" />
-        </div>
-
-        <div class="form-group">
-          <label for="grassRaw">Grass Raw</label>
-          <input type="number" id="grassRaw" v-model="grassRaw" placeholder="Enter Grass Raw score" />
-        </div>
-
-        <div class="form-group">
-          <label for="hardRaw">Hard Raw</label>
-          <input type="number" id="hardRaw" v-model="hardRaw" placeholder="Enter Hard Raw score" />
+          <input type="number" id="elo" v-model="elo" placeholder="Enter your ELO" :disabled="isNewPlayer" />
         </div>
 
         <!-- Peak Age and Peak ELO -->
         <div class="form-group">
           <label for="peakAge">Peak Age</label>
-          <input type="number" id="peakAge" v-model="peakAge" placeholder="Enter Peak Age" />
+          <input type="number" id="peakAge" v-model="peakAge" placeholder="Enter Peak Age" :disabled="isNewPlayer" />
         </div>
 
         <div class="form-group">
           <label for="peakElo">Peak ELO</label>
-          <input type="number" id="peakElo" v-model="peakElo" placeholder="Enter Peak ELO" />
+          <input type="number" id="peakElo" v-model="peakElo" placeholder="Enter Peak ELO" :disabled="isNewPlayer" />
         </div>
 
         <!-- Achievements and Bio (Full-width fields) -->
@@ -90,25 +78,63 @@
 import axios from 'axios';
 
 export default {
+  created() {
+    this.userId = localStorage.getItem('userId');
+    console.log(this.userId);
+  },
   data() {
     return {
       fullname: '',
       dob: '',
-      age: null,
       country: '',
       rank: null,
       elo: null,
-      clayRaw: null,
-      grassRaw: null,
-      hardRaw: null,
       peakAge: null,
       peakElo: null,
       achievements: '',
       bio: '',
-      userId: null,
+      userId: null, // Store userId from localStorage here
+      isNewPlayer: false, // Track if the user is a new player
     };
   },
+  watch: {
+    isNewPlayer(newVal) {
+      // If the user is a new player, set default values
+      if (newVal) {
+        this.elo = 2000;
+        this.peakElo = 2000;
+        this.rank = null;
+        this.calculatePeakAge();
+      } else {
+        // Clear fields if they uncheck "new player"
+        this.elo = null;
+        this.peakElo = null;
+        this.rank = null;
+        this.peakAge = null;
+      }
+    }
+  },
+  computed: {
+    formattedDob() {
+      // Ensure dob is in YYYY-MM-DD format, if not already
+      if (this.dob) {
+        const date = new Date(this.dob);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+      return '';
+    }
+  },
   methods: {
+    calculatePeakAge() {
+      if (this.dob) {
+        const birthYear = new Date(this.dob).getFullYear();
+        const currentYear = new Date().getFullYear();
+        this.peakAge = currentYear - birthYear;
+      }
+    },
     async handleSave() {
       this.userId = localStorage.getItem('userId');
 
@@ -119,14 +145,10 @@ export default {
           role: this.role,
           playerDetails: {
             achievements: this.achievements,
-            age: this.age,
             bio: this.bio,
-            clayRaw: this.clayRaw,
             country: this.country,
-            dob: this.dob,
+            dob: this.formattedDob, // Use formattedDob to ensure YYYY-MM-DD
             elo: this.elo,
-            grassRaw: this.grassRaw,
-            hardRaw: this.hardRaw,
             name: this.fullname,
             peakAge: this.peakAge,
             peakElo: this.peakElo,
@@ -155,11 +177,12 @@ export default {
   background-color: #f3eeea;
   height: 100vh;
   justify-content: center;
+  padding: 20px;
 }
 
 .logo {
-  width: 250px;
-  margin-bottom: 1.5em;
+  width: 150px;
+  margin-bottom: 1em;
 }
 
 .details-box-wrapper {
@@ -176,6 +199,13 @@ h1 {
   color: #333;
   text-align: center;
   margin-bottom: 20px;
+}
+
+.user-id-display {
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+  margin-bottom: 15px;
 }
 
 .form-grid {
@@ -207,6 +237,11 @@ textarea {
   background-color: #f3eeea;
 }
 
+input[disabled] {
+  background-color: #e9ecef;
+  cursor: not-allowed;
+}
+
 textarea {
   resize: vertical;
   min-height: 60px;
@@ -226,5 +261,9 @@ textarea {
 
 .save-btn:hover {
   background-color: #b0a695;
+}
+
+.form-group label input[type="checkbox"] {
+  margin-right: 10px;
 }
 </style>

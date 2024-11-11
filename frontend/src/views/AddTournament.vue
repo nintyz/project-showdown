@@ -31,7 +31,8 @@
                 <!-- Tournament Logo -->
                 <div class="mb-3">
                     <label for="tournamentLogo" class="form-label">Tournament Logo</label>
-                    <input type="file" id="tournamentLogo" @change="onFileChange" class="form-control" accept="image/*" required />
+                    <input type="file" id="tournamentLogo" @change="onFileChange" class="form-control" accept="image/*"
+                        required />
                     <div v-if="tournament.logo" class="preview mt-3">
                         <h5>Logo Preview:</h5>
                         <img :src="tournament.logoPreview" alt="Tournament Logo Preview" class="img-fluid" />
@@ -62,13 +63,15 @@
                 <!-- Country -->
                 <div class="mb-3">
                     <label for="country" class="form-label">Country</label>
-                    <input type="text" id="country" v-model="tournament.country" class="form-control" placeholder="Enter country" required />
+                    <input type="text" id="country" v-model="tournament.country" class="form-control"
+                        placeholder="Enter country" required />
                 </div>
 
                 <!-- Venue -->
                 <div class="mb-3">
                     <label for="venue" class="form-label">Venue</label>
-                    <input type="text" id="venue" v-model="tournament.venue" class="form-control" placeholder="Enter venue" required />
+                    <input type="text" id="venue" v-model="tournament.venue" class="form-control"
+                        placeholder="Enter venue" required />
                 </div>
 
                 <!-- Submit Button -->
@@ -79,7 +82,8 @@
 
             <!-- Note -->
             <div class="note mt-3">
-                <p>Players will receive a confirmation once the tournament is officially approved following the scheduled tournament date.</p>
+                <p>Players will receive a confirmation once the tournament is officially approved following the
+                    scheduled tournament date.</p>
             </div>
         </div>
     </div>
@@ -141,6 +145,10 @@ export default {
                 console.error("Error creating tournament:", error);
             }
         },
+    },
+    created() {
+        this.userId = localStorage.getItem('userId');
+        console.log(this.userId);
     },
 };
 </script>

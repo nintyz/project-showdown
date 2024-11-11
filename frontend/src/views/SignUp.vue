@@ -43,7 +43,7 @@
                         <select id="role" v-model="role">
                             <option value="" disabled>Select your role</option>
                             <option value="player">Player</option>
-                            <option value="organiser">Organiser</option>
+                            <option value="organizer">Organizer</option>
                         </select>
                     </div>
 
@@ -124,12 +124,17 @@ export default {
             }
 
             try {
-                // Call the backend to create the user and initiate email verification
-                const response = await axios.post('http://localhost:8080/users', {
+                // Set organizerDetails or playerDetails to null based on the selected role
+                const requestData = {
                     email: this.email,
                     password: this.password,
                     role: this.role,
-                });
+                    organizerDetails: this.role === 'player' ? {} : null, 
+                    playerDetails: this.role === 'organizer' ? {} : null,
+                };
+
+                // Call the backend to create the user and initiate email verification
+                const response = await axios.post('http://localhost:8080/users', requestData);
                 localStorage.setItem("role", this.role);
                 this.success = true;
 
@@ -137,7 +142,7 @@ export default {
 
                 await new Promise(resolve => setTimeout(resolve, 1000));
 
-                // Call send-verification-email after successful user creation
+                // Send verification email after successful user creation
                 const sendEmail = await axios.post('http://localhost:8080/send-verification-email', this.email, {
                     headers: {
                         'Content-Type': 'text/plain'
@@ -154,7 +159,9 @@ export default {
                 this.message = error.response?.data || "Sign-up failed. Please try again.";
                 this.success = false;
             }
+
         },
+
 
         togglePasswordVisibility() {
             this.showPassword = !this.showPassword;
