@@ -97,6 +97,17 @@ export default {
         isPasswordValid() {
             return this.requirementsMetCount === 5;
         },
+        isOAuth: false
+    },
+    created() {
+        // Get email from URL parameters
+        const email = this.$route.query.email;
+        const isOAuth = this.$route.query.oauth === 'true';
+
+        if (email) {
+            this.email = email;
+            this.isOAuth = isOAuth;
+        }
     },
     methods: {
         async handleSignUp() {
@@ -148,7 +159,20 @@ export default {
         togglePasswordVisibility() {
             this.showPassword = !this.showPassword;
         },
-    },
+
+        handleGoogleSignUp() {
+            // Perform Google sign-up
+            window.location.href = 'http://localhost:8080/oauth2/authorization/google';
+        },
+        handleFacebookSignUp() {
+            // Perform Facebook sign-up
+            window.location.href = 'http://localhost:8080/oauth2/authorization/facebook';
+        },
+        goToLogin() {
+            // Redirect to login page
+            this.$router.push('/login');
+        }
+    }
 };
 </script>
 

@@ -68,10 +68,16 @@ public class TournamentController {
         return "Tournament created successfully with ID: " + generatedId;
     }
 
-    @GetMapping("/tournaments/organizerId/{organizerId}")
-    public List<Tournament> getTournaments(@PathVariable String organizerId)
+    @GetMapping("/tournaments/organizer/{organizerId}")
+    public List<Tournament> getTournamentsByOrganizerId(@PathVariable String organizerId)
             throws ExecutionException, InterruptedException {
         return tournamentService.getTournamentsByOrganizerId(organizerId);
+    }
+
+    @GetMapping("/tournaments/player/{playerId}")
+    public List<Tournament> getTournamentsByPlayerId(@PathVariable String playerId)
+            throws ExecutionException, InterruptedException {
+        return tournamentService.getTournamentsByPlayerId(playerId);
     }
 
     @GetMapping("/tournament/{id}")

@@ -97,7 +97,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/user/*").hasAuthority("admin")
 
                         // tournaments CRUD
-                        .requestMatchers(HttpMethod.GET, "/tournaments", "/tournaments/*", "/tournaments/organizerId/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/tournaments",  "/tournament/*", "/tournaments/organizer/*", "tournaments/player/*").permitAll()
                         .requestMatchers(HttpMethod.POST, "/tournaments/*/*").hasAnyAuthority("admin","organizer")
                         .requestMatchers(HttpMethod.PUT, "/tournaments/*/*").hasAnyAuthority("admin","organizer")
                         .requestMatchers(HttpMethod.PUT, "/tournaments/*/register/*").hasAuthority("player")
@@ -118,7 +118,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable()) // CSRF protection is needed only for browser based attacks
                 .formLogin(form -> form.disable())
                 .oauth2Login((oauth2) -> oauth2
-                        .successHandler(oAuth2AuthenticationSuccessHandler))
+                        .successHandler(oAuth2AuthenticationSuccessHandler)
+                        .loginPage("http://localhost:3000/login"))
                 .headers(header -> header.disable()) // disable the security headers, as we do not return HTML in our
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
                 .authenticationProvider(authenticationProvider());
