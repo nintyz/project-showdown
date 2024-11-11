@@ -285,16 +285,13 @@ public class UserService implements UserDetailsService {
         String name = values[1];
         String dob = values[2];
         Double elo = Double.parseDouble(values[3]);
-        Double hardRaw = values[4].equals("-") ? null : Double.parseDouble(values[4]);
-        Double clayRaw = values[5].equals("-") ? null : Double.parseDouble(values[5]);
-        Double grassRaw = values[6].equals("-") ? null : Double.parseDouble(values[6]);
-        Double peakAge = Double.parseDouble(values[7]);
-        Double peakElo = Double.parseDouble(values[8]);
-        String country = values[9];
+        Double peakAge = Double.parseDouble(values[4]);
+        Double peakElo = Double.parseDouble(values[5]);
+        String country = values[6];
         String bio = "";
         String achievements = "";
 
-        Player currentRowPlayerDetails = new Player(rank, name, dob, elo, hardRaw, clayRaw, grassRaw, peakAge, peakElo,
+        Player currentRowPlayerDetails = new Player(rank, name, dob, elo, peakAge, peakElo,
             country, bio, achievements);
 
         UserDTO currentRowUser = new UserDTO("", email, fixedPassword, "player", null, currentRowPlayerDetails, null,

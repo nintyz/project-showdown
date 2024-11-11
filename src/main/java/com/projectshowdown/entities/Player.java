@@ -28,15 +28,6 @@ public class Player {
     @Positive(message = "The value must be a positive number")
     private double elo;
 
-    @Positive(message = "The value must be a positive number")
-    private double hardRaw;
-
-    @Positive(message = "The value must be a positive number")
-    private double clayRaw;
-
-    @Positive(message = "The value must be a positive number")
-    private double grassRaw;
-
     private double peakAge;
     @Positive(message = "The value must be a positive number")
     private double peakElo;
@@ -106,30 +97,6 @@ public class Player {
 
     public void setPeakElo(double peakElo) {
         this.peakElo = peakElo;
-    }
-
-    public double getHardRaw() {
-        return hardRaw;
-    }
-
-    public void setHardRaw(double hardRaw) {
-        this.hardRaw = hardRaw;
-    }
-
-    public double getClayRaw() {
-        return clayRaw;
-    }
-
-    public void setClayRaw(double clayRaw) {
-        this.clayRaw = clayRaw;
-    }
-
-    public double getGrassRaw() {
-        return grassRaw;
-    }
-
-    public void setGrassRaw(double grassRaw) {
-        this.grassRaw = grassRaw;
     }
 
     // Method to calculate MMR based on the given formula
