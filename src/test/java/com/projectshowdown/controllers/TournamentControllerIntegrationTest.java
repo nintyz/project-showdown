@@ -203,7 +203,7 @@ void testCancelTournament() throws Exception {
     @Test
     void testRegisterUser() {
         // First create a test user
-        Player playerDetails = new Player(1, "Test Player", "2000-01-01", 24, 1500.0, 2500.0, 500.0, 400.0, 300.0, "", "", "");
+        Player playerDetails = new Player(1, "2000-01-01", 1500.0, 24, 2500.0, "", "", "");
         UserDTO testUser = new UserDTO(
                 "testUserId",
                 "test" + System.currentTimeMillis() + "@example.com",

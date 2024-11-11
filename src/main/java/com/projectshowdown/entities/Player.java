@@ -40,7 +40,6 @@ public class Player {
         this.rank = rank;
     }
 
-
     public String getDob() {
         return dob;
     }

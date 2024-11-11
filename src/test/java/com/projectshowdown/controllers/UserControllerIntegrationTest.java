@@ -45,7 +45,7 @@ public class UserControllerIntegrationTest {
     @BeforeEach
     public void setUp() {
         baseUrl = "http://localhost:" + port;
-        Player playerDetails = new Player(1, "Test Player", "2000-01-01", 24, 2000.0, 2500.0, 500.0, 400.0, 300.0, "", "", "");
+        Player playerDetails = new Player(1, "2000-01-01", 2000.0, 24, 2500.0, "", "", "");
         Organizer organizerDetails = new Organizer("Test Organizer", true, "2000-01-01", "", "Singpore", "test.com");
         testUserDTO = new UserDTO(null, "test" + System.currentTimeMillis() + "@example.com" , "Password1@", "player", null, playerDetails, organizerDetails, null, null, true);
         headers = new HttpHeaders();

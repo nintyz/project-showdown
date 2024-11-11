@@ -25,28 +25,9 @@ public class PlayerTest {
         validator = factory.getValidator();
 
         // Arrange
-        player = new Player(1, "John Doe", LocalDate.now().toString(), 24, 2000.0, 2500.0, 500.0, 400.0, 300.0,"","","");
+        player = new Player(1, 24, 2000.0, 2500.0,"","","");
     }
 
-    @Test
-    public void testPlayerNameTooShort() {
-        // Act
-        player.setName("A");
-
-        // Assert
-        Set<ConstraintViolation<Player>> violations = validator.validate(player);
-        assertFalse(violations.isEmpty(), "There should be a violation for the player's name being too short.");
-    }
-
-    @Test
-    public void testPlayerNameValid() {
-        // Act
-        player.setName("John Doe");
-
-        // Assert
-        Set<ConstraintViolation<Player>> violations = validator.validate(player);
-        assertTrue(violations.isEmpty(), "There should be no violations for a valid name.");
-    }
 
     @Test
     public void testPlayerAgeValid() {
