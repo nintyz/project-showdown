@@ -48,7 +48,6 @@ public class UserService implements UserDetailsService {
     super();
 
   }
-
   @Override
   public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
     Firestore db = FirestoreClient.getFirestore();
