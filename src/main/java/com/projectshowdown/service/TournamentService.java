@@ -227,7 +227,7 @@ public class TournamentService {
             // check if tournament has begun
             Tournament tournament = getTournament(tournamentId);
             if (tournament.inProgress()) {
-                return "You are not allowed to cancel a tournament that has already begun!";
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You are not allowed to cancel a tournament that has already begun!");
             }
 
             // EMAIL NOTIFICATION TO LET REGISTERED PLAYERS KNOW ABOUT ITS CANCELLATION
@@ -247,13 +247,16 @@ public class TournamentService {
                 }
             }
 
-            docRef.update(filteredUpdates);
+            ApiFuture<WriteResult> writeResult = docRef.update(filteredUpdates);
+
 
             return "Tournament with ID: " + tournamentId + " has been cancelled!";
         }
 
+        ApiFuture<WriteResult> updateWriteResult = docRef.update(filteredUpdates);
+
         // Return success message with the update time
-        return "Tournament with ID: " + tournamentId + " updated successfully at: " + updateWritResult.get().getUpdateTime();
+        return "Tournament with ID: " + tournamentId + " updated successfully at: " + updateWriteResult.get().getUpdateTime();
     }
 
     // Method to register a new player
