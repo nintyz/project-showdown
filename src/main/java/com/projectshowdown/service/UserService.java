@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -48,6 +49,7 @@ public class UserService implements UserDetailsService {
     super();
 
   }
+
   @Override
   public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
     Firestore db = FirestoreClient.getFirestore();
@@ -160,6 +162,7 @@ public class UserService implements UserDetailsService {
     userData.setVerificationCode(generateVerificationCode());
     userData.setVerificationCodeExpiresAt(DateTimeUtils.toEpochSeconds(LocalDateTime.now().plusMinutes(15)));
     userData.setEnabled(false);
+
     // if its an organizer, set verified as false.
     if (userData.getOrganizerDetails() != null) {
       userData.getOrganizerDetails().setVerified(false);
@@ -168,6 +171,8 @@ public class UserService implements UserDetailsService {
     // Convert User object to UserDTO and set the generated ID
     UserDTO userDTO = UserMapper.toUserDTO(userData);
     userDTO.setId(generatedId);
+    BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    userDTO.setPassword(passwordEncoder.encode(userDTO.getPassword()));
 
     // Save the updated UserDTO to Firestore
     ApiFuture<WriteResult> writeResult = docRef.set(userDTO);
@@ -180,6 +185,11 @@ public class UserService implements UserDetailsService {
   public String updateUser(String userId, Map<String, Object> userData)
       throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
+
+    if (userData.containsKey("password")) {
+      BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+      userData.put("password", passwordEncoder.encode((String) userData.get("password")));
+    }
 
     // Check if the user document exists
     DocumentReference docRef = db.collection("users").document(userId);
