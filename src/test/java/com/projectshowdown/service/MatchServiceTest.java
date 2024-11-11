@@ -15,9 +15,9 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
 public class MatchServiceTest {
 
     @InjectMocks
@@ -55,10 +55,7 @@ public class MatchServiceTest {
         testMatch = new Match("Test_Match_Id", "Test_Tournament_Id", "Test_player1_Id", "Test_player2_Id",
                 2, 1, 1000.0, "2024-12-31", "Round Of 16", true);
         
-        // Mock FirestoreClient.getFirestore() to return our mocked Firestore
-        FirestoreClient.setFirestore(firestore);
-        
-        // Mock the Firestore setup
+        // Mock Firestore setup
         when(firestore.collection("matches")).thenReturn(matchesCollection);
         when(matchesCollection.document(testMatch.getId())).thenReturn(documentReference);
     }
