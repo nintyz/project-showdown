@@ -253,6 +253,7 @@ public class TournamentService {
                 try {
                     // Send cancellation notification to each user
                     notificationService.notifyTournamentCancelled(user.getEmail(), tournamentName);
+                    System.out.println("Cancellation notification sent to user: " + user.getPlayerDetails().getName());
                 } catch (MessagingException e) {
                     System.out.println("Failed to send cancellation notification to user: " + userId);
                     e.printStackTrace();
