@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -67,6 +68,11 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 getRedirectStrategy().sendRedirect(request, response,
                         frontendUrl + "/oauth2/callback?token=" + token);
             }
+        } catch (UsernameNotFoundException e) {
+            // User not found
+            getRedirectStrategy().sendRedirect(request, response,
+                    frontendUrl + "/signup?email=" + email + "&oauth=true");
+
         } catch (Exception e) {
             getRedirectStrategy().sendRedirect(request, response,
                     frontendUrl + "/login?error=authentication_failed");

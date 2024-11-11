@@ -15,7 +15,7 @@
                 <!-- Email and Password -->
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" id="email" v-model="email" placeholder="Enter your email" />
+                    <input type="email" id="email" v-model="email" :disabled="isOAuth" placeholder="Enter your email" />
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
@@ -30,12 +30,12 @@
 
                 <!-- Google & Facebook Sign Up Buttons -->
                 <button class="google-btn" @click="handleGoogleSignUp">
-                    <img src="@/assets/google-icon.png" />
+                    <img src="@/assets/google-icon.png" alt="google icon"/>
                     Continue with Google
                 </button>
                 <button class="facebook-btn" @click="handleFacebookSignUp">
                     <img
-                        src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/F_icon.svg/512px-F_icon.svg.png" />
+                        src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/F_icon.svg/512px-F_icon.svg.png" alt="facebook icon"/>
                     Continue with Facebook
                 </button>
 
@@ -56,8 +56,19 @@ export default {
     data() {
         return {
             email: '',
-            password: ''
+            password: '',
+            isOAuth: false
         };
+    },
+    created() {
+      // Get email from URL parameters
+      const email = this.$route.query.email;
+      const isOAuth = this.$route.query.oauth === 'true';
+
+      if (email) {
+        this.email = email;
+        this.isOAuth = isOAuth;
+      }
     },
     methods: {
         handleSignUp() {
@@ -69,11 +80,11 @@ export default {
         },
         handleGoogleSignUp() {
             // Perform Google sign-up
-            this.$router.push('/user-details');
+            window.location.href = 'http://localhost:8080/oauth2/authorization/google';
         },
         handleFacebookSignUp() {
             // Perform Facebook sign-up
-            this.$router.push('/user-details');
+            window.location.href = 'http://localhost:8080/oauth2/authorization/facebook';
         },
         goToLogin() {
             // Redirect to login page
@@ -141,6 +152,11 @@ h1 {
 
 .form-group {
     margin-bottom: 10px;
+}
+
+input:disabled {
+  background-color: #e9ecef;
+  cursor: not-allowed;
 }
 
 input {
