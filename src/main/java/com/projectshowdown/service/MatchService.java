@@ -160,7 +160,11 @@ public class MatchService {
 
             UserDTO winner = userService.getUser(match.winnerId());
             Map<String, Object> toUpdateScore = new HashMap<>();
-            toUpdateScore.put("playerDetails.elo", winner.getPlayerDetails().getElo() + ELO_GAINED_WHEN_YOU_WIN);
+            Double newElo = winner.getPlayerDetails().getElo() + ELO_GAINED_WHEN_YOU_WIN;
+            toUpdateScore.put("playerDetails.elo", newElo);
+            if (winner.getPlayerDetails().getPeakElo() < newElo) {
+                toUpdateScore.put("playerDetails.peakElo", newElo);
+            }
             userService.updateUser(winner.getId(), toUpdateScore);
         }
 
