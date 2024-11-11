@@ -253,7 +253,7 @@ public class TournamentService {
                 try {
                     // Send cancellation notification to each user
                     notificationService.notifyTournamentCancelled(user.getEmail(), tournamentName);
-                    System.out.println("Cancellation notification sent to user: " + user.getPlayerDetails().getName());
+                    System.out.println("Cancellation notification sent to user: " + user.getName());
                 } catch (MessagingException e) {
                     System.out.println("Failed to send cancellation notification to user: " + userId);
                     e.printStackTrace();
@@ -537,10 +537,10 @@ public class TournamentService {
             try {
                 System.out.println("Sending player match email ....");
                 notificationService.notifyPlayerMatched(
-                        user1.getEmail(), user1.getPlayerDetails().getName(), user2.getPlayerDetails().getName(),
+                        user1.getEmail(), user1.getName(), user2.getName(),
                         tournament.getName());
                 notificationService.notifyPlayerMatched(
-                        user2.getEmail(), user2.getPlayerDetails().getName(), user1.getPlayerDetails().getName(),
+                        user2.getEmail(), user2.getName(), user1.getName(),
                         tournament.getName());
             } catch (MessagingException e) {
                 // Handle email sending failure

@@ -122,16 +122,16 @@ public class MatchService {
 
                 notificationService.notifyMatchDetailsUpdated(
                         user1.getEmail(),
-                        user1.getPlayerDetails().getName(),
-                        user2.getPlayerDetails().getName(),
+                        user1.getName(),
+                        user2.getName(),
                         tournamentName,
                         date,
                         amPmTime);
 
                 notificationService.notifyMatchDetailsUpdated(
                         user2.getEmail(),
-                        user2.getPlayerDetails().getName(),
-                        user1.getPlayerDetails().getName(),
+                        user2.getName(),
+                        user1.getName(),
                         tournamentName,
                         date,
                         amPmTime);

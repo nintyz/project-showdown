@@ -19,10 +19,6 @@ public class Player {
 
     private int rank;
 
-    @NotNull(message = "Name is mandatory")
-    @Size(min = 2, max = 50, message = "Name must be between 2 and 50 characters")
-    private String name;
-
     private String dob;
 
     @Positive(message = "The value must be a positive number")
@@ -36,13 +32,6 @@ public class Player {
     private String bio;
     private String achievements;
 
-    // Parameterized constructor with essential fields
-    public Player(String id, int rank, String name, String dob) {
-        this.rank = rank;
-        this.name = name;
-        this.dob = dob;
-    }
-
     public int getRank() {
         return rank;
     }
@@ -51,13 +40,6 @@ public class Player {
         this.rank = rank;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public String getDob() {
         return dob;

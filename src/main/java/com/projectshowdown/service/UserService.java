@@ -301,10 +301,11 @@ public class UserService implements UserDetailsService {
         String bio = "";
         String achievements = "";
 
-        Player currentRowPlayerDetails = new Player(rank, name, dob, elo, peakAge, peakElo,
+        Player currentRowPlayerDetails = new Player(rank, dob, elo, peakAge, peakElo,
             country, bio, achievements);
 
-        UserDTO currentRowUser = new UserDTO("", email, fixedPassword, "player", null, currentRowPlayerDetails, null,
+        UserDTO currentRowUser = new UserDTO("", name, "", email, fixedPassword, "player", null,
+            currentRowPlayerDetails, null,
             null,
             DateTimeUtils.toEpochSeconds(LocalDateTime.now().plusMinutes(15)), false);
 
