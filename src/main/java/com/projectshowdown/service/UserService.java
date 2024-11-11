@@ -289,7 +289,7 @@ public class UserService implements UserDetailsService {
 
         String email = values[1].replaceAll("\\u00A0", "").toLowerCase().trim();
         email += "@gmail.com";
-        String fixedPassword = "$2a$12$NLiiv7gVsA1ltsI1tux.xuE8kEKfAmIHIkloVXwqxHXArgfiJ1XoK";
+        String fixedPassword = "player.Password1!";
 
         int rank = Integer.parseInt(values[0]);
         String name = values[1];

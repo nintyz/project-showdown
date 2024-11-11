@@ -21,9 +21,7 @@ public class Tournament {
 
     @NotNull(message = "Tournament name should not be empty")
     private String name;
-
     private int year;
-    private String type;
     private String venue;
     private String dateTime;
     private int numPlayers;
@@ -59,14 +57,6 @@ public class Tournament {
 
     public void setYear(int year) {
         this.year = year;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public String getVenue() {
