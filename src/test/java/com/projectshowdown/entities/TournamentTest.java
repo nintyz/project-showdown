@@ -132,10 +132,11 @@ public class TournamentTest {
         matches.add("match2");
         round.setMatches(matches);
         testRounds.add(round);
+        List<String> users = new ArrayList<>();
 
         // Create tournament
         Tournament tournamentWithRounds = new Tournament("T002", "Test Tournament", 2024,
-                "Single Elimination", "Venue", "2024-10-15", 32, "ongoing", 1000, 1500, testRounds);
+                "Single Elimination", "Venue", "2024-10-15", 32, "ongoing", 1000, 1500, testRounds, "testOrganizerId", users);
 
         // Set rounds after construction since constructor creates new ArrayList
         tournamentWithRounds.setRounds(testRounds);
