@@ -50,17 +50,19 @@ public class TournamentControllerIntegrationTest {
         createdTournamentIds = new ArrayList<>();
 
         testTournament = new Tournament(
-                null,
+                "testId",
                 "Test Tournament",
                 2024,
-                "Single Elimination",
+                "Test Type",
                 "Test Venue",
                 "2024-12-31T10:15:30",
                 32,
                 "pending",
                 1000.0,
                 2000.0,
-                new ArrayList<>()  // Initialize empty users list
+                new ArrayList<>(),  // Initialize empty Rounds List
+                "testOrganizerId",
+                new ArrayList<>()   // Initialize empty user List
         );
     }
 

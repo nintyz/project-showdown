@@ -105,6 +105,17 @@ export default {
         }
       }, 1000);
     },
+    extractRoleFromToken(token) {
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(window.atob(base64));
+        return payload.role || 'player'; // Default to PLAYER if no role found
+      } catch (error) {
+        console.error('Error extracting role from token:', error);
+        return 'player';
+      }
+    },
     async verifyAccount() {
       this.isLoading = true;
       this.error = null;
@@ -134,7 +145,7 @@ export default {
           }, 1500);
         } else if (response.data.token) {
           const token = response.data.token;
-          const role = this.extractRoleFromToken(token);
+          const role = "player"//this.extractRoleFromToken(token);
 
           localStorage.setItem('token', token);
           localStorage.setItem('role', role);
@@ -156,17 +167,6 @@ export default {
         }
       } finally {
         this.isLoading = false;
-      }
-    },
-    extractRoleFromToken(token) {
-      try {
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const payload = JSON.parse(window.atob(base64));
-        return payload.role || 'player'; // Default to PLAYER if no role found
-      } catch (error) {
-        console.error('Error extracting role from token:', error);
-        return 'player';
       }
     },
     async resendCode() {
