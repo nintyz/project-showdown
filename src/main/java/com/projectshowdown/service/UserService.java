@@ -191,7 +191,7 @@ public class UserService implements UserDetailsService {
     }
 
     // Check if "organizerDetails" contains "verified" and remove it if present
-    if (userData.containsKey("organizerDetails")) {
+    if (userData.get("organizerDetails") != null) {
       Map<String, Object> organizerDetails = (Map<String, Object>) userData.get("organizerDetails");
       // Remove the "verified" field if it's present
       if (organizerDetails.containsKey("verified")) {
