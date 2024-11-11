@@ -6,7 +6,6 @@ import com.projectshowdown.dto.UserDTO;
 import com.projectshowdown.entities.Match;
 import com.projectshowdown.entities.Round;
 import com.projectshowdown.entities.Tournament;
-import com.projectshowdown.entities.User;
 import com.projectshowdown.exceptions.TournamentNotFoundException;
 import com.projectshowdown.events.MatchUpdatedEvent;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,8 +18,11 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+
+import com.google.cloud.Timestamp;
+import com.google.api.core.ApiFuture;
 
 @ExtendWith(MockitoExtension.class)
 public class TournamentServiceTest {
@@ -63,20 +65,16 @@ public class TournamentServiceTest {
 
     @Test
     public void testAddTournament() throws ExecutionException, InterruptedException {
-
-        // Creates a mocked document reference whenever the .collection method is called
         when(firestore.collection("tournaments").document()).thenReturn(docRef);
 
-        // Mocks the behaviour of set which saves data to the document
-        // CompletableFuture simulates a response from Firestore, which contains info about write operation
-        when(docRef.set(any(Tournament.class))).thenReturn(CompletableFuture.completedFuture(writeResult));
+        // Create a mocked ApiFuture for WriteResult
+        ApiFuture<WriteResult> writeResultFuture = mock(ApiFuture.class);
+        when(docRef.set(any(Tournament.class))).thenReturn(writeResultFuture);
+        when(writeResultFuture.get()).thenReturn(writeResult);
 
-        // Should return the current timestamp of the action
         when(writeResult.getUpdateTime()).thenReturn(Timestamp.now());
 
-        // These are needed to simulate the firestore
-
-        String response = tournamentService.addTournament(tournament);
+        String response = tournamentService.addTournament(tournament, "testUserId");
 
         assertTrue(response.contains("Tournament created successfully"));
         verify(docRef).set(tournament);
@@ -84,12 +82,16 @@ public class TournamentServiceTest {
 
     @Test
     public void testGetAllTournaments() throws ExecutionException, InterruptedException {
+        CollectionReference collectionReference = mock(CollectionReference.class);
         Query query = mock(Query.class);
         QuerySnapshot querySnapshot = mock(QuerySnapshot.class);
         List<QueryDocumentSnapshot> documents = List.of(mock(QueryDocumentSnapshot.class));
 
-        when(firestore.collection("tournaments")).thenReturn(query);
-        when(query.get()).thenReturn(CompletableFuture.completedFuture(querySnapshot));
+        // Mock collection reference to return a Query when .get() is called
+        when(firestore.collection("tournaments")).thenReturn(collectionReference);
+        when(collectionReference.get()).thenReturn(mock(ApiFuture.class));
+        when(collectionReference.get().get()).thenReturn(querySnapshot);
+
         when(querySnapshot.getDocuments()).thenReturn(documents);
 
         List<Tournament> tournaments = tournamentService.getAllTournaments();
@@ -101,7 +103,12 @@ public class TournamentServiceTest {
     @Test
     public void testGetTournamentSuccess() throws ExecutionException, InterruptedException {
         when(firestore.collection("tournaments").document("testTournamentId")).thenReturn(docRef);
-        when(docRef.get()).thenReturn(CompletableFuture.completedFuture(documentSnapshot));
+
+        // Create a mocked ApiFuture for DocumentSnapshot
+        ApiFuture<DocumentSnapshot> documentSnapshotFuture = mock(ApiFuture.class);
+        when(docRef.get()).thenReturn(documentSnapshotFuture);
+        when(documentSnapshotFuture.get()).thenReturn(documentSnapshot);
+
         when(documentSnapshot.exists()).thenReturn(true);
         when(documentSnapshot.toObject(Tournament.class)).thenReturn(tournament);
 
@@ -115,7 +122,12 @@ public class TournamentServiceTest {
     @Test
     public void testGetTournamentNotFound() throws ExecutionException, InterruptedException {
         when(firestore.collection("tournaments").document("nonExistentId")).thenReturn(docRef);
-        when(docRef.get()).thenReturn(CompletableFuture.completedFuture(documentSnapshot));
+
+        // Create a mocked ApiFuture for DocumentSnapshot
+        ApiFuture<DocumentSnapshot> documentSnapshotFuture = mock(ApiFuture.class);
+        when(docRef.get()).thenReturn(documentSnapshotFuture);
+        when(documentSnapshotFuture.get()).thenReturn(documentSnapshot);
+
         when(documentSnapshot.exists()).thenReturn(false);
 
         assertThrows(TournamentNotFoundException.class, () -> tournamentService.getTournament("nonExistentId"));
@@ -129,10 +141,19 @@ public class TournamentServiceTest {
 
         when(userService.getUser("testUserId")).thenReturn(userDTO);
         when(firestore.collection("tournaments").document("testTournamentId")).thenReturn(docRef);
-        when(docRef.get()).thenReturn(CompletableFuture.completedFuture(documentSnapshot));
+
+        // Create a mocked ApiFuture for DocumentSnapshot
+        ApiFuture<DocumentSnapshot> documentSnapshotFuture = mock(ApiFuture.class);
+        when(docRef.get()).thenReturn(documentSnapshotFuture);
+        when(documentSnapshotFuture.get()).thenReturn(documentSnapshot);
+
         when(documentSnapshot.exists()).thenReturn(true);
         when(documentSnapshot.toObject(Tournament.class)).thenReturn(tournament);
-        when(docRef.update(anyString(), any())).thenReturn(CompletableFuture.completedFuture(writeResult));
+
+        // Create a mocked ApiFuture for WriteResult
+        ApiFuture<WriteResult> writeResultFuture = mock(ApiFuture.class);
+        when(docRef.update(anyString(), any())).thenReturn(writeResultFuture);
+        when(writeResultFuture.get()).thenReturn(writeResult);
 
         String result = tournamentService.registerUser("testTournamentId", "testUserId");
 
@@ -146,7 +167,12 @@ public class TournamentServiceTest {
         tournament.setUsers(users);
 
         when(firestore.collection("tournaments").document("testTournamentId")).thenReturn(docRef);
-        when(docRef.get()).thenReturn(CompletableFuture.completedFuture(documentSnapshot));
+
+        // Create a mocked ApiFuture for DocumentSnapshot
+        ApiFuture<DocumentSnapshot> documentSnapshotFuture = mock(ApiFuture.class);
+        when(docRef.get()).thenReturn(documentSnapshotFuture);
+        when(documentSnapshotFuture.get()).thenReturn(documentSnapshot);
+
         when(documentSnapshot.exists()).thenReturn(true);
         when(documentSnapshot.toObject(Tournament.class)).thenReturn(tournament);
 
@@ -158,7 +184,7 @@ public class TournamentServiceTest {
 
     @Test
     public void testHandleMatchUpdated_FinalRound() throws ExecutionException, InterruptedException {
-        MatchUpdatedEvent event = new MatchUpdatedEvent("testTournamentId", new Match());
+        MatchUpdatedEvent event = new MatchUpdatedEvent(this, "testTournamentId", new Match());
 
         List<Round> rounds = new ArrayList<>();
         Round finalRound = new Round("Finals", List.of("match1"));
@@ -178,15 +204,24 @@ public class TournamentServiceTest {
         updateData.put("status", "Cancelled");
 
         when(firestore.collection("tournaments").document("testTournamentId")).thenReturn(docRef);
-        when(docRef.get()).thenReturn(CompletableFuture.completedFuture(documentSnapshot));
+
+        // Create a mocked ApiFuture for DocumentSnapshot
+        ApiFuture<DocumentSnapshot> documentSnapshotFuture = mock(ApiFuture.class);
+        when(docRef.get()).thenReturn(documentSnapshotFuture);
+        when(documentSnapshotFuture.get()).thenReturn(documentSnapshot);
+
         when(documentSnapshot.exists()).thenReturn(true);
-        when(docRef.update(anyMap())).thenReturn(CompletableFuture.completedFuture(writeResult));
+
+        // Create a mocked ApiFuture for WriteResult
+        ApiFuture<WriteResult> writeResultFuture = mock(ApiFuture.class);
+        when(docRef.update(anyMap())).thenReturn(writeResultFuture);
+        when(writeResultFuture.get()).thenReturn(writeResult);
+
         when(writeResult.getUpdateTime()).thenReturn(Timestamp.now());
 
-        String response = tournamentService.updateTournament("testTournamentId", updateData);
+        String response = tournamentService.updateTournament("testUserId","testTournamentId", updateData);
 
         assertTrue(response.contains("updated successfully"));
         verify(docRef).update(anyMap());
     }
-
 }
