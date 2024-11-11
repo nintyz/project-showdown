@@ -63,6 +63,10 @@
         background-color: #f3eeea;
         min-height: 100vh;
         overflow: hidden;
+        position: fixed;
+        width: 100%;
+        top:0;
+        left:0;
     }
 
     .landing-body {

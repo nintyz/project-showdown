@@ -33,12 +33,10 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
         let foundUser = null;
 
         snapshot.forEach(doc => {
-          if (doc.data().playerDetails) {
-            const storedName = doc.data().playerDetails.name;
+            const storedName = doc.data().name;
             if (storedName.toLowerCase() === userName.name.toLowerCase()) {
               foundUser = doc;
-              }
-          }
+            }
         });
   
         if (!foundUser) {
@@ -48,7 +46,7 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
   
         const dob = foundUser.data().playerDetails.dob;
         const userAge = calculateAge(dob);
-        agent.add(`${foundUser.data().playerDetails.name} is ${userAge} years old.`);
+        agent.add(`${foundUser.data().name} is ${userAge} years old.`);
       })
       .catch(error => {
         console.error('Error retrieving Firestore documents:', error);
@@ -88,12 +86,10 @@ function getAgeByName_Context(agent) {
       let foundUser = null;
 
         snapshot.forEach(doc => {
-          if (doc.data().playerDetails) {
-            const storedName = doc.data().playerDetails.name;
-            if (storedName.toLowerCase() === userName.name.toLowerCase()) {
-              foundUser = doc;
-              }
-          }
+          const storedName = doc.data().name;
+          if (storedName.toLowerCase() === userName.name.toLowerCase()) {
+            foundUser = doc;
+            }
         });
   
         if (!foundUser) {
@@ -103,7 +99,7 @@ function getAgeByName_Context(agent) {
   
         const dob = foundUser.data().playerDetails.dob;
         const userAge = calculateAge(dob);
-        agent.add(`${foundUser.data().playerDetails.name} is ${userAge} years old.`);
+        agent.add(`${foundUser.data().name} is ${userAge} years old.`);
     })
     .catch(error => {
       console.error('Error retrieving Firestore documents:', error);
@@ -148,11 +144,9 @@ function getAgeByName_Context(agent) {
         let foundUser = null;
   
         snapshot.forEach(doc => {
-          if (doc.data().playerDetails) {
-            const storedName = doc.data().playerDetails.name;
-            if (storedName.toLowerCase() === userName.name.toLowerCase()) {
-              foundUser = doc;
-            }
+          const storedName = doc.data().name;
+          if (storedName.toLowerCase() === userName.name.toLowerCase()) {
+            foundUser = doc;
           }
         });
   
@@ -162,7 +156,7 @@ function getAgeByName_Context(agent) {
         }
   
         const userElo = foundUser.data().playerDetails.elo;
-        agent.add(`${foundUser.data().playerDetails.name} has an elo rating of ${userElo}.`);
+        agent.add(`${foundUser.data().name} has an elo rating of ${userElo}.`);
       })
       .catch(error => {
         console.error('Error retrieving Firestore documents:', error);
@@ -202,11 +196,9 @@ function getAgeByName_Context(agent) {
         let foundUser = null;
   
         snapshot.forEach(doc => {
-          if (doc.data().playerDetails) {
-            const storedName = doc.data().playerDetails.name;
-            if (storedName.toLowerCase() === userName.name.toLowerCase()) {
-              foundUser = doc;
-            }
+          const storedName = doc.data().name;
+          if (storedName.toLowerCase() === userName.name.toLowerCase()) {
+            foundUser = doc;
           }
         });
   
@@ -216,7 +208,7 @@ function getAgeByName_Context(agent) {
         }
   
         const userElo = foundUser.data().playerDetails.elo;
-        agent.add(`${foundUser.data().playerDetails.name} has an elo rating of ${userElo}.`);
+        agent.add(`${foundUser.data().name} has an elo rating of ${userElo}.`);
       })
       .catch(error => {
         console.error('Error retrieving Firestore documents:', error);
@@ -245,11 +237,9 @@ function getAgeByName_Context(agent) {
         let foundUser = null;
 
         snapshot.forEach(doc => {
-          if (doc.data().playerDetails) {
-            const storedName = doc.data().playerDetails.name;
-            if (storedName.toLowerCase() === userName.name.toLowerCase()) {
-              foundUser = doc;
-            }
+          const storedName = doc.data().name;
+          if (storedName.toLowerCase() === userName.name.toLowerCase()) {
+            foundUser = doc;
           }
         });
   
@@ -259,7 +249,7 @@ function getAgeByName_Context(agent) {
         }
   
         const userRank = foundUser.data().playerDetails.rank;
-        agent.add(`${foundUser.data().playerDetails.name} is rank ${userRank}.`);
+        agent.add(`${foundUser.data().name} is rank ${userRank}.`);
       })
       .catch(error => {
         console.error('Error retrieving Firestore documents:', error);
@@ -299,11 +289,9 @@ function getAgeByName_Context(agent) {
         let foundUser = null;
 
         snapshot.forEach(doc => {
-          if (doc.data().playerDetails) {
-            const storedName = doc.data().playerDetails.name;
-            if (storedName.toLowerCase() === userName.name.toLowerCase()) {
-              foundUser = doc;
-            }
+          const storedName = doc.data().name;
+          if (storedName.toLowerCase() === userName.name.toLowerCase()) {
+            foundUser = doc;
           }
         });
   
@@ -313,7 +301,7 @@ function getAgeByName_Context(agent) {
         }
   
         const userRank = foundUser.data().playerDetails.rank;
-        agent.add(`${foundUser.data().playerDetails.name} is rank ${userRank}.`);
+        agent.add(`${foundUser.data().name} is rank ${userRank}.`);
       })
       .catch(error => {
         console.error('Error retrieving Firestore documents:', error);
