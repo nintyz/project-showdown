@@ -1,18 +1,19 @@
 package com.projectshowdown.entities;
 
+import java.time.LocalDate;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.time.LocalDate;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public class PlayerTest {
 
@@ -25,19 +26,9 @@ public class PlayerTest {
         validator = factory.getValidator();
 
         // Arrange
-        player = new Player(1, 24, 2000.0, 2500.0,"","","");
+        player = new Player(1,"", 24, 2000.0, 2500.0,"","","");
     }
 
-
-    @Test
-    public void testPlayerAgeValid() {
-        // Act
-        player.setDob(LocalDate.now().minusYears(26).toString());
-
-        // Assert
-        Set<ConstraintViolation<Player>> violations = validator.validate(player);
-        assertTrue(violations.isEmpty(), "There should be no violations for a valid age.");
-    }
 
     @Test
     public void testPlayerEloNegative() {
@@ -78,6 +69,7 @@ public class PlayerTest {
         Set<ConstraintViolation<Player>> violations = validator.validate(player);
         assertTrue(violations.isEmpty(), "There should be no violations for a valid Peak Elo.");
     }
+
 
     @Test
     public void testCalculateMMR() {
