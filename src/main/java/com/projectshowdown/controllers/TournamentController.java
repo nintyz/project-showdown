@@ -18,13 +18,12 @@ import java.io.IOException;
 import com.google.cloud.firestore.Firestore;
 import com.google.firebase.cloud.FirestoreClient;
 
-
 @RestController
 public class TournamentController {
     public Firestore getFirestore() {
         return FirestoreClient.getFirestore();
     }
-    
+
     @Autowired
     TournamentService tournamentService;
 
@@ -34,9 +33,10 @@ public class TournamentController {
         return tournamentService.getAllTournaments();
     }
 
+    // POST - add tournament with form data
     @PostMapping("/tournaments")
     @ResponseStatus(HttpStatus.CREATED)
-    public String addTournament(
+    public String addTournamentWithParams(
             @RequestParam("name") String name,
             @RequestParam("date") String date,
             @RequestParam("type") String type,
@@ -47,8 +47,7 @@ public class TournamentController {
             @RequestParam("venue") String venue,
             @RequestParam("status") String status,
             @RequestParam("logo") MultipartFile file) throws ExecutionException, InterruptedException, IOException {
-    
-        // Create the Tournament object with only the relevant fields
+
         Tournament tournament = new Tournament();
         tournament.setName(name);
         tournament.setDate(date);
@@ -59,24 +58,21 @@ public class TournamentController {
         tournament.setCountry(country);
         tournament.setVenue(venue);
         tournament.setStatus(status);
-    
-        // Save the tournament to Firestore to generate an ID
+
         String generatedId = tournamentService.addTournament(tournament);
         if (generatedId == null) {
             throw new RuntimeException("Failed to create tournament");
         }
-    
-        // Upload logo to Firebase Storage using only the generated ID as the filename
+
         tournamentService.uploadLogoToFirebase(generatedId, file);
-    
         return "Tournament created successfully with ID: " + generatedId;
+    }
+
     @GetMapping("/tournaments/organizerId/{organizerId}")
     public List<Tournament> getTournaments(@PathVariable String organizerId)
             throws ExecutionException, InterruptedException {
         return tournamentService.getTournamentsByOrganizerId(organizerId);
     }
-    
-    
 
     @GetMapping("/tournament/{id}")
     public Map<String, Object> displayTournament(@PathVariable String id)

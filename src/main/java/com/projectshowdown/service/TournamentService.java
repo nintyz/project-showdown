@@ -109,13 +109,12 @@ public class TournamentService {
     // Method to save tournament details to Firestore
     public String addTournament(Tournament tournament, String userId) throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
-        // Generate a new document reference with a random ID
         DocumentReference docRef = db.collection("tournaments").document();
-        // Get the generated document ID
         String generatedId = docRef.getId();
         tournament.setId(generatedId);
         tournament.setOrganizerId(userId);
 
+        try {
             ApiFuture<WriteResult> writeResult = docRef.set(tournament);
             return generatedId;
         } catch (Exception e) {
@@ -569,9 +568,9 @@ public class TournamentService {
         updateTournament(tournament.getId(), tournament.getOrganizerId(), Map.of("rounds", tournament.getRounds()));
     }
 
-
     // Upload logo to Firebase Storage
-    public String uploadLogoToFirebase(String tournamentId, MultipartFile file) throws IOException, ExecutionException, InterruptedException {
+    public String uploadLogoToFirebase(String tournamentId, MultipartFile file)
+            throws IOException, ExecutionException, InterruptedException {
         String fileName = "tournament-logo/" + tournamentId + ".jpg";
         StorageClient.getInstance().bucket().create(fileName, file.getInputStream(), file.getContentType());
 
@@ -588,25 +587,28 @@ public class TournamentService {
 
         return logoUrl;
     }
-//     // Generates logo URL for a tournament without storing it in Firestore
-//     public String getLogoUrl(String tournamentId) {
-//         String fileName = "tournament-logo/" + tournamentId + ".jpg";
-//         return String.format("https://firebasestorage.googleapis.com/v0/b/%s/o/%s?alt=media",
-//                 StorageClient.getInstance().bucket().getName(),
-//                 fileName.replace("/", "%2F"));
-//     }
+    // // Generates logo URL for a tournament without storing it in Firestore
+    // public String getLogoUrl(String tournamentId) {
+    // String fileName = "tournament-logo/" + tournamentId + ".jpg";
+    // return
+    // String.format("https://firebasestorage.googleapis.com/v0/b/%s/o/%s?alt=media",
+    // StorageClient.getInstance().bucket().getName(),
+    // fileName.replace("/", "%2F"));
+    // }
 
-//     public Tournament getTournamentWithLogo(String tournamentId) throws ExecutionException, InterruptedException {
-//         DocumentReference documentReference = getFirestore().collection("tournaments").document(tournamentId);
-//         DocumentSnapshot document = documentReference.get().get();
+    // public Tournament getTournamentWithLogo(String tournamentId) throws
+    // ExecutionException, InterruptedException {
+    // DocumentReference documentReference =
+    // getFirestore().collection("tournaments").document(tournamentId);
+    // DocumentSnapshot document = documentReference.get().get();
 
-//         if (document.exists()) {
-//             Tournament tournament = document.toObject(Tournament.class);
-//             tournament.setId(tournamentId);
-//             tournament.setLogoUrl(getLogoUrl(tournamentId)); // Dynamically set logo URL
-//             return tournament;
-//         } else {
-//             throw new TournamentNotFoundException(tournamentId);
-//         }
-//     }
+    // if (document.exists()) {
+    // Tournament tournament = document.toObject(Tournament.class);
+    // tournament.setId(tournamentId);
+    // tournament.setLogoUrl(getLogoUrl(tournamentId)); // Dynamically set logo URL
+    // return tournament;
+    // } else {
+    // throw new TournamentNotFoundException(tournamentId);
+    // }
+    // }
 }
