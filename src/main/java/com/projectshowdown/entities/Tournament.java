@@ -37,22 +37,6 @@ public class Tournament {
     private String organizerId;
     private List<String> users = new ArrayList<>();
 
-    public Tournament(String id, String name, int year, String type, String venue, String dateTime, int numPlayers,
-            String status, double minMMR, double maxMMR, List<Round> rounds) {
-        this.id = id;
-        this.name = name;
-        this.year = year;
-        this.type = type;
-        this.venue = venue;
-        this.dateTime = dateTime;
-        this.numPlayers = numPlayers;
-        this.status = status;
-        this.minMMR = minMMR;
-        this.maxMMR = maxMMR;
-        this.users = new ArrayList<>();
-        this.rounds = new ArrayList<>();
-    }
-
     public List<Round> getRounds() {
         return this.rounds;
     }

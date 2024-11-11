@@ -1,6 +1,7 @@
 package com.projectshowdown.service;
 
 import com.google.api.core.ApiFuture;
+import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
@@ -97,6 +98,16 @@ public class TournamentService {
             }
         }
         return allTournaments; // Return the list of tournament
+    }
+
+    public List<Tournament> getTournamentsByPlayerId(String userId) throws ExecutionException, InterruptedException {
+        CollectionReference tournaments = FirestoreClient.getFirestore().collection("tournaments");
+
+        // Use array-contains to check if the userId is in the "users" array field
+        Query query = tournaments.whereArrayContains("users", userId);
+        QuerySnapshot querySnapshot = query.get().get();
+
+        return querySnapshot.toObjects(Tournament.class);  // Converts the result to a list of Tournament objects
     }
 
     // Method to save tournament details to Firestore
