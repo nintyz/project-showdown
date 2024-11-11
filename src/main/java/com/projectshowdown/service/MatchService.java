@@ -61,8 +61,6 @@ public class MatchService {
             throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
 
-        matchData.put("completed", true);
-
         // Get a reference to the document
         DocumentReference docRef = db.collection("matches").document(id);
 
@@ -166,6 +164,7 @@ public class MatchService {
                 toUpdateScore.put("playerDetails.peakElo", newElo);
             }
             userService.updateUser(winner.getId(), toUpdateScore);
+            matchData.put("completed", true);
         }
 
         // Return success message with the update time
