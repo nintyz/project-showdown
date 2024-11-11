@@ -47,8 +47,8 @@
           alt="Send" 
           class="send-btn" 
           @click="sendMessage"
-          :class="{ 'disabled': !userInput.trim() }"
-          :style="{ opacity: userInput.trim() ? 1 : 0.5 }"
+          :class="{ 'disabled': !userInput.trim() || isBotTyping }"
+          :style="{ opacity: userInput.trim() && !isBotTyping ? 1 : 0.5 }"
           :disabled="!userInput.trim()"
         />
       </div>
