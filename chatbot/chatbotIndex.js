@@ -43,15 +43,10 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
           agent.add(`We couldn't find any user with the name: ${userName.name}. Please check the name and try again.`);
           return;
         }
-
-        let userAge = 0
-        snapshot.forEach(doc => {
-          let dob = doc.data().playerDetails.dob;
-
-          userAge = calculateAge(dob);
-        });
-
-        agent.add(`${userName.name} is ${userAge} years old.`);
+  
+        const dob = foundUser.data().playerDetails.dob;
+        const userAge = calculateAge(dob);
+        agent.add(`${foundUser.data().name} is ${userAge} years old.`);
       })
       .catch(error => {
         console.error('Error retrieving Firestore documents:', error);
@@ -59,20 +54,74 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
       });
   }
 
+// Get Player's Age by Name (Context)
+function getAgeByName_Context(agent) {
+  const eloContext = agent.getContext('player_elo_context');
+  const rankContext = agent.getContext('player_rank_context');
+
+  // Determine which context to use based on lifespan
+  let context;  
+  if (eloContext && rankContext) {
+    context = eloContext.lifespan > rankContext.lifespan ? eloContext : rankContext;
+  } else {
+    context = eloContext || rankContext;
+  }
+
+  const userName = context.parameters.player_name;
+
+  if (!userName) {
+    agent.add("Please provide a name.");
+    return;
+  }
+
+  agent.setContext({ 
+    name: 'player_age_context', 
+    lifespan: 5,
+    parameters: { player_name: userName }   
+  });
+
+  return db.collection('users')
+    .get()
+    .then(snapshot => {
+      let foundUser = null;
+
+        snapshot.forEach(doc => {
+          const storedName = doc.data().name;
+          if (storedName.toLowerCase() === userName.name.toLowerCase()) {
+            foundUser = doc;
+            }
+        });
+  
+        if (!foundUser) {
+          agent.add(`We couldn't find any user with the name: ${userName.name}. Please check the name and try again.`);
+          return;
+        }
+  
+        const dob = foundUser.data().playerDetails.dob;
+        const userAge = calculateAge(dob);
+        agent.add(`${foundUser.data().name} is ${userAge} years old.`);
+    })
+    .catch(error => {
+      console.error('Error retrieving Firestore documents:', error);
+      agent.add('Error retrieving data from Firestore: ' + error.message);
+      });
+  }
+
+  // Helper function to calculate age based on DOB
   function calculateAge(dob) {
     const dobDate = new Date(dob);
     const today = new Date();
-    
+
     let age = today.getFullYear() - dobDate.getFullYear();
     const monthDiff = today.getMonth() - dobDate.getMonth();
-    
+
     // Decrement age by 1 if the user's birthday has not yet occurred this year.
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dobDate.getDate())) {
-        age--;
+      age--;
     }
-    
+
     return age;
-  } 
+  }
 
   // Get Player's Elo by Name
   function getEloByName(agent) {
