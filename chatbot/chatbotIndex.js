@@ -28,22 +28,27 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
     });
 
     return db.collection('users')
-      .where('playerDetails.name', '==', userName.name)
       .get()
       .then(snapshot => {
-        if (snapshot.empty) {
+        let foundUser = null;
+
+        snapshot.forEach(doc => {
+          if (doc.data().playerDetails) {
+            const storedName = doc.data().playerDetails.name;
+            if (storedName.toLowerCase() === userName.name.toLowerCase()) {
+              foundUser = doc;
+              }
+          }
+        });
+  
+        if (!foundUser) {
           agent.add(`We couldn't find any user with the name: ${userName.name}. Please check the name and try again.`);
           return;
         }
-
-        let userAge = 0;
-        snapshot.forEach(doc => {
-          let dob = doc.data().playerDetails.dob;
-
-          userAge = calculateAge(dob);
-        });
-
-        agent.add(`${userName.name} is ${userAge} years old.`);
+  
+        const dob = foundUser.data().playerDetails.dob;
+        const userAge = calculateAge(dob);
+        agent.add(`${foundUser.data().playerDetails.name} is ${userAge} years old.`);
       })
       .catch(error => {
         console.error('Error retrieving Firestore documents:', error);
@@ -57,7 +62,7 @@ function getAgeByName_Context(agent) {
   const rankContext = agent.getContext('player_rank_context');
 
   // Determine which context to use based on lifespan
-  let context;
+  let context;  
   if (eloContext && rankContext) {
     context = eloContext.lifespan > rankContext.lifespan ? eloContext : rankContext;
   } else {
@@ -71,23 +76,34 @@ function getAgeByName_Context(agent) {
     return;
   }
 
+  agent.setContext({ 
+    name: 'player_age_context', 
+    lifespan: 5,
+    parameters: { player_name: userName }   
+  });
+
   return db.collection('users')
-    .where('playerDetails.name', '==', userName.name)
     .get()
     .then(snapshot => {
-      if (snapshot.empty) {
-        agent.add(`We couldn't find any user with the name: ${userName.name}. Please check the name and try again.`);
-        return;
-      }
+      let foundUser = null;
 
-      let userAge = 0;
-      snapshot.forEach(doc => {
-        let dob = doc.data().playerDetails.dob;
-
-        userAge = calculateAge(dob);
-      });
-
-      agent.add(`${userName.name} is ${userAge} years old.`);
+        snapshot.forEach(doc => {
+          if (doc.data().playerDetails) {
+            const storedName = doc.data().playerDetails.name;
+            if (storedName.toLowerCase() === userName.name.toLowerCase()) {
+              foundUser = doc;
+              }
+          }
+        });
+  
+        if (!foundUser) {
+          agent.add(`We couldn't find any user with the name: ${userName.name}. Please check the name and try again.`);
+          return;
+        }
+  
+        const dob = foundUser.data().playerDetails.dob;
+        const userAge = calculateAge(dob);
+        agent.add(`${foundUser.data().playerDetails.name} is ${userAge} years old.`);
     })
     .catch(error => {
       console.error('Error retrieving Firestore documents:', error);
@@ -127,20 +143,26 @@ function getAgeByName_Context(agent) {
     });
 
     return db.collection('users')
-      .where('playerDetails.name', '==', userName.name)
       .get()
       .then(snapshot => {
-        if (snapshot.empty) {
+        let foundUser = null;
+  
+        snapshot.forEach(doc => {
+          if (doc.data().playerDetails) {
+            const storedName = doc.data().playerDetails.name;
+            if (storedName.toLowerCase() === userName.name.toLowerCase()) {
+              foundUser = doc;
+            }
+          }
+        });
+  
+        if (!foundUser) {
           agent.add(`We couldn't find any user with the name: ${userName.name}. Please check the name and try again.`);
           return;
         }
-
-        let userElo = 0;
-        snapshot.forEach(doc => {
-          userElo = doc.data().playerDetails.elo;
-        });
-
-        agent.add(`${userName.name} has an elo rating of ${userElo}.`);
+  
+        const userElo = foundUser.data().playerDetails.elo;
+        agent.add(`${foundUser.data().playerDetails.name} has an elo rating of ${userElo}.`);
       })
       .catch(error => {
         console.error('Error retrieving Firestore documents:', error);
@@ -168,21 +190,33 @@ function getAgeByName_Context(agent) {
       return;
     }
 
+    agent.setContext({ 
+      name: 'player_elo_context', 
+      lifespan: 5,
+      parameters: { player_name: userName }   
+    });
+
     return db.collection('users')
-      .where('playerDetails.name', '==', userName.name)
       .get()
       .then(snapshot => {
-        if (snapshot.empty) {
+        let foundUser = null;
+  
+        snapshot.forEach(doc => {
+          if (doc.data().playerDetails) {
+            const storedName = doc.data().playerDetails.name;
+            if (storedName.toLowerCase() === userName.name.toLowerCase()) {
+              foundUser = doc;
+            }
+          }
+        });
+  
+        if (!foundUser) {
           agent.add(`We couldn't find any user with the name: ${userName.name}. Please check the name and try again.`);
           return;
         }
-
-        let userElo = 0;
-        snapshot.forEach(doc => {
-          userElo = doc.data().playerDetails.elo;
-        });
-
-        agent.add(`${userName.name} has an elo rating of ${userElo}.`);
+  
+        const userElo = foundUser.data().playerDetails.elo;
+        agent.add(`${foundUser.data().playerDetails.name} has an elo rating of ${userElo}.`);
       })
       .catch(error => {
         console.error('Error retrieving Firestore documents:', error);
@@ -206,20 +240,26 @@ function getAgeByName_Context(agent) {
     });
 
     return db.collection('users')
-      .where('playerDetails.name', '==', userName.name)
       .get()
       .then(snapshot => {
-        if (snapshot.empty) {
+        let foundUser = null;
+
+        snapshot.forEach(doc => {
+          if (doc.data().playerDetails) {
+            const storedName = doc.data().playerDetails.name;
+            if (storedName.toLowerCase() === userName.name.toLowerCase()) {
+              foundUser = doc;
+            }
+          }
+        });
+  
+        if (!foundUser) {
           agent.add(`We couldn't find any user with the name: ${userName.name}. Please check the name and try again.`);
           return;
         }
-
-        let userRank = 0;
-        snapshot.forEach(doc => {
-          userRank = doc.data().playerDetails.rank;
-        });
-
-        agent.add(`${userName.name} is rank ${userRank}.`);
+  
+        const userRank = foundUser.data().playerDetails.rank;
+        agent.add(`${foundUser.data().playerDetails.name} is rank ${userRank}.`);
       })
       .catch(error => {
         console.error('Error retrieving Firestore documents:', error);
@@ -247,21 +287,33 @@ function getAgeByName_Context(agent) {
       return;
     }
 
+    agent.setContext({ 
+      name: 'player_rank_context', 
+      lifespan: 5,
+      parameters: { player_name: userName }   
+    });
+
     return db.collection('users')
-      .where('playerDetails.name', '==', userName.name)
       .get()
       .then(snapshot => {
-        if (snapshot.empty) {
+        let foundUser = null;
+
+        snapshot.forEach(doc => {
+          if (doc.data().playerDetails) {
+            const storedName = doc.data().playerDetails.name;
+            if (storedName.toLowerCase() === userName.name.toLowerCase()) {
+              foundUser = doc;
+            }
+          }
+        });
+  
+        if (!foundUser) {
           agent.add(`We couldn't find any user with the name: ${userName.name}. Please check the name and try again.`);
           return;
         }
-
-        let userRank = 0;
-        snapshot.forEach(doc => {
-          userRank = doc.data().playerDetails.rank;
-        });
-
-        agent.add(`${userName.name} is rank ${userRank}.`);
+  
+        const userRank = foundUser.data().playerDetails.rank;
+        agent.add(`${foundUser.data().playerDetails.name} is rank ${userRank}.`);
       })
       .catch(error => {
         console.error('Error retrieving Firestore documents:', error);
@@ -331,6 +383,12 @@ function getAgeByName_Context(agent) {
       agent.add(`Which tournament are you interested in?`);
       return;
     }
+
+    agent.setContext({ 
+      name: 'tournament_date_context', 
+      lifespan: 5,
+      parameters: { tournament_name: tournamentName }   
+    });
 
     return db.collection('tournaments')
       .get()
@@ -434,6 +492,12 @@ function getAgeByName_Context(agent) {
       agent.add(`Which tournament are you interested in?`);
       return;
     }
+
+    agent.setContext({ 
+      name: 'tournament_venue_context', 
+      lifespan: 5,
+      parameters: {tournament_name : tournamentName}
+    });
 
     return db.collection('tournaments')
       .get()
@@ -571,6 +635,12 @@ function getAgeByName_Context(agent) {
       agent.add("Please provide a tournament name.");
       return;
     }
+
+    agent.setContext({ 
+      name: 'tournament_winner_context', 
+      lifespan: 5,
+      parameters: {tournament_name : tournamentName}
+    });
 
     return db.collection('tournaments')
       .get()
