@@ -43,7 +43,7 @@ public class TournamentControllerIntegrationTest {
     private List<String> createdTournamentIds;
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         baseUrl = "http://localhost:" + port;
         headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -53,7 +53,6 @@ public class TournamentControllerIntegrationTest {
                 "testId",
                 "Test Tournament",
                 2024,
-                "Test Type",
                 "Test Venue",
                 "2024-12-31T10:15:30",
                 32,

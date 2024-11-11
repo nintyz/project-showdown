@@ -43,7 +43,7 @@ public class UserControllerIntegrationTest {
     private List<String> createdUserIds = new ArrayList<>();
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         baseUrl = "http://localhost:" + port;
         Player playerDetails = new Player(1, "Test Player", "2000-01-01", 24, 2000.0, 2500.0, 500.0, 400.0, 300.0, "", "", "");
         Organizer organizerDetails = new Organizer("Test Organizer", true, "2000-01-01", "", "Singpore", "test.com");

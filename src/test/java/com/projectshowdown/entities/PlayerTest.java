@@ -99,26 +99,6 @@ public class PlayerTest {
     }
 
     @Test
-    public void testPlayerRawScoreNegative() {
-        // Act
-        player.setHardRaw(-1);
-
-        // Assert
-        Set<ConstraintViolation<Player>> violations = validator.validate(player);
-        assertFalse(violations.isEmpty(), "There should be a violation for negative hard raw score.");
-    }
-
-    @Test
-    public void testPlayerRawScoreValid() {
-        // Act
-        player.setHardRaw(500.0);
-
-        // Assert
-        Set<ConstraintViolation<Player>> violations = validator.validate(player);
-        assertTrue(violations.isEmpty(), "There should be no violations for a valid hard raw score.");
-    }
-
-    @Test
     public void testCalculateMMR() {
         // Act
         player.setElo(2000);
@@ -177,23 +157,6 @@ public class PlayerTest {
         assertEquals(25, player.getPeakAge(), "Peak age should match the set value.");
     }
 
-    @Test
-    public void testGetAndSetClayRaw() {
-        // Act
-        player.setClayRaw(450.0);
-
-        // Assert
-        assertEquals(450.0, player.getClayRaw(), 0.0001, "Clay raw score should match the set value.");
-    }
-
-    @Test
-    public void testGetAndSetGrassRaw() {
-        // Act
-        player.setGrassRaw(350.0);
-
-        // Assert
-        assertEquals(350.0, player.getGrassRaw(), 0.0001, "Grass raw score should match the set value.");
-    }
 
     @Test
     public void testAge() {
