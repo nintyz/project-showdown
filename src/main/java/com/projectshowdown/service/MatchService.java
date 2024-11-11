@@ -20,6 +20,7 @@ import com.projectshowdown.events.MatchUpdatedEvent;
 import jakarta.mail.MessagingException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -35,6 +36,8 @@ public class MatchService {
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
+
+    private final static int ELO_GAINED_WHEN_YOU_WIN = 25;
 
     // Helper method to get Firestore instance
     private Firestore getFirestore() {
@@ -79,31 +82,35 @@ public class MatchService {
             return "Please update match's date and time details before attempting to update the scores";
         }
 
-        if(matchData.containsKey("dateTime")){
+        // if trying to update match date & time
+        if (matchData.containsKey("dateTime")) {
             // Extract user IDs from match document
             String user1Id = document.getString("player1Id");
             String user2Id = document.getString("player2Id");
 
             String newDateTime = (String) matchData.get("dateTime");
 
-            // Extract date and time from newDateTime (assuming format "yyyy-MM-dd'T'HH:mm:ss:SS")
+            // Extract date and time from newDateTime (assuming format
+            // "yyyy-MM-dd'T'HH:mm:ss:SS")
             String[] dateTimeParts = newDateTime.split("T");
-            String date = dateTimeParts[0];  // e.g., "2024-12-31"
-            String time = dateTimeParts[1].substring(0, 5);  // Extract "HH:mm" part
+            String date = dateTimeParts[0]; // e.g., "2024-12-31"
+            String time = dateTimeParts[1].substring(0, 5); // Extract "HH:mm" part
 
             // Convert time to AM/PM format
             String amPmTime;
             try {
                 java.time.LocalTime localTime = java.time.LocalTime.parse(time);
-                amPmTime = localTime.format(java.time.format.DateTimeFormatter.ofPattern("hh:mm a")); // e.g., "02:15 PM"
+                amPmTime = localTime.format(java.time.format.DateTimeFormatter.ofPattern("hh:mm a")); // e.g., "02:15
+                                                                                                      // PM"
             } catch (Exception e) {
-                amPmTime = time;  // fallback in case of parsing issue
+                amPmTime = time; // fallback in case of parsing issue
             }
 
             // Retrieve tournament information using tournamentId from match document
             DocumentReference tournamentRef = db.collection("tournaments").document(tournamentId);
             DocumentSnapshot tournamentDocument = tournamentRef.get().get();
-            String tournamentName = tournamentDocument.exists() ? tournamentDocument.getString("name") : "Unknown Tournament";
+            String tournamentName = tournamentDocument.exists() ? tournamentDocument.getString("name")
+                    : "Unknown Tournament";
 
             // Retrieve user information
             UserDTO user1 = userService.getUser(user1Id);
@@ -119,8 +126,7 @@ public class MatchService {
                         user2.getPlayerDetails().getName(),
                         tournamentName,
                         date,
-                        amPmTime
-                );
+                        amPmTime);
 
                 notificationService.notifyMatchDetailsUpdated(
                         user2.getEmail(),
@@ -128,8 +134,7 @@ public class MatchService {
                         user1.getPlayerDetails().getName(),
                         tournamentName,
                         date,
-                        amPmTime
-                );
+                        amPmTime);
             } catch (MessagingException e) {
                 System.out.println("Failed to send updated match notification emails.");
                 e.printStackTrace();
@@ -149,6 +154,15 @@ public class MatchService {
         // Publish event
         Match match = document.toObject(Match.class);
         eventPublisher.publishEvent(new MatchUpdatedEvent(this, tournamentId, match));
+
+        // if trying to update scores, update the winner player's elo
+        if (matchData.containsKey("player1Score") && matchData.containsKey("player2Score")) {
+
+            UserDTO winner = userService.getUser(match.winnerId());
+            Map<String, Object> toUpdateScore = new HashMap<>();
+            toUpdateScore.put("playerDetails.elo", winner.getPlayerDetails().getElo() + ELO_GAINED_WHEN_YOU_WIN);
+            userService.updateUser(winner.getId(), toUpdateScore);
+        }
 
         // Return success message with the update time
         return "Match with ID: " + id + " updated successfully at: " + writeResult.get().getUpdateTime();
