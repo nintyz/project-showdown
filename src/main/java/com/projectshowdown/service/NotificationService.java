@@ -65,7 +65,7 @@ public class NotificationService {
     }
 
     /**
-     * Notify a player when they have been matched with another player for a tournament but the details are still pending.
+     * Notify a player when they have been matched with another player for a tournament but the details are still TBC.
      *
      * @param email Recipient's email.
      * @param playerName Name of the player.
