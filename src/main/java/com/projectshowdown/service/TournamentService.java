@@ -1,6 +1,7 @@
 package com.projectshowdown.service;
 
 import com.google.api.core.ApiFuture;
+import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
@@ -13,6 +14,8 @@ import com.google.firebase.cloud.FirestoreClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -78,7 +81,7 @@ public class TournamentService {
     public List<Tournament> getTournamentsByOrganizerId(String organizerId)
             throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
-        Query tournamentsCollection = db.collection("tournaments").whereEqualTo("role", organizerId);
+        Query tournamentsCollection = db.collection("tournaments").whereEqualTo("organizerId", organizerId);
         ApiFuture<QuerySnapshot> future = tournamentsCollection.get();
         List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 
@@ -97,6 +100,16 @@ public class TournamentService {
             }
         }
         return allTournaments; // Return the list of tournament
+    }
+
+    public List<Tournament> getTournamentsByPlayerId(String userId) throws ExecutionException, InterruptedException {
+        CollectionReference tournaments = FirestoreClient.getFirestore().collection("tournaments");
+
+        // Use array-contains to check if the userId is in the "users" array field
+        Query query = tournaments.whereArrayContains("users", userId);
+        QuerySnapshot querySnapshot = query.get().get();
+
+        return querySnapshot.toObjects(Tournament.class);  // Converts the result to a list of Tournament objects
     }
 
     // Method to save tournament details to Firestore
@@ -193,6 +206,7 @@ public class TournamentService {
     }
 
     // Method to update a tournament document in the 'tournaments' collection
+    // Method to update a tournament document in the 'tournaments' collection
     public String updateTournament(String tournamentId, String organizerId, Map<String, Object> tournamentData)
             throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
@@ -225,8 +239,9 @@ public class TournamentService {
             // check if tournament has begun
             Tournament tournament = getTournament(tournamentId);
             if (tournament.inProgress()) {
-                return "You are not allowed to cancel a tournament that has already begun!";
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You are not allowed to cancel a tournament that has already begun!");
             }
+
             // EMAIL NOTIFICATION TO LET REGISTERED PLAYERS KNOW ABOUT ITS CANCELLATION
             // Retrieve the tournament name from the document
             String tournamentName = document.getString("name");
@@ -245,16 +260,15 @@ public class TournamentService {
             }
 
             docRef.update(filteredUpdates);
-
             return "Tournament with ID: " + tournamentId + " has been cancelled!";
         }
 
-        // Perform the update operation
-        ApiFuture<WriteResult> writeResult = docRef.update(filteredUpdates);
+        ApiFuture<WriteResult> updateWriteResult = docRef.update(filteredUpdates);
 
         // Return success message with the update time
-        return "Tournament with ID: " + tournamentId + " updated successfully at: " + writeResult.get().getUpdateTime();
+        return "Tournament with ID: " + tournamentId + " updated successfully at: " + updateWriteResult.get().getUpdateTime();
     }
+
 
     // Method to register a new player
     public String registerUser(String tournamentId, String userId)
