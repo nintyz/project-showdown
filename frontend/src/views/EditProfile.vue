@@ -6,7 +6,7 @@
         <form @submit.prevent="updateProfile">
             <div class="form-group">
                 <label for="name">Name</label>
-                <input type="text" id="name" v-model="playerDetails.name" class="form-control" />
+                <input type="text" id="name" v-model="name" class="form-control" />
             </div>
             <div class="form-group">
                 <label for="dob">Date of Birth</label>
@@ -39,8 +39,8 @@ export default {
     },
     data() {
         return {
+            name: "",
             playerDetails: {
-                name: "",
                 dob: "",
                 country: "",
                 bio: "",

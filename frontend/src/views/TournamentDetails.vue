@@ -5,8 +5,7 @@
 
         <!-- Tournament Details Section -->
         <div class="details-card p-4 mb-4">
-            <img :src="tournament.logoUrl" alt="Tournament Logo"
-                class="img-fluid tournament-logo mb-3" />
+            <img :src="tournament.logoUrl" alt="Tournament Logo" class="img-fluid tournament-logo mb-3" />
             <p><strong>Location:</strong> {{ tournament.venue }}</p>
             <p><strong>Date:</strong> {{ tournament.date }}</p>
             <p><strong>Status:</strong> <span :class="getStatusClass(tournament.status)">{{ tournament.status }}</span>
@@ -27,7 +26,7 @@
         <div v-if="sortedPlayers.length">
             <h3>Players Registered (A-Z)</h3>
             <div v-for="(player, index) in sortedPlayers" :key="player.id" class="player-info">
-                <h6>{{ index + 1 }}. {{ player.playerDetails.name }} || {{ player.playerDetails.country }}</h6>
+                <h6>{{ index + 1 }}. {{ player.name }} || {{ player.playerDetails.country }}</h6>
             </div>
         </div>
     </div>
@@ -64,11 +63,12 @@ export default {
             // Remove duplicates and sort alphabetically by player name
             const uniquePlayers = Array.from(new Set(players.map(p => p.id)))
                 .map(id => players.find(p => p.id === id))
-                .sort((a, b) => a.playerDetails.name.localeCompare(b.playerDetails.name));
+                .sort((a, b) => a.name.localeCompare(b.name)); // Use player.name directly
 
             return uniquePlayers;
         }
     },
+
     methods: {
         async fetchTournamentDetails() {
             const tournamentId = this.$route.params.id;
