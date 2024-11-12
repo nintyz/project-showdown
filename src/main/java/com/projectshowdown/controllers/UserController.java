@@ -34,16 +34,10 @@ public class UserController {
         return userService.getAllPlayers();
     }
 
-    // GET all verified organizers
+    // GET all organizers
     @GetMapping("/organizers")
     public List<UserDTO> getOrganizers() throws ExecutionException, InterruptedException {
         return userService.getAllOrganizers();
-    }
-
-    // GET all pending organizers
-    @GetMapping("/pending-organizers")
-    public List<UserDTO> getPendingOrganizers() throws ExecutionException, InterruptedException {
-        return userService.getAllPendingOrganizers();
     }
 
     // get specific player

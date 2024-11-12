@@ -19,7 +19,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="organizer in organizers" :key="organizer.id">
+          <tr v-for="organizer in verifiedOrganizers" :key="organizer.id">
             <td>{{ organizer.name }}</td>
             <td>{{ organizer.email }}</td>
             <td>{{ formatDate(organizer.organizerDetails.dateVerified) }}</td>
@@ -65,12 +65,12 @@
       return {
         activeTab: 'allOrganizers',
         organizers: [],
+        verifiedOrganizers: [],
         pendingOrganizers: [],
       };
     },
     mounted() {
       this.fetchOrganizers();
-      this.fetchPendingOrganizers();
     },
     methods: {
       formatDate(dateString) {
@@ -82,22 +82,18 @@
           const response = await axios.get('http://localhost:8080/organizers');
           console.log(response.data);
           this.organizers = response.data;
+
+          this.verifiedOrganizers = this.organizers.filter(organizer => organizer.organizerDetails.dateVerified != null && organizer.organizerDetails.dateVerified !== "null");
+          this.pendingOrganizers = this.organizers.filter(organizer => organizer.organizerDetails.dateVerified == null || organizer.organizerDetails.dateVerified === "null");
+        
         } catch (error) {
           console.error("Error fetching organizers:", error);
-        }
-      },
-      async fetchPendingOrganizers() {
-        try {
-          const response = await axios.get('http://localhost:8080/pending-organizers');
-          this.pendingOrganizers = response.data;
-        } catch (error) {
-          console.error("Error fetching pending organizers:", error);
         }
       },
       async verifyOrganizer(id) {
         try {
           await axios.put(`http://localhost:8080/organizer/${id}`);
-          this.fetchPendingOrganizers(); 
+          this.fetchOrganizers(); 
         } catch (error) {
           console.error("Error verifying organizer:", error);
         }
