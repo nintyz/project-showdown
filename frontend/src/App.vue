@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <router-view></router-view>
-    <ChatbotComponent v-if="$route.path !== '/'" />
+    <ChatbotComponent v-if="$route.path !== '/' && $route.path !== '/login' && $route.path !== '/signup'"/>
   </div>
 </template>
 

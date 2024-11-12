@@ -1,18 +1,24 @@
 package com.projectshowdown.controllers;
 
+// import com.google.cloud.firestore.Firestore;
 import com.projectshowdown.config.TestSecurityConfig;
+import com.projectshowdown.config.TestGoogleServiceConfig;
+import com.projectshowdown.configs.JwtUtil;
 import com.projectshowdown.dto.UserDTO;
 import com.projectshowdown.entities.Player;
 import com.projectshowdown.entities.Tournament;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,12 +29,19 @@ import static org.junit.jupiter.api.Assertions.*;
 
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(TestSecurityConfig.class)
+@TestPropertySource(properties = "SUPPORT_EMAIL=admin@gmail.com")
+@TestPropertySource(properties = "APP_PASSWORD=Password1!")
+@TestPropertySource(properties = "GOOGLE_CONFIG_PATH=/Users/arthurchan/Documents/firebasekey/serviceAccountKey.json")
+
+@Import({TestGoogleServiceConfig.class, TestSecurityConfig.class})
 @ActiveProfiles("test")
 public class TournamentControllerIntegrationTest {
 
     @LocalServerPort
     private int port;
+
+    @MockBean
+    private JwtUtil jwtUtil;
 
     @Autowired
     private TestRestTemplate restTemplate;
@@ -43,6 +56,7 @@ public class TournamentControllerIntegrationTest {
         baseUrl = "http://localhost:" + port;
         headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        Mockito.when(jwtUtil.getJwtSecret()).thenReturn("mocked_jwt_secret_key");
         createdTournamentIds = new ArrayList<>();
 
         testTournament = new Tournament(
@@ -75,7 +89,7 @@ public class TournamentControllerIntegrationTest {
         assertTrue(response.getBody().contains("Tournament created successfully with ID:"));
 
         // Extract and store tournament ID for cleanup
-        String tournamentId = extractTournamentId(response.getBody());
+        String tournamentId = response.getBody();
         createdTournamentIds.add(tournamentId);
     }
 
@@ -89,7 +103,7 @@ public class TournamentControllerIntegrationTest {
                 String.class
         );
         System.out.println(createResponse.getBody());
-        createdTournamentIds.add(extractTournamentId(createResponse.getBody()));
+        createdTournamentIds.add(createResponse.getBody());
 
         // Get all tournaments
         ResponseEntity<String> response = restTemplate.getForEntity(
@@ -110,7 +124,7 @@ public class TournamentControllerIntegrationTest {
                 createRequest,
                 String.class
         );
-        String tournamentId = extractTournamentId(createResponse.getBody());
+        String tournamentId = createResponse.getBody();
 
         // Get the tournament
         @SuppressWarnings("rawtypes")
@@ -133,7 +147,7 @@ public class TournamentControllerIntegrationTest {
                 createRequest,
                 String.class
         );
-        String tournamentId = extractTournamentId(createResponse.getBody());
+        String tournamentId = createResponse.getBody();
         createdTournamentIds.add(tournamentId);
 
         // Update tournament data
@@ -168,7 +182,7 @@ void testCancelTournament() throws Exception {
                 createRequest,
                 String.class
         );
-        String tournamentId = extractTournamentId(createResponse.getBody());
+        String tournamentId = createResponse.getBody();
         createdTournamentIds.add(tournamentId); // Track it for cleanup
 
         // Prepare cancellation data
@@ -226,7 +240,7 @@ void testCancelTournament() throws Exception {
                 userRequest,
                 String.class
         );
-        String userId = extractUserId(userResponse.getBody());
+        String userId = userResponse.getBody();
 
         // Then create a tournament
         HttpEntity<Tournament> createRequest = new HttpEntity<>(testTournament, headers);
@@ -235,7 +249,7 @@ void testCancelTournament() throws Exception {
                 createRequest,
                 String.class
         );
-        String tournamentId = extractTournamentId(createResponse.getBody());
+        String tournamentId = createResponse.getBody();
         createdTournamentIds.add(tournamentId);
 
         // Debug prints
@@ -252,19 +266,5 @@ void testCancelTournament() throws Exception {
         );
         assertEquals(HttpStatus.OK, registerResponse.getStatusCode());
     }
-
-    private String extractUserId(String response) {
-        // Extract just the ID before any timestamp
-        return response.substring(
-                response.indexOf("ID: ") + 4,
-                response.indexOf(" at:")
-        ).trim();
-    }
-    private String extractTournamentId(String response) {
-        // Extract just the ID before the "at:" text
-        return response.substring(
-                response.indexOf("ID: ") + 4,
-                response.indexOf(" at:")
-        ).trim();
-    }
+    
 }

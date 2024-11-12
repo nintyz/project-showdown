@@ -55,7 +55,7 @@
     </div>
 
     <button v-if="!isChatOpen" @click="toggleChat" class="chatbot-toggle-btn">
-      <img src="@/assets/chatbot.png" alt="Chatbot Icon" />
+      <img src="@/assets/chatbot2.png" alt="Chatbot Icon" />
     </button>
   </div>
 </template>
@@ -210,7 +210,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #007bff;
+  background-color: #776B5D;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   position: sticky;
   color: white;
@@ -242,7 +242,7 @@ export default {
 }
 
 .user-message {
-  background-color: #007bff;
+  background-color: #776B5D;
   color: white;
   align-self: flex-end;
 }
@@ -331,7 +331,7 @@ export default {
   position: fixed;
   bottom: 20px;
   right: 20px;
-  background-color: #007bff;
+  background-color: #776B5D;
   color: white;
   border: none;
   border-radius: 50%;
