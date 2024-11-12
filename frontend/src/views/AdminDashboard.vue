@@ -25,7 +25,7 @@
             <div class="col-md-2 d-flex justify-content-end align-items-center">
                 <button class="btn btn-outline-primary me-2" @click="viewTournament(tournament.id)">view</button>
                 <button class="btn btn-outline-secondary me-2" @click="editTournament(tournament.id)">edit</button>
-                <button class="btn btn-icon" @click="cancelTournament(tournament.id)">
+                <button class="btn btn-icon" @click="cancelTournament(tournament.id, tournament.organizerId)">
                     <img src="@/assets/remove.png" alt="Icon" />
                 </button>
             </div>
@@ -34,9 +34,9 @@
 </template>
 
 <script>
-import axios from 'axios';
-import Navbar from '@/components/NavbarComponent.vue';
 import '@/assets/main.css';
+import Navbar from '@/components/NavbarComponent.vue';
+import axios from 'axios';
 
 export default {
     components: {
@@ -52,7 +52,7 @@ export default {
             switch (status) {
                 case "Upcoming":
                     return "text-warning";
-                case "Ongoing":
+                case "In Progress":
                     return "text-success";
                 case "Ended":
                     return "text-inactive";
@@ -72,6 +72,7 @@ export default {
                 this.tournaments = response.data.map(tournament => ({
                     ...tournament,
                     logoUrl: tournament.logoUrl, // Fallback to placeholder if no logoUrl
+                    organizerId: tournament.organizerId,
                 }));
                 console.log("Tournaments fetched successfully." + this.tournaments[0]);
             } catch (error) {
@@ -85,12 +86,12 @@ export default {
         editTournament(id) {
             this.$router.push(`/tournament/${id}/edit`);
         },
-        async cancelTournament(id) {
+        async cancelTournament(id, organizerId) {
             // Confirm before cancelling the tournament
             if (confirm("Are you sure you want to cancel this tournament?")) {
                 try {
                     // Sending a PUT request to update the tournament status to "Cancelled"
-                    await axios.put(`http://localhost:8080/tournament/${id}`, {
+                    await axios.put(`http://localhost:8080/tournament/${id}/${organizerId}`, {
                         status: "Cancelled"
                     });
 

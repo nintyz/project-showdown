@@ -260,6 +260,7 @@ public class TournamentService {
                 try {
                     // Send cancellation notification to each user
                     notificationService.notifyTournamentCancelled(user.getEmail(), tournamentName);
+                    System.out.println("Cancellation notification sent to user: " + user.getName());
                 } catch (MessagingException e) {
                     System.out.println("Failed to send cancellation notification to user: " + userId);
                     e.printStackTrace();
@@ -397,7 +398,7 @@ public class TournamentService {
             throws ExecutionException, InterruptedException {
         UserDTO user = userService.getUser(userId);
         HashMap<String, Object> achievements = new HashMap<>();
-        String newAchievement = " Obtained " + (gold ? "Gold" : "Silver") + " from " + tournament.getName();
+        String newAchievement = "Obtained " + (gold ? "Gold" : "Silver") + " from " + tournament.getName() + ". ";
         achievements.put("playerDetails.achievements", user.getPlayerDetails().getAchievements() + newAchievement);
 
         userService.updateUser(userId, achievements);
@@ -496,63 +497,65 @@ public class TournamentService {
     private List<String> generateMatchesWithSeed(Tournament tournament, List<User> users, String stage,
             int totalMatches)
             throws ExecutionException, InterruptedException {
-        List<String> matches = new ArrayList<>();
-        List<Match> tempMatches = new ArrayList<>();
+        List<String> matches = new ArrayList<>(); // List to store match IDs
+
+        // Define seeded positions. Keys are match positions, values are indices of top-seeded users. Assuming 4 seeded players.
         Map<Integer, Integer> seedPositions = Map.of(
                 1, 0,
                 users.size() / 2, 1,
                 users.size() / 4, 2,
                 users.size() / 4 + 1, 3);
 
-        int left = 4;
-        int right = users.size() - 1;
-        List<Integer> usedPlayers = new ArrayList<>();
-
+        int left = 4; // Points to the strongest non-seeded player, as indexes 0 - 3 are seeded players
+        int right = users.size() - 1; // Points to the weakest non-seeded players
+        List<Integer> usedPlayers = new ArrayList<>(); // Track users who have been matched already
+        
+        // Loop to generate matches for each pair of players
         for (int i = 1; i <= users.size() / 2; i++) {
             User user1, user2;
 
+            // Check if the current position is a seeded position
             if (seedPositions.containsKey(i)) {
                 int seedIndex = seedPositions.get(i);
-                user1 = users.get(seedIndex);
-                user2 = users.get(right);
+                user1 = users.get(seedIndex); // If position is seeded, get the index of the seeded player
+                user2 = users.get(right); // Pair with weakest user
                 usedPlayers.add(seedIndex);
-                usedPlayers.add(right--);
+                usedPlayers.add(right--); // Mark players as used and decrement right pointer
             } else {
                 // Find the next available players for non-seeded matches
                 while (usedPlayers.contains(left))
-                    left++;
+                    left++; // Move left pointer to retrieve the next weakest player
 
                 user1 = users.get(left);
-                usedPlayers.add(left++);
+                usedPlayers.add(left++); // Mark as used and increment left pointer
 
                 while (usedPlayers.contains(right))
-                    right--;
+                    right--; // Move right pointer to retrieve the next strongest player
 
-                user2 = users.get(right);
-                usedPlayers.add(right--);
+                user2 = users.get(right); // Pair with the next weakest user 
+                usedPlayers.add(right--); // Mark as used and decrement right pointer
             }
 
+            // Create the match between the two selected players
             matches.add(createMatch(tournament, stage, user1, user2, totalMatches + matches.size() + 1));
-            tempMatches.add(new Match("", tournament.getId(), user1.getId(), user2.getId(), 0, 0,
-                    Math.abs(user1.getPlayerDetails().calculateMMR() - user2.getPlayerDetails().calculateMMR()),
-                    "TBC", stage, false));
 
-            // HERE to send emails to user1 and user2 of their matching with dateTime as TBC
+            // Send email notifications to both players about the match, however dateTime is TBC
             try {
                 System.out.println("Sending player match email ....");
                 notificationService.notifyPlayerMatched(
-                        user1.getEmail(), user1.getPlayerDetails().getName(), user2.getPlayerDetails().getName(),
+                        user1.getEmail(), user1.getName(), user2.getName(),
                         tournament.getName());
                 notificationService.notifyPlayerMatched(
-                        user2.getEmail(), user2.getPlayerDetails().getName(), user1.getPlayerDetails().getName(),
+                        user2.getEmail(), user2.getName(), user1.getName(),
                         tournament.getName());
             } catch (MessagingException e) {
+                // Handle email sending failure
                 System.out.println("Failed to send match notification for players: "
                         + user1.getId() + " and " + user2.getId());
                 e.printStackTrace();
             }
         }
-        return matches;
+        return matches; // Return list of match IDs
     }
 
     private String createMatch(Tournament tournament, String stage, User user1, User user2, int matchIndex)

@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -48,6 +49,7 @@ public class UserService implements UserDetailsService {
     super();
 
   }
+
   @Override
   public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
     Firestore db = FirestoreClient.getFirestore();
@@ -141,14 +143,20 @@ public class UserService implements UserDetailsService {
     }
   }
 
+  public boolean checkEmailExists(String email) throws ExecutionException, InterruptedException {
+    Firestore db = getFirestore();
+    // Generate a new document reference with a random ID
+    ApiFuture<QuerySnapshot> future = db.collection("users").whereEqualTo("email", email).get();
+
+    QuerySnapshot querySnapshot = future.get();
+    return !querySnapshot.isEmpty();
+
+  }
+
   // Method to add a new player document to the 'users' collection
   public String createUser(User userData) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
-    // Generate a new document reference with a random ID
-    ApiFuture<QuerySnapshot> future = db.collection("users").whereEqualTo("email", userData.getEmail()).get();
-
-    QuerySnapshot querySnapshot = future.get();
-    if (!querySnapshot.isEmpty()) {
+    if (checkEmailExists(userData.getEmail())) {
       return "A user account with the email " + userData.getEmail() + " already exists!";
     }
 
@@ -160,6 +168,7 @@ public class UserService implements UserDetailsService {
     userData.setVerificationCode(generateVerificationCode());
     userData.setVerificationCodeExpiresAt(DateTimeUtils.toEpochSeconds(LocalDateTime.now().plusMinutes(15)));
     userData.setEnabled(false);
+
     // if its an organizer, set verified as false.
     if (userData.getOrganizerDetails() != null) {
       userData.getOrganizerDetails().setVerified(false);
@@ -168,6 +177,8 @@ public class UserService implements UserDetailsService {
     // Convert User object to UserDTO and set the generated ID
     UserDTO userDTO = UserMapper.toUserDTO(userData);
     userDTO.setId(generatedId);
+
+    System.out.println("USER PASSWORD:" + userDTO.getPassword());
 
     // Save the updated UserDTO to Firestore
     ApiFuture<WriteResult> writeResult = docRef.set(userDTO);
@@ -181,6 +192,17 @@ public class UserService implements UserDetailsService {
       throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
 
+    if (userData.containsKey("email")) {
+      if (checkEmailExists((String) userData.get("email"))) {
+        return "A user account with the email " + userData.get("email") + " already exists!";
+      }
+    }
+
+    if (userData.containsKey("password")) {
+      BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+      userData.put("password", passwordEncoder.encode((String) userData.get("password")));
+    }
+
     // Check if the user document exists
     DocumentReference docRef = db.collection("users").document(userId);
 
@@ -190,8 +212,7 @@ public class UserService implements UserDetailsService {
       throw new PlayerNotFoundException("User with ID: " + userId + " does not exist.");
     }
 
-    // Check if "organizerDetails" contains "verified" and remove it if present
-    if (userData.containsKey("organizerDetails")) {
+    if (userData.get("organizerDetails") != null) {
       Map<String, Object> organizerDetails = (Map<String, Object>) userData.get("organizerDetails");
       // Remove the "verified" field if it's present
       if (organizerDetails.containsKey("verified")) {
@@ -280,25 +301,23 @@ public class UserService implements UserDetailsService {
 
         String email = values[1].replaceAll("\\u00A0", "").toLowerCase().trim();
         email += "@gmail.com";
-        String fixedPassword = "$2a$12$NLiiv7gVsA1ltsI1tux.xuE8kEKfAmIHIkloVXwqxHXArgfiJ1XoK";
+        String fixedPassword = "player.Password1!";
 
         int rank = Integer.parseInt(values[0]);
         String name = values[1];
         String dob = values[2];
         Double elo = Double.parseDouble(values[3]);
-        Double hardRaw = values[4].equals("-") ? null : Double.parseDouble(values[4]);
-        Double clayRaw = values[5].equals("-") ? null : Double.parseDouble(values[5]);
-        Double grassRaw = values[6].equals("-") ? null : Double.parseDouble(values[6]);
-        Double peakAge = Double.parseDouble(values[7]);
-        Double peakElo = Double.parseDouble(values[8]);
-        String country = values[9];
+        Double peakAge = Double.parseDouble(values[4]);
+        Double peakElo = Double.parseDouble(values[5]);
+        String country = values[6];
         String bio = "";
         String achievements = "";
 
-        Player currentRowPlayerDetails = new Player(rank, name, dob, elo, hardRaw, clayRaw, grassRaw, peakAge, peakElo,
+        Player currentRowPlayerDetails = new Player(rank, dob, elo, peakAge, peakElo,
             country, bio, achievements);
 
-        UserDTO currentRowUser = new UserDTO("", email, fixedPassword, "player", null, currentRowPlayerDetails, null,
+        UserDTO currentRowUser = new UserDTO("", name, "", email, fixedPassword, "player", null,
+            currentRowPlayerDetails, null,
             null,
             DateTimeUtils.toEpochSeconds(LocalDateTime.now().plusMinutes(15)), false);
 
