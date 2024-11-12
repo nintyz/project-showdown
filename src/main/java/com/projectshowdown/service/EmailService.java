@@ -18,12 +18,8 @@ public class EmailService {
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
         ClassPathResource imageResource = new ClassPathResource("static/ShowdownLogo.png");
         System.out.println("Sending email....");
-        // if (!imageResource.exists()) {
-        //     System.out.println("Image not found!");
-        // } else {
-        //     System.out.println("Image path: " + imageResource.getPath());
-        // }
         
+        helper.setFrom("projectshowndown@gmail.com");
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(text, true);

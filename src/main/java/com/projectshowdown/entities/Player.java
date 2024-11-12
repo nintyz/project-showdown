@@ -19,23 +19,10 @@ public class Player {
 
     private int rank;
 
-    @NotNull(message = "Name is mandatory")
-    @Size(min = 2, max = 50, message = "Name must be between 2 and 50 characters")
-    private String name;
-
     private String dob;
 
     @Positive(message = "The value must be a positive number")
     private double elo;
-
-    @Positive(message = "The value must be a positive number")
-    private double hardRaw;
-
-    @Positive(message = "The value must be a positive number")
-    private double clayRaw;
-
-    @Positive(message = "The value must be a positive number")
-    private double grassRaw;
 
     private double peakAge;
     @Positive(message = "The value must be a positive number")
@@ -45,27 +32,12 @@ public class Player {
     private String bio;
     private String achievements;
 
-    // Parameterized constructor with essential fields
-    public Player(String id, int rank, String name, String dob) {
-        this.rank = rank;
-        this.name = name;
-        this.dob = dob;
-    }
-
     public int getRank() {
         return rank;
     }
 
     public void setRank(int rank) {
         this.rank = rank;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public String getDob() {
@@ -106,30 +78,6 @@ public class Player {
 
     public void setPeakElo(double peakElo) {
         this.peakElo = peakElo;
-    }
-
-    public double getHardRaw() {
-        return hardRaw;
-    }
-
-    public void setHardRaw(double hardRaw) {
-        this.hardRaw = hardRaw;
-    }
-
-    public double getClayRaw() {
-        return clayRaw;
-    }
-
-    public void setClayRaw(double clayRaw) {
-        this.clayRaw = clayRaw;
-    }
-
-    public double getGrassRaw() {
-        return grassRaw;
-    }
-
-    public void setGrassRaw(double grassRaw) {
-        this.grassRaw = grassRaw;
     }
 
     // Method to calculate MMR based on the given formula

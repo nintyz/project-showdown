@@ -83,6 +83,33 @@ export default {
     }
   },
   methods: {
+    numberOnly(event) {
+      const charCode = (event.which) ? event.which : event.keyCode;
+      if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+        event.preventDefault();
+      }
+    },
+    startRedirectCountdown(seconds) {
+      this.redirectCountdown = seconds;
+      this.redirectInterval = setInterval(() => {
+        if (this.redirectCountdown > 0) {
+          this.redirectCountdown--;
+        } else {
+          clearInterval(this.redirectInterval);
+        }
+      }, 1000);
+    },
+    extractRoleFromToken(token) {
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(window.atob(base64));
+        return payload.role || 'player'; // Default to PLAYER if no role found
+      } catch (error) {
+        console.error('Error extracting role from token:', error);
+        return 'player';
+      }
+    },
     async verifyAccount() {
       this.isLoading = true;
       this.error = null;
@@ -99,7 +126,21 @@ export default {
         this.resendCooldown = 0; // Hide the resend section
 
         if (response.data.status === 'requires_2fa') {
-          this.$router.push({ path: '/verify-2fa', query: { email: this.email } });
+          this.startRedirectCountdown(1.5);
+          setTimeout(() => {
+            this.$router.push(`/verify-2fa?email=${this.email}`);
+          }, 1500);
+        } else if (response.data.token) {
+          const token = response.data.token;
+          const role = "player"//this.extractRoleFromToken(token);
+
+          localStorage.setItem('token', token);
+          localStorage.setItem('role', role);
+
+          this.startRedirectCountdown(1.5);
+          setTimeout(() => {
+            this.$router.push('/dashboard');
+          }, 1500);
         }
       } catch (error) {
         this.error = error.response?.data || 'Verification failed. Please try again.';

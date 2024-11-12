@@ -43,24 +43,25 @@ public class TournamentControllerIntegrationTest {
     private List<String> createdTournamentIds;
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         baseUrl = "http://localhost:" + port;
         headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         createdTournamentIds = new ArrayList<>();
 
         testTournament = new Tournament(
-                null,
+                "testId",
                 "Test Tournament",
                 2024,
-                "Single Elimination",
                 "Test Venue",
                 "2024-12-31T10:15:30",
                 32,
                 "pending",
                 1000.0,
                 2000.0,
-                new ArrayList<>()  // Initialize empty users list
+                new ArrayList<>(),  // Initialize empty Rounds List
+                "testOrganizerId",
+                new ArrayList<>()   // Initialize empty user List
         );
     }
 
@@ -202,7 +203,7 @@ void testCancelTournament() throws Exception {
     @Test
     void testRegisterUser() {
         // First create a test user
-        Player playerDetails = new Player(1, "Test Player", "2000-01-01", 24, 1500.0, 2500.0, 500.0, 400.0, 300.0, "", "", "");
+        Player playerDetails = new Player(1, "2000-01-01", 1500.0, 24, 2500.0, "", "", "");
         UserDTO testUser = new UserDTO(
                 "testUserId",
                 "test" + System.currentTimeMillis() + "@example.com",

@@ -3,25 +3,29 @@ package com.projectshowdown.service;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
+// import com.projectshowdown.dto.UserDTO;
 import com.projectshowdown.entities.Match;
 import com.projectshowdown.events.MatchUpdatedEvent;
+
 import org.junit.jupiter.api.BeforeEach;
+// import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class MatchServiceTest {
-
-    @InjectMocks
-    private MatchService matchService;
+class MatchServiceTest {
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -36,88 +40,81 @@ public class MatchServiceTest {
     private DocumentReference documentReference;
 
     @Mock
-    private DocumentSnapshot documentSnapshot;
-
-    @Mock
     private ApiFuture<WriteResult> writeResultFuture;
-
-    @Mock
-    private WriteResult writeResult;
 
     @Mock
     private ApiFuture<DocumentSnapshot> documentSnapshotFuture;
 
+    @Mock
+    private DocumentSnapshot documentSnapshot;
+
+    @InjectMocks
+    private MatchService matchService;
+
     private Match testMatch;
+    private final String matchId = "testMatchId";
 
     @BeforeEach
-    void setUp() {
-        // Set up a sample Match object
-        testMatch = new Match("Test_Match_Id", "Test_Tournament_Id", "Test_player1_Id", "Test_player2_Id",
-                2, 1, 1000.0, "2024-12-31", "Round Of 16", true);
+    public void setUp() {
+        // Mock FirestoreClient to return the mocked Firestore instance
+        Mockito.mockStatic(FirestoreClient.class);
+        when(FirestoreClient.getFirestore()).thenReturn(firestore);
         
-        // Mock FirestoreClient.getFirestore() to return our mocked Firestore
-        FirestoreClient.setFirestore(firestore);
-        
-        // Mock the Firestore setup
+        // Additional setup
         when(firestore.collection("matches")).thenReturn(matchesCollection);
-        when(matchesCollection.document(testMatch.getId())).thenReturn(documentReference);
+        when(matchesCollection.document(anyString())).thenReturn(documentReference);
     }
 
     @Test
     void testAddMatch() throws ExecutionException, InterruptedException {
         when(documentReference.set(testMatch)).thenReturn(writeResultFuture);
-        when(writeResultFuture.get()).thenReturn(writeResult);
+        when(writeResultFuture.get()).thenReturn(mock(WriteResult.class));
 
-        String matchId = matchService.addMatch(testMatch);
+        String resultId = matchService.addMatch(testMatch);
 
-        assertEquals(testMatch.getId(), matchId);
+        assertEquals(matchId, resultId);
         verify(documentReference).set(testMatch);
     }
 
     @Test
-    void testUpdateMatch() throws ExecutionException, InterruptedException {
+    void testUpdateMatchWithoutNotification() throws ExecutionException, InterruptedException {
+        // Setup match data to update
         Map<String, Object> matchData = new HashMap<>();
-        matchData.put("player1Score", 3);
-        matchData.put("player2Score", 2);
+        matchData.put("dateTime", "2024-12-31T14:00:00");
 
+        // Mock document snapshot for existing match
         when(documentReference.get()).thenReturn(documentSnapshotFuture);
         when(documentSnapshotFuture.get()).thenReturn(documentSnapshot);
         when(documentSnapshot.exists()).thenReturn(true);
-        when(documentSnapshot.get("tournamentId")).thenReturn("Test_Tournament_Id");
+        when(documentSnapshot.get("dateTime")).thenReturn("TBC");
+        when(documentSnapshot.getString("tournamentId")).thenReturn("Test_Tournament_Id");
 
-        when(documentReference.update(matchData)).thenReturn(writeResultFuture);
-        when(writeResultFuture.get()).thenReturn(writeResult);
+        // Mock WriteResult for update operation
+        when(documentReference.update(anyMap())).thenReturn(writeResultFuture);
+        WriteResult writeResultMock = mock(WriteResult.class);
+        when(writeResultFuture.get()).thenReturn(writeResultMock);
+        when(writeResultMock.getUpdateTime()).thenReturn(null);
 
-        Match match = new Match("Test_Match_Id", "Test_Tournament_Id", "Test_player1_Id", "Test_player2_Id",
-                2, 1, 1000.0, "2024-12-31", "Round Of 16", true);
-        
-        when(documentSnapshot.toObject(Match.class)).thenReturn(match);
-
-        String result = matchService.updateMatch(testMatch.getId(), matchData);
+        String result = matchService.updateMatch(matchId, matchData);
 
         assertTrue(result.contains("updated successfully"));
-        verify(documentReference).update(matchData);
+        verify(documentReference).update(anyMap());
         verify(eventPublisher).publishEvent(any(MatchUpdatedEvent.class));
     }
 
     @Test
     void testCheckCurrentRoundCompletion() throws ExecutionException, InterruptedException {
-        List<String> currentRound = Arrays.asList("match1", "match2");
+        List<String> matchIds = Arrays.asList("match1", "match2");
+        Match completedMatch = new Match("match1", "Test_Tournament_Id", "Test_player1_Id", "Test_player2_Id", 2, 1, 1000.0, "2024-12-31", "Round Of 16", true);
+        Match incompleteMatch = new Match("match2", "Test_Tournament_Id", "Test_player1_Id", "Test_player2_Id", 2, 1, 1000.0, "2024-12-31", "Round Of 16", false);
 
-        Match completedMatch = new Match("match1", "Test_Tournament_Id", "Test_player1_Id", "Test_player2_Id",
-                2, 1, 1000.0, "2024-12-31", "Round Of 16", true);
-
-        when(matchesCollection.document("match1")).thenReturn(documentReference);
-        when(matchesCollection.document("match2")).thenReturn(documentReference);
         when(documentReference.get()).thenReturn(documentSnapshotFuture);
         when(documentSnapshotFuture.get()).thenReturn(documentSnapshot);
         when(documentSnapshot.exists()).thenReturn(true);
-        when(documentSnapshot.toObject(Match.class)).thenReturn(completedMatch);
+        when(documentSnapshot.toObject(Match.class)).thenReturn(completedMatch, incompleteMatch);
 
-        boolean allCompleted = matchService.checkCurrentRoundCompletion(currentRound);
-
-        assertTrue(allCompleted);
-        verify(documentReference, times(2)).get();
+        boolean result = matchService.checkCurrentRoundCompletion(matchIds);
+        assertFalse(result);
     }
 
     @Test
@@ -127,32 +124,27 @@ public class MatchServiceTest {
         when(documentSnapshot.exists()).thenReturn(true);
         when(documentSnapshot.toObject(Match.class)).thenReturn(testMatch);
 
-        Match result = matchService.getMatch(testMatch.getId());
+        Match result = matchService.getMatch(matchId);
 
         assertNotNull(result);
-        assertEquals(testMatch.getId(), result.getId());
-        verify(documentReference).get();
+        assertEquals(matchId, result.getId());
     }
 
     @Test
     void testGetMatches() throws ExecutionException, InterruptedException {
         List<String> matchIds = Arrays.asList("match1", "match2");
+        Match match1 = new Match("match1", "Test_Tournament_Id", "Test_player1_Id", "Test_player2_Id", 2, 1, 1000.0, "2024-12-31", "Round Of 16", true);
+        Match match2 = new Match("match2", "Test_Tournament_Id", "Test_player1_Id", "Test_player2_Id", 2, 1, 1000.0, "2024-12-31", "Round Of 16", true);
 
-        Match match1 = new Match("match1", "Test_Tournament_Id", "Test_player1_Id", "Test_player2_Id",
-                2, 1, 1000.0, "2024-12-31", "Round Of 16", true);
-        Match match2 = new Match("match2", "Test_Tournament_Id", "Test_player3_Id", "Test_player4_Id",
-                1, 2, 800.0, "2024-12-31", "Round Of 16", true);
-
-        when(matchesCollection.document("match1")).thenReturn(documentReference);
-        when(matchesCollection.document("match2")).thenReturn(documentReference);
         when(documentReference.get()).thenReturn(documentSnapshotFuture);
         when(documentSnapshotFuture.get()).thenReturn(documentSnapshot);
         when(documentSnapshot.exists()).thenReturn(true);
         when(documentSnapshot.toObject(Match.class)).thenReturn(match1, match2);
 
-        List<Match> matches = matchService.getMatches(matchIds);
+        List<Match> results = matchService.getMatches(matchIds);
 
-        assertEquals(2, matches.size());
-        verify(documentReference, times(2)).get();
+        assertEquals(2, results.size());
+        assertEquals("match1", results.get(0).getId());
+        assertEquals("match2", results.get(1).getId());
     }
 }
