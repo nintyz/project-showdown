@@ -87,51 +87,28 @@ public class UserService implements UserDetailsService {
     return response;
   }
 
-  public List<UserDTO> getAllPlayers() throws ExecutionException, InterruptedException {
+  public List<UserDTO> getAllUsersByRole(String role) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
-    Query playersCollection = db.collection("users").whereEqualTo("role", "player");
+    Query playersCollection = db.collection("users").whereEqualTo("role", role);
     ApiFuture<QuerySnapshot> future = playersCollection.get();
     List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 
     // Prepare a list to hold each document's data
-    List<UserDTO> players = new ArrayList<>();
+    List<UserDTO> users = new ArrayList<>();
 
     // Iterate through the documents and add their data to the list
     for (DocumentSnapshot document : documents) {
       if (document.exists()) {
         // Add document data to the list
-        UserDTO currentPlayer = document.toObject(UserDTO.class);
+        UserDTO currentUser = document.toObject(UserDTO.class);
         // set id.
-        currentPlayer.setId(document.getId());
-        players.add(currentPlayer);
-
+        currentUser.setId(document.getId());
+        users.add(currentUser);
       }
     }
-    return players; // Return the list of players
+    return users; // Return the list of players
   }
 
-  public List<UserDTO> getAllOrganizers() throws ExecutionException, InterruptedException {
-    Firestore db = getFirestore();
-    Query playersCollection = db.collection("users").whereEqualTo("role", "organizer");
-    ApiFuture<QuerySnapshot> future = playersCollection.get();
-    List<QueryDocumentSnapshot> documents = future.get().getDocuments();
-
-    // Prepare a list to hold each document's data
-    List<UserDTO> organizers = new ArrayList<>();
-
-    // Iterate through the documents and add their data to the list
-    for (DocumentSnapshot document : documents) {
-      if (document.exists()) {
-        // Add document data to the list
-        UserDTO currentOrganizer = document.toObject(UserDTO.class);
-        // set id.
-        currentOrganizer.setId(document.getId());
-
-        organizers.add(currentOrganizer);
-      }
-    }
-    return organizers; // Return the list of organizers
-  }
 
   public String getUserIdByEmail(String email) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
