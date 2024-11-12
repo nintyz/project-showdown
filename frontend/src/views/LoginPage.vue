@@ -91,7 +91,7 @@
 
             // Redirect based on role
             if (role === 'admin') {
-              this.$router.push('/admin-dashboard');
+              this.$router.push('/all-tournaments-dashboard');
             } else {
               this.$router.push('/dashboard');
             }

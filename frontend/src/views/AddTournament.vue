@@ -128,7 +128,7 @@ export default {
                 formData.append('logo', this.tournament.logo); // Optional: add image file if selected
 
                 // Call the endpoint including the organizerId in the path
-                const response = await axios.post(`http://localhost:8080/admin-dashboard/${this.organizerId}`, formData, {
+                const response = await axios.post(`http://localhost:8080/all-tournaments-dashboard/${this.organizerId}`, formData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
                 

@@ -4,7 +4,7 @@ import LandingPage from '@/views/LandingPage.vue'
 import LoginPage from '@/views/LoginPage.vue'
 import DashboardPage from '@/views/DashboardPage.vue'
 // import PlayerProfile from '@/views/PlayerProfile.vue'
-import AdminDashboard from '@/views/AdminDashboard.vue'
+import AdminDashboard from '@/views/AllTournamentsDashboard.vue'
 import AdminOrganizers from '@/views/AdminOrganizers.vue'
 import AddTournament from '@/views/AddTournament.vue'
 import SignUp from '@/views/SignUp.vue'
@@ -55,7 +55,7 @@ const routes = [
         component: DashboardPageTwo,
     },
     {
-        path: '/profile',
+        path: '/profile/player',
         name: 'PersonalProfile',
         component: PersonalProfile,
     },
@@ -72,7 +72,7 @@ const routes = [
         component: EditProfile,
     },
     {
-        path: '/admin-dashboard',
+        path: '/all-tournaments-dashboard',
         name: 'AdminDashboard',
         component: AdminDashboard,
     },

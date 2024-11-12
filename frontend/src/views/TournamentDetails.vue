@@ -204,7 +204,7 @@ export default {
                 try {
                     await axios.put(`http://localhost:8080/tournament/${this.$route.params.id}/${this.userId}`, { status: 'Cancelled' });
                     this.showNotification('Tournament cancelled successfully.', 'success');
-                    this.$router.push('/admin-dashboard');
+                    this.$router.push('/all-tournaments-dashboard');
                 } catch (error) {
                     console.error('Error cancelling tournament:', error);
                     this.showNotification('Failed to cancel the tournament.', 'error');

@@ -17,12 +17,12 @@
             </button>
         </div>
         </div>
-        <div v-else>
+        <!-- <div v-else>
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2>All tournaments</h2>
             </div>
 
-        </div>
+        </div> -->
 
         <div v-for="(tournament, index) in tournaments" :key="index"
             class="tournament-card row mb-4 p-4 align-items-center" @click="viewTournament(tournament.id)">
@@ -55,7 +55,7 @@ export default {
             tournaments: [],
             activeTab: 0,
             defaultLogo: 'https://via.placeholder.com/100',
-            role: localStorage.getItem("role") || "guest",
+            role: localStorage.getItem("role")|| "guest",
             userId: localStorage.getItem("userId"),
         };
     },
