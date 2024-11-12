@@ -19,12 +19,12 @@ public class EmailService {
         ClassPathResource imageResource = new ClassPathResource("static/ShowdownLogo.png");
         System.out.println("Sending email....");
         
+        helper.setFrom("projectshowndown@gmail.com");
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(text, true);
         helper.addInline("showdown-logo.png", imageResource);
         
-
         emailSender.send(message);
     }
 
