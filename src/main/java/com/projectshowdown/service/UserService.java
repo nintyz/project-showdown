@@ -171,8 +171,9 @@ public class UserService implements UserDetailsService {
     // Convert User object to UserDTO and set the generated ID
     UserDTO userDTO = UserMapper.toUserDTO(userData);
     userDTO.setId(generatedId);
-    BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-    userDTO.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+
+    System.out.println("USER PASSWORD:" + userDTO.getPassword());
+
 
     // Save the updated UserDTO to Firestore
     ApiFuture<WriteResult> writeResult = docRef.set(userDTO);
