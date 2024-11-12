@@ -2,41 +2,21 @@
   <div class="verify-container">
     <div class="verify-box">
       <img src="@/assets/logo.png" alt="Logo" class="logo">
-
       <h2>Two-Factor Authentication</h2>
-      <p class="instruction">
-        Please enter the 6-digit code from your authenticator app
-      </p>
+      <p>Please enter the 6-digit code from your authenticator app</p>
 
       <div class="verification-form">
         <div class="code-input">
-          <input
-              type="text"
-              v-model="twoFactorCode"
-              placeholder="Enter 2FA code"
-              maxlength="6"
-              :disabled="isLoading"
-              @keypress="numberOnly($event)"
-          />
+          <input type="text" v-model="twoFactorCode" placeholder="Enter 2FA code" maxlength="6" :disabled="isLoading"
+            @keypress="numberOnly($event)" />
         </div>
 
-        <button
-            @click="verify2FA"
-            :disabled="isLoading || !isValidCode"
-            class="verify-btn"
-        >
+        <button @click="verify2FA" :disabled="isLoading || !isValidCode" class="verify-btn">
           {{ isLoading ? 'Verifying...' : 'Verify' }}
         </button>
 
-        <div v-if="error" class="error-message">
-          {{ error }}
-        </div>
-        <div v-if="success" class="success-message">
-          {{ success }}
-          <div v-if="redirectCountdown > 0" class="redirect-countdown">
-            Redirecting to dashboard...
-          </div>
-        </div>
+        <div v-if="error" class="error-message">{{ error }}</div>
+        <div v-if="success" class="success-message">{{ success }}</div>
       </div>
     </div>
   </div>
@@ -46,16 +26,14 @@
 import axios from 'axios';
 
 export default {
-  name: 'Verify2FA',
   data() {
     return {
-      email: '',
+      email: this.$route.query.email,
       twoFactorCode: '',
       error: null,
       success: null,
       isLoading: false,
-      redirectCountdown: 0,
-      redirectInterval: null
+      role: localStorage.getItem("role"),
     };
   },
   computed: {
@@ -63,34 +41,7 @@ export default {
       return this.twoFactorCode.length === 6 && /^\d+$/.test(this.twoFactorCode);
     }
   },
-  created() {
-    this.email = this.$route.query.email;
-    if (!this.email) {
-      this.$router.push('/login');
-    }
-  },
-  beforeUnmount() {
-    if (this.redirectInterval) {
-      clearInterval(this.redirectInterval);
-    }
-  },
   methods: {
-    numberOnly(event) {
-      const charCode = (event.which) ? event.which : event.keyCode;
-      if (charCode > 31 && (charCode < 48 || charCode > 57)) {
-        event.preventDefault();
-      }
-    },
-    startRedirectCountdown(seconds) {
-      this.redirectCountdown = seconds;
-      this.redirectInterval = setInterval(() => {
-        if (this.redirectCountdown > 0) {
-          this.redirectCountdown--;
-        } else {
-          clearInterval(this.redirectInterval);
-        }
-      }, 1000);
-    },
     async verify2FA() {
       this.isLoading = true;
       this.error = null;
@@ -110,6 +61,7 @@ export default {
           localStorage.setItem('role', role);
 
           this.success = 'Two-factor authentication successful!';
+          this.redirectBasedOnRole();
 
           this.startRedirectCountdown(1.5);
           setTimeout(() => {
@@ -122,6 +74,19 @@ export default {
         this.error = error.response?.data || 'Verification failed. Please try again.';
       } finally {
         this.isLoading = false;
+      }
+    },
+    redirectBasedOnRole() {
+      if (this.role === 'player') {
+        this.$router.push('/user-details');
+      } else {
+        this.$router.push('/dashboard');
+      }
+    },
+    numberOnly(event) {
+      const charCode = event.which ? event.which : event.keyCode;
+      if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+        event.preventDefault();
       }
     },
     extractRoleFromToken(token) {
@@ -138,6 +103,7 @@ export default {
   }
 };
 </script>
+
 
 <style scoped>
 .verify-container {

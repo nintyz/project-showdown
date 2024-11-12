@@ -3,12 +3,13 @@ import { createRouter, createWebHistory } from 'vue-router'
 import LandingPage from '@/views/LandingPage.vue'
 import LoginPage from '@/views/LoginPage.vue'
 import DashboardPage from '@/views/DashboardPage.vue'
-import PlayerProfile from '@/views/PlayerProfile.vue'
-import AdminDashboard from '@/views/AdminDashboard.vue'
+// import PlayerProfile from '@/views/PlayerProfile.vue'
+import AdminDashboard from '@/views/AllTournamentsDashboard.vue'
+import AdminOrganizers from '@/views/AdminOrganizers.vue'
 import AddTournament from '@/views/AddTournament.vue'
 import SignUp from '@/views/SignUp.vue'
 import DashboardPageTwo from '@/views/DashboardPageTwo.vue'
-import AddUserDetails from '@/views/AddUserDetails.vue'
+import AddUserDetails from '@/views/Player/AddUserDetails.vue'
 import AllTournaments from '@/views/AllTournaments.vue'
 import TournamentDetails from '@/views/TournamentDetails.vue'
 import TournamentDashboard from '@/views/TournamentDashboard.vue'
@@ -16,6 +17,11 @@ import EditTournament from '@/views/EditTournament.vue'
 import OAuthCallback from "@/views/OAuthCallback.vue";
 import Verify from "@/views/VerifyAccount.vue";
 import Verify2FA from "@/views/Verify2FA.vue";
+import EditProfile from '@/views/UpdatePlayer.vue'
+import AllPlayers from '@/views/AllPlayers.vue'
+import PersonalProfile from '@/views/Player/PersonalProfile.vue'
+import SpecificPlayerProfile from '@/views/Player/SpecificPlayerProfile.vue'
+import MatchUpdate from '@/views/MatchUpdate.vue'
 
 const routes = [
     {
@@ -49,14 +55,31 @@ const routes = [
         component: DashboardPageTwo,
     },
     {
-        path: '/player-profile',
-        name: 'PlayerProfile',
-        component: PlayerProfile,
+        path: '/profile/player',
+        name: 'PersonalProfile',
+        component: PersonalProfile,
     },
     {
-        path: '/admin-dashboard',
+        path: '/player/:userId',
+        name: 'SpecificPlayerProfile',
+        component: SpecificPlayerProfile,
+        props: true,
+    },
+
+    {
+        path: '/edit-profile',
+        name: 'EditProfile',
+        component: EditProfile,
+    },
+    {
+        path: '/all-tournaments-dashboard',
         name: 'AdminDashboard',
         component: AdminDashboard,
+    },
+    {
+        path: '/admin-organizers',
+        name: 'AdminOrganizers',
+        component: AdminOrganizers,
     },
     {
         path: '/new-tournament',
@@ -94,7 +117,18 @@ const routes = [
         path: '/verify-2fa',
         name: 'Verify2FA',
         component: Verify2FA,
-    }
+    },
+    {
+        path: '/all-players',
+        name: 'AllPlayers',
+        component: AllPlayers,
+    },
+    {
+        path: '/match-management/:id',
+        name: 'MatchUpdate',
+        component: MatchUpdate,
+    },
+
 ]
 
 const router = createRouter({

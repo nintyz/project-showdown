@@ -9,47 +9,43 @@
       </p>
 
       <div class="verification-form">
-        <div class="code-input">
-          <input
-              type="text"
-              v-model="verificationCode"
-              placeholder="Enter verification code"
-              maxlength="6"
-              :disabled="isLoading"
-              @keypress="numberOnly($event)"
-          />
+        <!-- Email Verification Code Input -->
+        <div class="code-input" v-if="!isTwoFactorStep">
+          <input type="text" v-model="verificationCode" placeholder="Enter verification code" maxlength="6"
+            :disabled="isLoading" @keypress="numberOnly($event)" />
         </div>
 
-        <div class="resend-section">
-          <p style="margin-bottom: 0">Didn't receive the code?</p>
-          <button
-              @click="resendCode"
-              :disabled="isLoading || resendCooldown > 0"
-              class="resend-btn"
-          >
-            {{ resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : 'Resend code' }}
-          </button>
-        </div>
-
-        <button
-            @click="verifyAccount"
-            :disabled="isLoading || !isValidCode"
-            class="verify-btn"
-        >
+        <button @click="verifyAccount" :disabled="isLoading || !isValidCode" class="verify-btn" v-if="!isTwoFactorStep">
           {{ isLoading ? 'Verifying...' : 'Verify Account' }}
         </button>
 
-        <!-- ... resend section ... -->
-
-        <div v-if="error" class="error-message">
-          {{ error }}
+        <!-- Resend Code Button with Cooldown -->
+        <div v-if="!isTwoFactorStep && !isEmailVerified" class="resend-section">
+          <button @click="resendCode" :disabled="isLoadingResend || resendCooldown > 0" class="resend-btn">
+            {{ isLoadingResend ? 'Sending...' : resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : 'Resend Code'
+            }}
+          </button>
         </div>
-        <div v-if="success" class="success-message">
-          {{ success }}
-          <div v-if="redirectCountdown > 0" class="redirect-countdown">
-            Redirecting to dashboard...
+
+        <!-- Optional 2FA Enable Prompt -->
+        <div v-if="isEmailVerified && !isTwoFactorStep && source === 'signup'">
+          <p>Would you like to enable Two-Factor Authentication (2FA)?</p>
+          <div class="two-factor-buttons">
+            <button @click="enable2FA" class="enable-2fa-btn">Enable 2FA</button>
+            <button @click="skip2FA" class="skip-2fa-btn">Skip</button>
           </div>
         </div>
+
+        <!-- QR Code Display for 2FA Setup -->
+        <div v-if="isTwoFactorStep">
+          <h3>Scan this QR Code with your Authenticator App</h3>
+          <img :src="qrCodeImage" alt="QR Code for 2FA" class="qr-code" />
+          <button @click="finalize2FASetup" class="proceed-2fa-btn">Proceed</button>
+        </div>
+
+        <!-- Display Success/Error Messages -->
+        <div v-if="error" class="error-message">{{ error }}</div>
+        <div v-if="success" class="success-message">{{ success }}</div>
       </div>
     </div>
   </div>
@@ -59,7 +55,6 @@
 import axios from 'axios';
 
 export default {
-  name: 'VerifyAccount',
   data() {
     return {
       email: '',
@@ -67,20 +62,19 @@ export default {
       error: null,
       success: null,
       isLoading: false,
+      isLoadingResend: false,
+      isEmailVerified: false,
+      isTwoFactorStep: false,
+      qrCodeImage: '',
       resendCooldown: 0,
-      cooldownInterval: null
+      source: this.$route.query.source || 'login',
+      role: localStorage.getItem("role"),
     };
   },
   created() {
     this.email = this.$route.query.email;
-    this.verificationCode = this.$route.query.code || '';
     if (!this.email) {
-      this.$router.push('/login');
-    }
-  },
-  beforeUnmount() {
-    if (this.cooldownInterval) {
-      clearInterval(this.cooldownInterval);
+      this.$router.push('/signup');
     }
   },
   computed: {
@@ -89,33 +83,6 @@ export default {
     }
   },
   methods: {
-    numberOnly(event) {
-      const charCode = (event.which) ? event.which : event.keyCode;
-      if (charCode > 31 && (charCode < 48 || charCode > 57)) {
-        event.preventDefault();
-      }
-    },
-    startRedirectCountdown(seconds) {
-      this.redirectCountdown = seconds;
-      this.redirectInterval = setInterval(() => {
-        if (this.redirectCountdown > 0) {
-          this.redirectCountdown--;
-        } else {
-          clearInterval(this.redirectInterval);
-        }
-      }, 1000);
-    },
-    extractRoleFromToken(token) {
-      try {
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const payload = JSON.parse(window.atob(base64));
-        return payload.role || 'player'; // Default to PLAYER if no role found
-      } catch (error) {
-        console.error('Error extracting role from token:', error);
-        return 'player';
-      }
-    },
     async verifyAccount() {
       this.isLoading = true;
       this.error = null;
@@ -127,56 +94,31 @@ export default {
           verificationCode: this.verificationCode
         });
 
-        if (response.data === "Account is already verified") {
-          this.success = "Account is already verified.";
-          this.startRedirectCountdown(1.5);
-          setTimeout(() => {
-            this.$router.push('/dashboard');
-          }, 1500);
-          return;
+        this.success = response.data.message || 'Email verified successfully!';
+        this.isEmailVerified = true;
+        this.resendCooldown = 0; // Hide the resend section
+        if (response.data.token) {
+          localStorage.setItem("token", response.token);
         }
-
-        this.success = response.data.message || 'Account verified successfully!';
-
         if (response.data.status === 'requires_2fa') {
-          this.startRedirectCountdown(1.5);
-          setTimeout(() => {
-            this.$router.push(`/verify-2fa?email=${this.email}`);
-          }, 1500);
-        } else if (response.data.token) {
-          const token = response.data.token;
-          const role = "player"//this.extractRoleFromToken(token);
-
-          localStorage.setItem('token', token);
-          localStorage.setItem('role', role);
-
-          this.startRedirectCountdown(1.5);
-          setTimeout(() => {
-            this.$router.push('/dashboard');
-          }, 1500);
+          this.$router.push({ path: '/verify-2fa', query: { email: this.email } });
         }
       } catch (error) {
-        if (error.response?.data === "Account is already verified") {
-          this.success = "Account is already verified.";
-          this.startRedirectCountdown(1.5);
-          setTimeout(() => {
-            this.$router.push('/dashboard');
-          }, 1500);
-        } else {
-          this.error = error.response?.data || 'Verification failed. Please try again.';
-        }
+        this.error = error.response?.data || 'Verification failed. Please try again.';
       } finally {
         this.isLoading = false;
       }
     },
     async resendCode() {
-      this.isLoading = true;
+      if (this.resendCooldown > 0) return; // Prevent multiple clicks
+
+      this.isLoadingResend = true;
       this.error = null;
       this.success = null;
 
       try {
         await axios.post('http://localhost:8080/resend', null, {
-          params: {email: this.email}
+          params: { email: this.email }
         });
 
         this.success = 'New verification code sent!';
@@ -184,18 +126,44 @@ export default {
       } catch (error) {
         this.error = error.response?.data || 'Failed to resend code. Please try again.';
       } finally {
-        this.isLoading = false;
+        this.isLoadingResend = false;
       }
     },
     startResendCooldown() {
-      this.resendCooldown = 60; // 60 seconds cooldown
-      this.cooldownInterval = setInterval(() => {
+      this.resendCooldown = 60;
+      const interval = setInterval(() => {
         if (this.resendCooldown > 0) {
           this.resendCooldown--;
         } else {
-          clearInterval(this.cooldownInterval);
+          clearInterval(interval);
         }
       }, 1000);
+    },
+    async enable2FA() {
+      try {
+        const response = await axios.post('http://localhost:8080/enable-2fa', null, {
+          params: { email: this.email }
+        });
+        this.qrCodeImage = `data:image/png;base64,${response.data.qrCodeImage}`;
+        this.isTwoFactorStep = true;
+      } catch (error) {
+        console.error("Error enabling 2FA:", error.response?.data || error.message);
+      }
+    },
+    skip2FA() {
+      this.redirectToLanding();
+    },
+    finalize2FASetup() {
+      this.redirectToLanding();
+    },
+    redirectToLanding() {
+      this.$router.push('/');
+    },
+    numberOnly(event) {
+      const charCode = event.which ? event.which : event.keyCode;
+      if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+        event.preventDefault();
+      }
     }
   }
 };
@@ -258,9 +226,14 @@ h2 {
   box-shadow: 0 0 0 2px rgba(119, 107, 93, 0.2);
 }
 
-.verify-btn {
+.verify-btn,
+.enable-2fa-btn,
+.skip-2fa-btn,
+.proceed-2fa-btn,
+.resend-btn {
   width: 100%;
   padding: 0.8rem;
+  margin-top: 0.5rem;
   background-color: #776b5d;
   color: white;
   border: none;
@@ -270,27 +243,39 @@ h2 {
   transition: background-color 0.3s;
 }
 
-.verify-btn:disabled {
+.enable-2fa-btn,
+.skip-2fa-btn {
+  background-color: #f3c623;
+}
+
+.proceed-2fa-btn {
+  background-color: #4caf50;
+}
+
+.verify-btn:disabled,
+.enable-2fa-btn:disabled,
+.skip-2fa-btn:disabled,
+.proceed-2fa-btn:disabled,
+.resend-btn:disabled {
   background-color: #ccc;
   cursor: not-allowed;
 }
 
-.resend-section {
-  color: #666;
+.two-factor-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
 }
 
-.resend-btn {
-  background: none;
-  border: none;
-  color: #776b5d;
-  text-decoration: underline;
-  cursor: pointer;
-  padding: 0.5rem;
+.two-factor-buttons button {
+  flex: 1;
+  margin: 0 0.5rem;
 }
 
-.resend-btn:disabled {
-  color: #ccc;
-  cursor: not-allowed;
+.qr-code {
+  width: 150px;
+  height: 150px;
+  margin: 1rem 0;
 }
 
 .error-message {

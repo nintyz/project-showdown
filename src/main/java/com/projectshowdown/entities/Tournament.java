@@ -10,12 +10,14 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.projectshowdown.dto.UserDTO;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Tournament {
     private String id;
 
@@ -23,19 +25,28 @@ public class Tournament {
     private String name;
     private int year;
     private String venue;
+    private String country;
+    // private String date;
     private String dateTime;
     private int numPlayers;
     private String status;
     private double minMMR;
     private double maxMMR;
     private String logoUrl;
-    private List<Round> rounds;
+    private List<Round> rounds = new ArrayList<>(); 
 
     private String organizerId;
     private List<String> users = new ArrayList<>();
 
     public List<Round> getRounds() {
+        if (this.rounds == null) {
+            this.rounds = new ArrayList<>();
+        }
         return this.rounds;
+    }
+    
+    public void setRounds(List<Round> rounds) {
+        this.rounds = rounds;
     }
 
     public void setId(String id) {
@@ -65,6 +76,15 @@ public class Tournament {
     public void setVenue(String venue) {
         this.venue = venue;
     }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
 
     public String getDateTime() {
         return dateTime;

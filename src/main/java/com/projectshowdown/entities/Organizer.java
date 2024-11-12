@@ -11,9 +11,13 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Organizer {
     String name;
-    boolean verified;
     String dateVerified;
     String bio;
     String country;
     String websiteLink;
+
+    public boolean checkVerified() {
+        return (getDateVerified() != null && !getDateVerified().equals("null"));
+
+    }
 }

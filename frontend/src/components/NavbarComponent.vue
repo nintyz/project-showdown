@@ -1,5 +1,5 @@
 <template>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container-fluid">
             <router-link to="/" class="navbar-brand">
                 <img src="@/assets/logo.png" alt="Logo" class="logo" />
@@ -12,45 +12,39 @@
 
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <!-- Links for All Pages -->
-                    <li v-if="role === 'player' || role === 'admin'" class="nav-item">
-                        <router-link :to="'/dashboard'" class="nav-link"
-                            :class="{ active: isActive('/dashboard') }">Dashboard</router-link>
+                    <!-- Common Links for All Roles -->
+                    <li class="nav-item" >
+                       <router-link to="/all-tournaments-dashboard" class="nav-link"
+                            :class="{ active: isActive('/all-tournaments-dashboard') }">All Tournaments</router-link>
                     </li>
 
-                    <!-- Links for Player Pages -->
+                    <!-- Role-Specific Links -->
                     <li v-if="role === 'player'" class="nav-item">
-                        <router-link :to="'/player-profile'" class="nav-link"
-                            :class="{ active: isActive('/player-profile') }">Player Profile</router-link>
+                        <router-link to="/profile/player" class="nav-link"
+                            :class="{ active: isActive('/profile/player') }">Player Profile</router-link>
                     </li>
 
-                    <!-- All Tournaments Link for Players -->
-                    <li v-if="role === 'player'" class="nav-item">
-                        <router-link :to="'/all-tournaments'" class="nav-link"
-                            :class="{ active: isActive('/all-tournaments') }">All Tournaments</router-link>
+                    
+                    <li v-if="role !== 'guest'" class="nav-item">
+                        <router-link to="/all-players" class="nav-link"
+                        :class="{ active: isActive('/all-players') }">All Players</router-link>
                     </li>
-
-                    <!-- Links for Admin Pages -->
+                    
                     <li v-if="role === 'admin'" class="nav-item">
-                        <router-link :to="'/admin-dashboard'" class="nav-link"
-                            :class="{ active: isActive('/admin-dashboard') }">Admin Dashboard</router-link>
+                        <router-link to="/admin-organizers" class="nav-link"
+                        :class="{ active: isActive('/admin-organizers') }">All Organizers</router-link>
                     </li>
-                    <li v-if="role === 'admin'" class="nav-item">
-                        <router-link :to="'/new-tournament'" class="nav-link"
-                            :class="{ active: isActive('/new-tournament') }">Add Tournament</router-link>
+                    
+                    <li v-if="role === 'organizer' || role === 'admin'" class="nav-item">
+                        <router-link to="/new-tournament" class="nav-link"
+                        :class="{ active: isActive('/new-tournament') }">Add Tournament</router-link>
                     </li>
-
-                    <!-- Links for Auth Pages -->
-                    <li v-if="route === 'LoginPage'" class="nav-item">
-                        <router-link :to="'/signup'" class="nav-link" :class="{ active: isActive('/signup') }">Sign
-                            Up</router-link>
-                    </li>
-                    <li v-if="route === 'SignUp'" class="nav-item">
-                        <router-link :to="'/login'" class="nav-link"
-                            :class="{ active: isActive('/login') }">Login</router-link>
+                    
+                    <li v-if="role === 'organizer'" class="nav-item">
+                        <router-link to="/profile/organizer" class="nav-link"
+                            :class="{ active: isActive('/profile/organizer') }">Profile</router-link>
                     </li>
 
-                    <!-- Logout Button -->
                     <li v-if="role !== 'guest'" class="nav-item">
                         <button class="nav-link logout-btn" @click="logout">Logout</button>
                     </li>
@@ -64,12 +58,18 @@
 export default {
     data() {
         return {
-            role: localStorage.getItem("role") || "guest", // Get role from localStorage
+            role: "player",
+            // role: localStorage.getItem("role")
         };
     },
     computed: {
-        route() {
-            return this.$route.name; // Get the current route name
+
+        profileRoute() {
+            return this.role === 'player'
+                ? '/profile/player'
+                : this.role === 'organizer'
+                ? '/profile/organizer'
+                : '/profile/organizer';
         },
     },
     methods: {
@@ -77,9 +77,9 @@ export default {
             return this.$route.path === path;
         },
         logout() {
-            localStorage.clear(); // Clear all localStorage
-            this.role = "guest"; // Reset the role to guest
-            this.$router.push("/login"); // Redirect to login page
+            localStorage.clear();
+            this.role = "guest";
+            this.$router.push("/login");
         },
     },
 };
@@ -87,40 +87,55 @@ export default {
 
 <style scoped>
 .logo {
-    width: 150px;
+    width: 120px;
+    transition: transform 0.3s ease;
 }
-
-.navbar-nav .nav-link {
-    margin-right: 20px;
-    color: #776b5d;
-    transition: color 0.3s ease;
-}
-
-.navbar-nav .nav-link:hover {
-    color: #b0a695;
-}
-
-.navbar-nav .nav-link.active {
-    font-weight: bold;
-    color: #b0a695;
-    /* Custom color for the active page */
-    border-bottom: 2px solid #b0a695;
-    /* Add a border at the bottom to indicate active state */
+.logo:hover {
+    transform: scale(1.1);
 }
 
 .navbar {
-    background-color: #f3eeea;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #ddd;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-nav .nav-link {
+    margin: 0 15px;
+    color: #555555;
+    font-weight: 500;
+    font-size: 16px;
+    transition: color 0.3s ease;
+}
+.navbar-nav .nav-link:hover {
+    color: #007bff;
+    text-decoration: underline;
+}
+
+.navbar-nav .nav-link.active {
+    font-weight: 600;
+    color: #007bff;
+    border-bottom: 2px solid #007bff;
 }
 
 .logout-btn {
     background: none;
     border: none;
-    color: #776b5d;
+    color: #555555;
+    font-weight: 500;
     cursor: pointer;
-    transition: color 0.3s ease;
+    transition: color 0.3s ease, text-decoration 0.3s ease;
+}
+.logout-btn:hover {
+    color: #007bff;
+    text-decoration: underline;
 }
 
-.logout-btn:hover {
-    color: #b0a695;
+@media (max-width: 768px) {
+    .navbar-nav .nav-link,
+    .logout-btn {
+        margin: 10px 0;
+        font-size: 15px;
+    }
 }
 </style>

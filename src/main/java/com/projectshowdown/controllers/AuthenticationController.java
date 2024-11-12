@@ -113,16 +113,29 @@ public class AuthenticationController {
             if (user.getTwoFactorSecret() != null) {
                 return ResponseEntity.ok(Map.of(
                         "status", "requires_2fa",
-                        "message", "Account verified successfully. 2FA required."
-                ));
+                        "message", "Account verified successfully. 2FA required."));
             } else {
                 String token = jwtUtil.generateToken(userDetails);
                 return ResponseEntity.ok(Map.of(
                         "status", "success",
                         "token", token,
-                        "message", "Account verified successfully"
-                ));
+                        "message", "Account verified successfully"));
             }
+        } catch (RuntimeException | ExecutionException | InterruptedException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/send-verification-email")
+    public ResponseEntity<?> sendVerificationEmail(@RequestBody String email) {
+        try {
+            // Retrieve the UserDTO by email
+            UserDTO user = userService.getUser(userService.getUserIdByEmail(email));
+            
+            // Pass the UserDTO to sendVerificationEmail
+            authenticationService.sendVerificationEmail(user);
+
+            return ResponseEntity.ok("Verification code sent");
         } catch (RuntimeException | ExecutionException | InterruptedException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

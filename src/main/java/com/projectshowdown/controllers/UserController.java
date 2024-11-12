@@ -31,7 +31,13 @@ public class UserController {
     // GET all players
     @GetMapping("/users")
     public List<UserDTO> getPlayers() throws ExecutionException, InterruptedException {
-        return userService.getAllPlayers();
+        return userService.getAllUsersByRole("player");
+    }
+
+    // GET all organizers
+    @GetMapping("/organizers")
+    public List<UserDTO> getOrganizers() throws ExecutionException, InterruptedException {
+        return userService.getAllUsersByRole("organizer");
     }
 
     // get specific player
