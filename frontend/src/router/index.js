@@ -124,7 +124,7 @@ const routes = [
         component: AllPlayers,
     },
     {
-        path: '/match-management',
+        path: '/match-management/:id',
         name: 'MatchUpdate',
         component: MatchUpdate,
     },

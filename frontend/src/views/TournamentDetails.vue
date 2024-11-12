@@ -32,11 +32,13 @@
             <div class="action-buttons mt-4">
                 <!-- Render for Players -->
                 <template v-if="role === 'player'">
+                    
                     <button v-if="!isUserRegistered" class="btn btn-outline-primary me-2"
-                        @click="registerForTournament">
-                        Register
+                        @click="registerForTournament" :disabled="isRegistrationFull || isRegistrationClosed">
+                        {{ registrationStatus }}
                     </button>
-                    <button v-else class="btn btn-outline-secondary me-2" @click="unregisterFromTournament">
+                    <button v-else-if="isUserRegistered" class="btn btn-outline-secondary me-2"
+                        @click="unregisterFromTournament">
                         Unregister
                     </button>
                     <button :disabled="bracketButtonDisabled" :class="{ 'btn-disabled': bracketButtonDisabled }"
@@ -55,6 +57,9 @@
                     <button :disabled="bracketButtonDisabled" :class="{ 'btn-disabled': bracketButtonDisabled }"
                         class="btn btn-outline-secondary me-2" @click="viewBrackets">
                         {{ bracketButtonText }}
+                    </button>
+                    <button class="btn btn-outline-warning me-2" @click="manageMatches">
+                        Manage Matches
                     </button>
                 </template>
 
@@ -87,7 +92,7 @@
 <script>
 import axios from 'axios';
 import Navbar from '@/components/NavbarComponent.vue';
-/* eslint-disable */
+
 export default {
     components: {
         Navbar,
@@ -97,7 +102,7 @@ export default {
             tournament: null,
             userId: 'n7T2VSiOZ2m0kuzEh9yJ', // Sample player ID
             defaultLogo: 'https://via.placeholder.com/150',
-            role: 'player', // Retrieve role from local storage
+            role: 'organizer', // Retrieve role from local storage
             users: [], // Store user data for registered players
             notification: {
                 message: '',
@@ -122,7 +127,19 @@ export default {
         isUserRegistered() {
             return this.tournament?.users?.includes(this.userId);
         },
+        isRegistrationFull() {
+            return this.tournament?.numPlayers === this.tournament?.users?.length;
+        },
+        isRegistrationClosed() {
+            return new Date(this.tournament.dateTime) < new Date();
+        },
+        registrationStatus() {
+            if (this.isRegistrationClosed) return 'Registration Closed';
+            if (this.isRegistrationFull) return 'Registration Full';
+            return 'Register';
+        },
         sortedPlayers() {
+             // eslint-disable-next-line
             return this.users.sort((a, b) => a.name.localeCompare(b.name));
         },
         bracketButtonText() {
@@ -181,9 +198,7 @@ export default {
         },
         async registerForTournament() {
             try {
-                const response = await axios.put(
-                    `http://localhost:8080/tournament/${this.tournament.id}/register/${this.userId}`
-                );
+                await axios.put(`http://localhost:8080/tournament/${this.tournament.id}/register/${this.userId}`);
                 this.showNotification('Successfully registered for the tournament.', 'success');
                 await this.fetchTournamentDetails();
             } catch (error) {
@@ -193,9 +208,7 @@ export default {
         },
         async unregisterFromTournament() {
             try {
-                const response = await axios.put(
-                    `http://localhost:8080/tournament/${this.tournament.id}/cancelRegistration/${this.userId}`
-                );
+                await axios.put(`http://localhost:8080/tournament/${this.tournament.id}/cancelRegistration/${this.userId}`);
                 this.showNotification('Successfully unregistered from the tournament.', 'success');
                 await this.fetchTournamentDetails();
                 this.users = this.users.filter((user) => user.id !== this.userId);
@@ -229,6 +242,10 @@ export default {
         },
         viewBrackets() {
             this.$router.push(`/tournament/${this.$route.params.id}/dashboard`);
+        },
+        manageMatches() {
+            this.$router.push({ name: 'MatchUpdate', params: { id: this.tournamentId } });
+
         },
     },
     mounted() {
@@ -304,11 +321,13 @@ h2 {
         opacity: 0;
         transform: translateY(-10px);
     }
+
     10%,
     90% {
         opacity: 1;
         transform: translateY(0);
     }
+
     100% {
         opacity: 0;
         transform: translateY(-10px);
@@ -318,7 +337,8 @@ h2 {
 .btn-outline-primary,
 .btn-outline-secondary,
 .btn-outline-success,
-.btn-outline-danger {
+.btn-outline-danger,
+.btn-outline-warning {
     background-color: #b0a695;
     color: white;
     border: none;
@@ -354,6 +374,14 @@ h2 {
 
 .btn-outline-danger:hover {
     background-color: #a71d2a;
+}
+
+.btn-outline-warning {
+    background-color: #ffc107;
+}
+
+.btn-outline-warning:hover {
+    background-color: #e0a800;
 }
 
 .btn-disabled {
@@ -404,6 +432,7 @@ h2 {
     0% {
         transform: rotate(0deg);
     }
+
     100% {
         transform: rotate(360deg);
     }
