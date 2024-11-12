@@ -25,7 +25,6 @@ public class EmailService {
         helper.setText(text, true);
         helper.addInline("showdown-logo.png", imageResource);
         
-
         emailSender.send(message);
     }
 
