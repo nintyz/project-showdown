@@ -85,6 +85,7 @@ public class SecurityConfig {
 
                         // organizers
                         .requestMatchers(HttpMethod.GET,  "/organizers").hasAuthority("admin")
+                        .requestMatchers(HttpMethod.GET,  "/pending-organizers").hasAuthority("admin")
                         .requestMatchers(HttpMethod.PUT,  "/organizer/*").hasAnyAuthority("admin","organizer")
                         .requestMatchers(HttpMethod.DELETE,  "/organizer/*").hasAuthority("admin")
                         .requestMatchers(HttpMethod.POST, "/addRandomData").permitAll()
