@@ -83,8 +83,8 @@
           console.log(response.data);
           this.organizers = response.data;
 
-          this.verifiedOrganizers = this.organizers.filter(organizer => organizer.organizerDetails.dateVerified != null && organizer.organizerDetails.dateVerified !== "null");
-          this.pendingOrganizers = this.organizers.filter(organizer => organizer.organizerDetails.dateVerified == null || organizer.organizerDetails.dateVerified === "null");
+          this.verifiedOrganizers = this.organizers.filter(organizer => organizer.organizerDetails.dateVerified != null);
+          this.pendingOrganizers = this.organizers.filter(organizer => organizer.organizerDetails.dateVerified == null);
         
         } catch (error) {
           console.error("Error fetching organizers:", error);
