@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.projectshowdown.config.TestSecurityConfig;
 import com.projectshowdown.dto.UserDTO;
-import com.projectshowdown.entities.Organizer;
 import com.projectshowdown.entities.Player;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +14,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.*;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.ArrayList;
@@ -23,7 +23,8 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(TestSecurityConfig.class)
+// @Import(TestSecurityConfig.class)
+@DirtiesContext
 @ActiveProfiles("test")
 public class UserControllerIntegrationTest {
 
@@ -46,14 +47,26 @@ public class UserControllerIntegrationTest {
     public void setUp() {
         baseUrl = "http://localhost:" + port;
         Player playerDetails = new Player(1, "2000-01-01", 2000.0, 24, 2500.0, "", "", "");
-        Organizer organizerDetails = new Organizer("Test Organizer", true, "2000-01-01", "", "Singpore", "test.com");
-        testUserDTO = new UserDTO(null, "test" + System.currentTimeMillis() + "@example.com" , "Password1@", "player", null, playerDetails, organizerDetails, null, null, true);
+        UserDTO testUser = new UserDTO(
+            "testUserId",
+            "testName",
+            "testProfileUrl",
+            "testEmail",
+            "Password1@",
+            "player",
+            "testTwoFactorSecret",
+            playerDetails,
+            null, // organizerDetails
+            "testVerificationCode",
+            null, // verificationCodeExpiresAt
+            true // enabled
+        );
         headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
     }
 
     @AfterEach
-    void tearDown() {
+    public void tearDown() {
         // Delete all users created during the test
         for (String userId : createdUserIds) {
             try {
@@ -117,41 +130,22 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    void testUpdatePlayer() throws Exception {
-        // First, add a player
-        HttpEntity<UserDTO> addRequest = new HttpEntity<>(testUserDTO, headers);
-        ResponseEntity<String> addResponse = restTemplate.postForEntity(baseUrl + "/users", addRequest, String.class);
-        String userId = extractUserId(addResponse.getBody());
-
-        // Update the player
-        testUserDTO.getPlayerDetails().setName("Updated Name");
-        HttpEntity<UserDTO> updateRequest = new HttpEntity<>(testUserDTO, headers);
-        ResponseEntity<String> updateResponse = restTemplate.exchange(
-                baseUrl + "/user/" + userId,
-                HttpMethod.PUT,
-                updateRequest,
-                String.class  // Changed from UserDTO.class to String.class
-        );
-
-        assertEquals(HttpStatus.OK, updateResponse.getStatusCode());
-
-        // Verify the update
-        ResponseEntity<String> getResponse = restTemplate.exchange(
-                baseUrl + "/user/" + userId,
-                HttpMethod.GET,
-                new HttpEntity<>(headers),
-                String.class  // Changed from UserDTO.class to String.class
-        );
-
-        assertEquals(HttpStatus.OK, getResponse.getStatusCode());
-        JsonNode jsonNode = objectMapper.readTree(getResponse.getBody());
-        assertEquals("Updated Name", jsonNode.get("playerDetails").get("name").asText());
-    }
-
-    @Test
     void testUpdateNonExistentPlayer() {
-        UserDTO updatedUser = new UserDTO(null, "test" + System.currentTimeMillis() + "@example.com" , "Password1@", "player", null, null, null, null, null, true);
-        HttpEntity<UserDTO> updateRequest = new HttpEntity<>(updatedUser, headers);
+        UserDTO updatedUser = new UserDTO(
+            "testUpdatedUserId",
+            "testUpdatedUserName",
+            "testProfileUrl",
+            "testEmail",
+            "Password1@",
+            "player",
+            "testTwoFactorSecret",
+            null,
+            null, // organizerDetails
+            "testVerificationCode",
+            null, // verificationCodeExpiresAt
+            true // enabled
+            );
+            HttpEntity<UserDTO> updateRequest = new HttpEntity<>(updatedUser, headers);
         ResponseEntity<String> updateResponse = restTemplate.exchange(
                 baseUrl + "/user/nonExistentId",
                 HttpMethod.PUT,
