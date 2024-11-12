@@ -2,7 +2,6 @@
     <Navbar />
     <div class="match-update" v-if="tournament">
         <h2>{{ tournament.name }} - Match Update</h2>
-
         <!-- Loading Screen -->
         <div v-if="loading" class="loading-screen">
             <div class="loading-content">
@@ -10,11 +9,19 @@
                 <p>Notifying players of updated match schedule...</p>
             </div>
         </div>
+        <!-- Completion Popup for Last Match Update -->
+        <div v-if="roundCompletedNotification" class="completion-popup">
+            <div class="popup-content">
+                <p>All matches in this round have been completed. We are processing the matchmaking for the next round in the backend. Please allow about one minute for updates to appear on the website.</p>
+                <button @click="roundCompletedNotification = false" class="btn-close">Close</button>
+            </div>
+        </div>
 
         <!-- Notification Popup -->
         <div v-if="notification.message" :class="['notification', notification.type]">
             {{ notification.message }}
         </div>
+
 
         <!-- Round Tabs -->
         <div class="tabs">
@@ -25,8 +32,8 @@
         </div>
 
         <!-- Match Details for Selected Round -->
-        <div class="matches">
-            <div v-if="selectedRound.matches && selectedRound.matches.length" class="round-section">
+        <div v-if="selectedRound && selectedRound.matches && selectedRound.matches.length" class="matches">
+            <div class="round-section">
                 <h3>Round {{ selectedRoundIndex + 1 }}</h3>
                 <div v-for="(match, matchIndex) in selectedRound.matches" :key="match.id" class="match-card">
                     <h4>Match {{ matchIndex + 1 }}</h4>
@@ -43,30 +50,35 @@
                         />
                     </div>
 
-                    <div class="scores">
+                    <div class="scores" :class="{ 'highlight-scores': match.player1Score > 0 || match.player2Score > 0 }">
                         <label>Player 1 Score:</label>
                         <input
                             v-model="match.player1Score"
                             type="number"
-                            :class="{ 'configured-input': match.player1Score !== 0 || match.player2Score !== 0 }"
+                            :class="{ 'configured-input': match.player1Score > 0 }"
                         />
                         <label>Player 2 Score:</label>
                         <input
                             v-model="match.player2Score"
                             type="number"
-                            :class="{ 'configured-input': match.player1Score !== 0 || match.player2Score !== 0 }"
+                            :class="{ 'configured-input': match.player2Score > 0 }"
                         />
                     </div>
 
                     <div class="action-buttons">
-                        <button @click="updateDateTime(match)" class="btn update-datetime">Update Date/Time</button>
-                        <button @click="updateScores(match)" class="btn update-scores">Update Scores</button>
+                        <button @click="updateDateTime(match)" class="btn update-datetime">
+                            <i class="icon-calendar"></i>Update Date/Time
+                        </button>
+                        <button @click="updateScores(match)" class="btn update-scores">
+                            <i class="icon-trophy"></i>Update Scores
+                        </button>
                     </div>
                 </div>
             </div>
-            <div v-else class="no-matches">
-                <p>This round has not started yet.</p>
-            </div>
+        </div>
+        
+        <div v-else class="not-started-message">
+            <p>Round {{ selectedRoundIndex + 1 }} has not started yet.</p>
         </div>
     </div>
     <div v-else class="loading-message">Loading tournament details...</div>
@@ -87,7 +99,8 @@ export default {
                 message: '',
                 type: ''
             },
-            loading: false // Loading state
+            roundCompletedNotification: false,
+            loading:false
         };
     },
     computed: {
@@ -100,9 +113,6 @@ export default {
             this.notification.message = message;
             this.notification.type = type;
             setTimeout(() => { this.notification.message = ''; }, 3000);
-        },
-        selectRound(index) {
-            this.selectedRoundIndex = index;
         },
         async fetchTournamentDetails() {
             const tournamentId = this.$route.params.id;
@@ -132,7 +142,6 @@ export default {
             }
         },
         async updateScores(match) {
-            this.loading = true;
             try {
                 await axios.put(`http://localhost:8080/match/${match.id}`, {
                     player1Score: match.player1Score,
@@ -140,12 +149,23 @@ export default {
                 });
                 this.showNotification('Scores updated successfully.', 'success');
                 match.updatedScore = true;
+
+                if (this.isLastMatchInRound()) {
+                    this.roundCompletedNotification = true;
+                }
             } catch (error) {
                 console.error('Error updating scores:', error);
                 this.showNotification('Failed to update the scores.', 'error');
-            } finally {
-                this.loading = false;
             }
+        },
+        isLastMatchInRound() {
+            const currentRound = this.rounds[this.selectedRoundIndex];
+            return currentRound && currentRound.matches.every(
+                m => m.player1Score > 0 || m.player2Score > 0
+            );
+        },
+        selectRound(index) {
+            this.selectedRoundIndex = index;
         }
     },
     mounted() {
@@ -176,8 +196,7 @@ h2 {
     font-weight: 600;
 }
 
-.round-section,
-.no-matches {
+.round-section {
     margin-bottom: 40px;
 }
 
@@ -185,7 +204,30 @@ h3 {
     font-size: 1.5rem;
     color: #333;
     margin-bottom: 20px;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 10px;
     text-align: left;
+}
+
+.tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.tab-button {
+    background-color: #f3eeea;
+    border: 1px solid #ccc;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    border-radius: 5px;
+    margin: 0 5px;
+}
+
+.tab-button.active, .tab-button:hover {
+    background-color: #776b5d;
+    color: white;
 }
 
 .match-card {
@@ -202,11 +244,31 @@ h3 {
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
 }
 
+.match-card h4 {
+    font-size: 1.25rem;
+    color: #444;
+    margin-bottom: 15px;
+    font-weight: 500;
+}
+
 .date-time,
 .scores {
     display: flex;
     flex-direction: column;
     margin-bottom: 15px;
+}
+
+.scores.highlight-scores input {
+    background-color: #f7f3eb;
+    /* border-color: #776b5d; */
+}
+
+.date-time label,
+.scores label {
+    font-weight: 500;
+    font-size: 1rem;
+    margin-bottom: 5px;
+    color: #555;
 }
 
 input[type="datetime-local"],
@@ -217,10 +279,12 @@ input[type="number"] {
     margin-bottom: 10px;
     font-size: 1rem;
     color: #333;
+    outline: none;
+    transition: border-color 0.2s;
 }
 
 .configured-input {
-    background-color: #f2e9d8;
+    background-color: #f7f3eb;
     border-color: #776b5d;
 }
 
@@ -245,32 +309,6 @@ input[type="number"] {
 .notification.error {
     background-color: #dc3545;
 }
-
-.tabs {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.tab-button {
-    padding: 10px 20px;
-    font-weight: 600;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.tab-button.active {
-    background-color: #776b5d;
-    color: white;
-}
-
-.tab-button:hover {
-    background-color: #d3c7b4;
-}
-
 .action-buttons {
     display: flex;
     gap: 10px;
@@ -279,20 +317,107 @@ input[type="number"] {
 }
 
 .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background-color: #776b5d;
     color: white;
+    border: none;
     padding: 10px 16px;
-    border-radius: 30px;
+    font-size: 1rem;
+    font-weight: 600;
     cursor: pointer;
+    border-radius: 30px;
     transition: background-color 0.3s ease;
+    margin: 0px 10px;
 }
 
-.btn.update-datetime {
+.btn .icon-calendar,
+.btn .icon-trophy {
+    font-size: 1.2rem;
+}
+
+.update-datetime {
     background-color: #776b5d;
+    width: 13em;
 }
 
-.btn.update-scores {
+.update-datetime:hover {
+    background-color: #776b5d92;
+    color: white;
+}
+
+.update-scores {
     background-color: #d07d7d;
+    width: 13em;
+}
+
+.update-scores:hover {
+    background-color: #d07d7da5;
+    color: white;
+}
+
+.completion-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.overlay-content {
+    background-color: #ffffff;
+    padding: 20px 30px;
+    border-radius: 8px;
+    text-align: center;
+    color: #333;
+    max-width: 500px;
+}
+
+.overlay-btn {
+    background-color: #776b5d;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 30px;
+    margin: 10px;
+}
+
+@keyframes fade-in-out {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    10%,
+    90% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
 }
 
 .loading-screen {
