@@ -143,14 +143,20 @@ public class UserService implements UserDetailsService {
     }
   }
 
+  public boolean checkEmailExists(String email) throws ExecutionException, InterruptedException {
+    Firestore db = getFirestore();
+    // Generate a new document reference with a random ID
+    ApiFuture<QuerySnapshot> future = db.collection("users").whereEqualTo("email", email).get();
+
+    QuerySnapshot querySnapshot = future.get();
+    return !querySnapshot.isEmpty();
+
+  }
+
   // Method to add a new player document to the 'users' collection
   public String createUser(User userData) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
-    // Generate a new document reference with a random ID
-    ApiFuture<QuerySnapshot> future = db.collection("users").whereEqualTo("email", userData.getEmail()).get();
-
-    QuerySnapshot querySnapshot = future.get();
-    if (!querySnapshot.isEmpty()) {
+    if (checkEmailExists(userData.getEmail())) {
       return "A user account with the email " + userData.getEmail() + " already exists!";
     }
 
@@ -174,7 +180,6 @@ public class UserService implements UserDetailsService {
 
     System.out.println("USER PASSWORD:" + userDTO.getPassword());
 
-
     // Save the updated UserDTO to Firestore
     ApiFuture<WriteResult> writeResult = docRef.set(userDTO);
 
@@ -186,6 +191,12 @@ public class UserService implements UserDetailsService {
   public String updateUser(String userId, Map<String, Object> userData)
       throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
+
+    if (userData.containsKey("email")) {
+      if (checkEmailExists((String) userData.get("email"))) {
+        return "A user account with the email " + userData.get("email") + " already exists!";
+      }
+    }
 
     if (userData.containsKey("password")) {
       BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
