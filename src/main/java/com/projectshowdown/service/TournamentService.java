@@ -156,6 +156,7 @@ public class TournamentService {
     }
 
     // Method to get specific tournament from Firebase with error handling
+
     public Map<String, Object> displayTournament(String tournamentId) throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
         Map<String, Object> response = new HashMap<>();
@@ -168,17 +169,15 @@ public class TournamentService {
         }
         response.putAll(tournamentSnapshot.getData());
 
-        // Step 2: Initialize rounds data, and check if rounds exist
+        // Step 2: Initialize rounds data if available
         List<Map<String, Object>> roundsData = new ArrayList<>();
         List<Map<String, Object>> rounds = (List<Map<String, Object>>) tournamentSnapshot.get("rounds");
 
-        // Check if rounds are present and iterate over each round
         if (rounds != null) {
             for (Map<String, Object> round : rounds) {
                 Map<String, Object> roundData = new HashMap<>();
                 roundData.put("name", round.get("name"));
 
-                // Initialize matches data, check if matches exist in the round
                 List<String> matchIds = (List<String>) round.get("matches");
                 List<Map<String, Object>> matchesData = new ArrayList<>();
 
@@ -190,53 +189,31 @@ public class TournamentService {
                         if (matchSnapshot.exists()) {
                             Map<String, Object> matchData = matchSnapshot.getData();
 
-                            // Fetch player1 and player2 data if available
+                            // Fetch player data if available
                             String player1Id = (String) matchData.get("player1Id");
                             String player2Id = (String) matchData.get("player2Id");
 
-                            if (player1Id != null && player2Id != null) {
-                                DocumentReference player1Ref = db.collection("users").document(player1Id);
-                                DocumentReference player2Ref = db.collection("users").document(player2Id);
-
-                                DocumentSnapshot player1Snapshot = player1Ref.get().get();
-                                DocumentSnapshot player2Snapshot = player2Ref.get().get();
-
+                            if (player1Id != null) {
+                                DocumentSnapshot player1Snapshot = db.collection("users").document(player1Id).get()
+                                        .get();
                                 if (player1Snapshot.exists()) {
                                     matchData.put("player1", player1Snapshot.getData());
-                                } else {
-                                    matchData.put("player1", "Player 1 data not found");
                                 }
-
+                            }
+                            if (player2Id != null) {
+                                DocumentSnapshot player2Snapshot = db.collection("users").document(player2Id).get()
+                                        .get();
                                 if (player2Snapshot.exists()) {
                                     matchData.put("player2", player2Snapshot.getData());
-                                } else {
-                                    matchData.put("player2", "Player 2 data not found");
                                 }
-                            } else {
-                                matchData.put("player1", "Player 1 ID missing");
-                                matchData.put("player2", "Player 2 ID missing");
                             }
                             matchesData.add(matchData);
-                        } else {
-                            // Handle missing match document
-                            Map<String, Object> missingMatchData = new HashMap<>();
-                            missingMatchData.put("matchId", matchId);
-                            missingMatchData.put("error", "Match data not found");
-                            matchesData.add(missingMatchData);
                         }
                     }
-                } else {
-                    roundData.put("matches", "No matches available for this round");
                 }
                 roundData.put("matches", matchesData);
                 roundsData.add(roundData);
             }
-        } else {
-            roundsData.add(new HashMap<>() {
-                {
-                    put("error", "No rounds data available");
-                }
-            });
         }
 
         // Step 4: Add rounds data to tournament data
@@ -318,65 +295,41 @@ public class TournamentService {
     }
 
     // Method to register a new player
-    public String registerUser(String tournamentId, String userId)
-            throws ExecutionException, InterruptedException {
+    public String registerUser(String tournamentId, String userId) throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
-
-        // Get a reference to the document
         DocumentReference docRef = db.collection("tournaments").document(tournamentId);
 
         // Check if the document exists
-        ApiFuture<DocumentSnapshot> future = docRef.get();
-        DocumentSnapshot document = future.get();
+        DocumentSnapshot document = docRef.get().get();
         if (!document.exists()) {
             throw new TournamentNotFoundException(tournamentId);
         }
 
-        // fetch data
-        UserDTO user = userService.getUser(userId);
         Tournament tournament = getTournament(tournamentId);
-
-        // check tournament started
-        if (tournament.getRounds().size() != 0) {
-            return "Tournament's has already begin";
+        if (tournament.getRounds() != null && tournament.getRounds().size() != 0) {
+            return "Tournament has already begun.";
         }
 
-        // check registration date over
+        UserDTO user = userService.getUser(userId);
         if (!tournament.checkDate(user)) {
             return "Tournament's registration date is already over!";
         }
-
-        // check mmr
         if (!tournament.checkUserEligibility(user)) {
-            return "Player with MMR " + user.getPlayerDetails().calculateMMR()
-                    + " is not eligible for this tournament (Allowed range: " + tournament.getMinMMR() + " - "
-                    + tournament.getMaxMMR() + ")";
+            return "Player MMR not eligible for this tournament.";
         }
 
-        System.out.println("player MMR:" + user.getPlayerDetails().calculateMMR());
-
+        // Get the current list of users and check if the user is already registered
         List<String> currentUsers = (List<String>) document.get("users");
-
-        if (currentUsers == null) {
-            currentUsers = new ArrayList<>(); // Initialize a new list if none exists
-        } else {
-            // check if user already registered.
-            for (String specificUser : currentUsers) {
-                if (specificUser.equals(userId)) {
-                    return "You have already registered for this Tournament!";
-                }
-            }
+        if (currentUsers == null)
+            currentUsers = new ArrayList<>();
+        if (currentUsers.contains(userId)) {
+            return "You have already registered for this tournament!";
         }
 
-        // Add the new player to the current list
+        // Add user to the list and update in Firebase
         currentUsers.add(userId);
-
-        // Update the 'players' field with the updated list
-        ApiFuture<WriteResult> writeResult = docRef.update("users", currentUsers);
-
-        // Return success message with the update time
-        return "UserId:" + userId + " has successfully joined Tournament with ID: " + tournamentId
-                + " successfully at: " + writeResult.get().getUpdateTime();
+        docRef.update("users", currentUsers).get(); // Ensure the update is completed
+        return "Successfully registered.";
     }
 
     // Method to register a new player
