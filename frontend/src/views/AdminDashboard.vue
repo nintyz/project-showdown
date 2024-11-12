@@ -9,9 +9,16 @@
 
         <!-- Tabs for Organizer Role -->
         <div v-if="isOrganizer">
-            <b-tabs v-model="activeTab" @change="fetchTournaments">
-                <b-tab title="All Tournaments" />
-                <b-tab title="My Tournaments" />
+            <b-tabs
+                v-model="activeTab"
+                @input="onTabChange"
+                class="custom-tabs"
+                align="centered"
+                pills
+                nav-wrapper-class="custom-tab-wrapper"
+            >
+                <b-tab title="All Tournaments"></b-tab>
+                <b-tab title="My Tournaments"></b-tab>
             </b-tabs>
         </div>
 
@@ -46,7 +53,7 @@ export default {
             activeTab: 0, // Track the active tab
             defaultLogo: 'https://via.placeholder.com/80', // Placeholder logo
             role: localStorage.getItem("role") || "guest", // Get role from local storage
-            organizerId: "anQ1ep6A96Wh5oNhidaJ", // Hardcoded organizer ID for demonstration
+            organizerId: localStorage.getItem("userId") || "guest", // Organizer ID from local storage
         };
     },
     computed: {
@@ -69,6 +76,9 @@ export default {
                     return "text-muted";
             }
         },
+        async onTabChange() {
+            await this.fetchTournaments(); // Call fetchTournaments when tab changes
+        },
         async fetchTournaments() {
             try {
                 let response;
@@ -83,7 +93,6 @@ export default {
                     ...tournament,
                     logoUrl: tournament.logoUrl || this.defaultLogo, // Set a default logo if none exists
                 }));
-                console.log("Tournaments fetched successfully.");
             } catch (error) {
                 console.error("Error fetching tournaments:", error);
             }
@@ -106,6 +115,28 @@ export default {
 h2 {
     font-family: 'Arial', sans-serif;
     color: #776b5d;
+}
+
+.custom-tabs .nav-item {
+    font-size: 16px;
+    font-weight: bold;
+    color: #776b5d;
+}
+
+.custom-tab-wrapper {
+    border-bottom: 2px solid #776b5d;
+}
+
+.custom-tabs .nav-link.active {
+    background-color: #776b5d;
+    color: #fff !important;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.custom-tabs .nav-link:hover {
+    background-color: #c9b8a8;
+    color: #fff;
 }
 
 .tournament-card {

@@ -54,13 +54,14 @@
                     <button class="btn btn-outline-success me-2" @click="progressTournament">
                         Progress Tournament
                     </button>
+                    <button class="btn btn-outline-warning me-2" @click="manageMatches">
+                        Manage Matches
+                    </button>
                     <button :disabled="bracketButtonDisabled" :class="{ 'btn-disabled': bracketButtonDisabled }"
                         class="btn btn-outline-secondary me-2" @click="viewBrackets">
                         {{ bracketButtonText }}
                     </button>
-                    <button class="btn btn-outline-warning me-2" @click="manageMatches">
-                        Manage Matches
-                    </button>
+
                 </template>
 
                 <!-- For other roles or non-specific access -->
@@ -189,7 +190,7 @@ export default {
                 try {
                     await axios.put(`http://localhost:8080/tournament/${this.$route.params.id}/${this.userId}`, { status: 'Cancelled' });
                     this.showNotification('Tournament cancelled successfully.', 'success');
-                    this.$router.push('/tournaments');
+                    this.$router.push('/admin-dashboard');
                 } catch (error) {
                     console.error('Error cancelling tournament:', error);
                     this.showNotification('Failed to cancel the tournament.', 'error');
