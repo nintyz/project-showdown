@@ -17,7 +17,7 @@ import EditTournament from '@/views/EditTournament.vue'
 import OAuthCallback from "@/views/OAuthCallback.vue";
 import Verify from "@/views/VerifyAccount.vue";
 import Verify2FA from "@/views/Verify2FA.vue";
-import EditProfile from '@/views/EditProfile.vue'
+import EditProfile from '@/views/UpdatePlayer.vue'
 import AllPlayers from '@/views/AllPlayers.vue'
 import PersonalProfile from '@/views/Player/PersonalProfile.vue'
 import SpecificPlayerProfile from '@/views/Player/SpecificPlayerProfile.vue'
