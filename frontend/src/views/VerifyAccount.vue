@@ -124,7 +124,8 @@ export default {
         this.success = response.data.message || 'Email verified successfully!';
         this.isEmailVerified = true;
         this.resendCooldown = 0; // Hide the resend section
-
+        console.log(response.token);
+        
         if (response.data.status === 'requires_2fa') {
           this.startRedirectCountdown(1.5);
           setTimeout(() => {
@@ -202,12 +203,12 @@ export default {
         this.$router.push('/dashboard');
       }
     },
-    numberOnly(event) {
-      const charCode = event.which ? event.which : event.keyCode;
-      if (charCode > 31 && (charCode < 48 || charCode > 57)) {
-        event.preventDefault();
-      }
-    }
+    // numberOnly(event) {
+    //   const charCode = event.which ? event.which : event.keyCode;
+    //   if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+    //     event.preventDefault();
+    //   }
+    // }
   }
 };
 </script>

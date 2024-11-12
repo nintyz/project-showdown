@@ -51,6 +51,7 @@
                 <textarea id="bio" v-model="localPlayerDetails.bio" placeholder="Enter a brief bio"></textarea>
             </div>
         </div>
+        
     </div>
 </template>
 
