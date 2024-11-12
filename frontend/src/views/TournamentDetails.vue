@@ -66,21 +66,21 @@
                 </div>
 
                 <!-- For other users or roles, display only the brackets button if available -->
-                <div class="action-buttons mt-4" v-else-if="bracketButtonText">
+                <!-- <div class="action-buttons mt-4" v-else-if="bracketButtonText">
                     <button :disabled="bracketButtonDisabled" :class="{ 'btn-disabled': bracketButtonDisabled }"
                         class="btn btn-outline-secondary me-2" @click="viewBrackets">
                         {{ bracketButtonText }}
                     </button>
-                </div>
+                </div> -->
 
 
                 <!-- For other roles or non-specific access -->
-                <template v-else>
+                <!-- <template v-else>
                     <button :disabled="bracketButtonDisabled" :class="{ 'btn-disabled': bracketButtonDisabled }"
                         class="btn btn-outline-secondary me-2" @click="viewBrackets">
                         {{ bracketButtonText }}
                     </button>
-                </template>
+                </template> -->
             </div>
         </div>
 
@@ -112,7 +112,7 @@ export default {
         return {
             tournament: null,
             defaultLogo: 'https://via.placeholder.com/150',
-            role: 'organizer', // Retrieve role from local storage
+            role: localStorage.getItem("role"), // Retrieve role from local storage
             users: [], // Store user data for registered players
             userId: localStorage.getItem("userId"),
             notification: {
