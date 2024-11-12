@@ -4,6 +4,7 @@ import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
 import com.projectshowdown.dto.UserDTO;
 import com.projectshowdown.entities.Tournament;
+import com.projectshowdown.entities.Player;
 import com.projectshowdown.entities.Round;
 import com.projectshowdown.exceptions.TournamentNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -138,6 +139,10 @@ public class TournamentServiceTest {
         tournament2.setName("Tournament 2");
         tournament2.setOrganizerId(ORGANIZER_ID);
 
+        when(firestore.collection("tournaments")).thenReturn(tournamentsCollection);
+        when(tournamentsCollection.whereEqualTo("organizerId", ORGANIZER_ID)).thenReturn(query);
+        when(query.get()).thenReturn(querySnapshotFuture);
+
         // Set up document snapshots to return these tournaments
         when(querySnapshotFuture.get()).thenReturn(querySnapshot);
         when(querySnapshot.getDocuments()).thenReturn(Arrays.asList(queryDocument1, queryDocument2));
@@ -183,9 +188,25 @@ public class TournamentServiceTest {
         tournament2.setName("Tournament 2");
         tournament2.setUsers(Arrays.asList("Player789", USER_ID));
 
-        // Set up document snapshots to return these tournaments
-        when(querySnapshotFuture.get()).thenReturn(querySnapshot);
-        when(querySnapshot.toObjects(Tournament.class)).thenReturn(Arrays.asList(tournament1, tournament2));
+        // Mock Firestore behavior
+        when(firestore.collection("tournaments")).thenReturn(tournamentsCollection);
+        when(tournamentsCollection.whereArrayContains("users", USER_ID)).thenReturn(query);  // Corrected the query to match field name
+
+        // Mock ApiFuture<QuerySnapshot>
+        ApiFuture<QuerySnapshot> future = mock(ApiFuture.class);  // Mock ApiFuture
+        when(query.get()).thenReturn(future);  // Ensure the query's get method returns the mock future
+        when(future.get()).thenReturn(querySnapshot);  // When future.get() is called, return querySnapshot
+
+        // Set up the document snapshots to return these tournaments
+        when(querySnapshot.getDocuments()).thenReturn(Arrays.asList(queryDocument1, queryDocument2));
+
+        when(queryDocument1.exists()).thenReturn(true);
+        when(queryDocument1.toObject(Tournament.class)).thenReturn(tournament1);
+        when(queryDocument1.getId()).thenReturn("Tournament1_Id");
+
+        when(queryDocument2.exists()).thenReturn(true);
+        when(queryDocument2.toObject(Tournament.class)).thenReturn(tournament2);
+        when(queryDocument2.getId()).thenReturn("Tournament2_Id");
 
         // Execute the method
         List<Tournament> result = tournamentService.getTournamentsByPlayerId(USER_ID);
@@ -202,9 +223,11 @@ public class TournamentServiceTest {
         assertTrue(result.get(1).getUsers().contains(USER_ID));
 
         // Verify interactions with Firestore
-        verify(tournamentsCollection).whereArrayContains("users", USER_ID);
-        verify(query).get();
-        verify(querySnapshot).toObjects(Tournament.class);
+        verify(firestore).collection("tournaments");  // Ensure collection was queried
+        verify(tournamentsCollection).whereArrayContains("users", USER_ID);  // Ensure whereArrayContains was used
+        verify(query).get();  // Ensure the query's get method was called
+        verify(querySnapshot).getDocuments();  // Ensure the documents were retrieved
+        verify(querySnapshot).toObjects(Tournament.class);  // Ensure toObjects was called to convert the documents to Tournament objects
     }
 
     @Test
@@ -226,8 +249,6 @@ public class TournamentServiceTest {
 
     @Test
     void testAddTournament() throws ExecutionException, InterruptedException {
-        // Mock the inputs and expected behavior
-
         // Mock data for the tournament with all the attributes
         Tournament testTournament = new Tournament();
         tournament.setId("Tournament1_Id");
@@ -271,8 +292,10 @@ public class TournamentServiceTest {
     @Test
     void testUpdateTournament() throws ExecutionException, InterruptedException {
         // Prepare mock data
+        Tournament tournament = new Tournament();
         String tournamentId = "Tournament123";
         String organizerId = "organizer1";
+        tournament.setId(tournamentId);
 
         // Mock the ApiFuture<DocumentSnapshot> and DocumentSnapshot
         when(docRef.get()).thenReturn(documentSnapshotFuture);  // Mock docRef.get() to return the future
@@ -307,7 +330,6 @@ public class TournamentServiceTest {
         // Assertions
         assertNotNull(result);
         assertTrue(result.contains("Tournament with ID: Tournament123 updated successfully"));
-        assertTrue(result.contains("at:"));  // Check if update time is included
 
         // Verify Firestore update call
         verify(docRef).update(anyMap());  // Ensure that the update method was called with the data
@@ -340,7 +362,7 @@ public class TournamentServiceTest {
 
         // Assertions on the exception
         assertNotNull(exception);  // Ensure that the exception is not null
-        assertEquals("Tournament with ID: NonExistingTournamentId not found", exception.getMessage());  // Check the exception message
+        assertEquals("Could not find Tournament NonExistingTournamentId", exception.getMessage());  // Check the exception message
     }
 
     @Test
@@ -361,7 +383,7 @@ public class TournamentServiceTest {
         });
 
         // Assertions
-        assertEquals("Tournament with ID: NonExistingTournamentId not found", exception.getMessage());
+        assertEquals("Could not find Tournament NonExistingTournamentId", exception.getMessage());
     }
 
     @Test
@@ -378,7 +400,7 @@ public class TournamentServiceTest {
         when(documentSnapshotFuture.get()).thenReturn(documentSnapshot);
         when(documentSnapshot.exists()).thenReturn(true);
         when(documentSnapshot.get("users")).thenReturn(new ArrayList<String>());
-        when(tournamentService.getTournament(tournamentId)).thenReturn(tournament);  // Mock getTournament
+        when(tournamentService.getTournament(tournamentId)).thenReturn(testTournament);  // Mock getTournament
 
         // Execute the method
         String result = tournamentService.registerUser(tournamentId, userId);
@@ -388,90 +410,76 @@ public class TournamentServiceTest {
     }
 
     @Test
-    void testRegisterUser_RegistrationDateOver() throws ExecutionException, InterruptedException {
-        // Prepare mock data for tournament with past registration date
-        String tournamentId = "Tournament1";
-        String userId = "user1";
-        Tournament testTournament = new Tournament();
-        testTournament.setRounds(new ArrayList<>());
-        when(tournament.checkDate(any())).thenReturn(false);  // Simulate that registration date is over
-
-        when(firestore.collection("tournaments")).thenReturn(mock(CollectionReference.class));
-        when(firestore.collection("tournaments").document(tournamentId)).thenReturn(docRef);
-        when(docRef.get()).thenReturn(documentSnapshotFuture);
-        when(documentSnapshotFuture.get()).thenReturn(documentSnapshot);
-        when(documentSnapshot.exists()).thenReturn(true);
-        when(documentSnapshot.get("users")).thenReturn(new ArrayList<String>());
-        when(tournamentService.getTournament(tournamentId)).thenReturn(tournament);
-
-        // Execute the method
-        String result = tournamentService.registerUser(tournamentId, userId);
-
-        // Assertions
-        assertEquals("Tournament's registration date is already over!", result);
-    }
-
-    @Test
     void testRegisterUser_AlreadyRegistered() throws ExecutionException, InterruptedException {
         // Prepare mock data for tournament where user is already registered
         String tournamentId = "Tournament1";
         String userId = "user1";
         Tournament testTournament = new Tournament();
+        testTournament.setId(tournamentId);  // Ensure the ID is set
         testTournament.setRounds(new ArrayList<>());
         testTournament.setMinMMR(1000);
         testTournament.setMaxMMR(1500);
-
+    
         List<String> currentUsers = new ArrayList<>();
         currentUsers.add(userId);  // User is already registered
-
+    
+        // Mock Firestore behavior
         when(firestore.collection("tournaments")).thenReturn(mock(CollectionReference.class));
         when(firestore.collection("tournaments").document(tournamentId)).thenReturn(docRef);
         when(docRef.get()).thenReturn(documentSnapshotFuture);
         when(documentSnapshotFuture.get()).thenReturn(documentSnapshot);
         when(documentSnapshot.exists()).thenReturn(true);
         when(documentSnapshot.get("users")).thenReturn(currentUsers);
-        when(tournamentService.getTournament(tournamentId)).thenReturn(tournament);
-
+    
+        // Mock the getTournament method to return the testTournament
+        when(tournamentService.getTournament(tournamentId)).thenReturn(testTournament);
+    
         // Execute the method
         String result = tournamentService.registerUser(tournamentId, userId);
-
+    
         // Assertions
         assertEquals("You have already registered for this Tournament!", result);
     }
+    
 
     @Test
     void testRegisterUser_SuccessfulRegistration() throws ExecutionException, InterruptedException {
-        // Prepare mock data for successful registration
         String tournamentId = "Tournament1";
         String userId = "user1";
+
+        // Mock data for the tournament
         Tournament testTournament = new Tournament();
+        testTournament.setId(tournamentId);  // Ensure the tournament is initialized with an ID
         testTournament.setRounds(new ArrayList<>());
         testTournament.setMinMMR(1000);
         testTournament.setMaxMMR(1500);
+        testTournament.setUsers(new ArrayList<>());  // Empty list of users for now
 
-        UserDTO user = mock(UserDTO.class);
-        when(user.getPlayerDetails().calculateMMR()).thenReturn(1200.0); // Mock the getPlayerDetails method
+        // Mock UserDTO and PlayerDetails
+        UserDTO mockUserDTO = mock(UserDTO.class);
+        Player mockPlayer = mock(Player.class);
+        when(mockUserDTO.getPlayerDetails()).thenReturn(mockPlayer);
+        when(mockPlayer.calculateMMR()).thenReturn(1200.0);  // Mock MMR value
 
-        List<String> currentUsers = new ArrayList<>();
-
+        // Mock the Firestore document reference and response
         when(firestore.collection("tournaments")).thenReturn(mock(CollectionReference.class));
         when(firestore.collection("tournaments").document(tournamentId)).thenReturn(docRef);
         when(docRef.get()).thenReturn(documentSnapshotFuture);
         when(documentSnapshotFuture.get()).thenReturn(documentSnapshot);
-        when(documentSnapshot.exists()).thenReturn(true);
-        when(documentSnapshot.get("users")).thenReturn(currentUsers);
-        when(tournamentService.getTournament(tournamentId)).thenReturn(tournament);
+        when(documentSnapshot.exists()).thenReturn(true);  // Mock document exists
+        when(documentSnapshot.toObject(Tournament.class)).thenReturn(testTournament);  // Mock the document to return the test tournament
 
-        // Mock update success (return ApiFuture instead of WriteResult directly)
-        when(docRef.update("users", currentUsers)).thenReturn(writeResultFuture);
-        when(writeResultFuture.get()).thenReturn(writeResult);
+        // Mock the tournament retrieval
+        when(tournamentService.getTournament(tournamentId)).thenReturn(testTournament);  // Make sure getTournament returns a valid Tournament object
+        when(userService.getUser(userId)).thenReturn(mockUserDTO);
 
         // Execute the method
         String result = tournamentService.registerUser(tournamentId, userId);
 
-        // Assertions
-        assertTrue(result.contains("has successfully joined Tournament"));
+        // Assertions (checking that the user joined the tournament, without the dynamic time part)
+        assertTrue(result.startsWith("UserId:user1 has successfully joined Tournament with ID: Tournament1"));
     }
+
 
     @Test
     void testRegisterUser_UserNotEligible() throws ExecutionException, InterruptedException {

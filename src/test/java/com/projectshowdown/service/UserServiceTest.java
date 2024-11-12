@@ -26,6 +26,7 @@ import com.google.api.core.ApiFutures;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.projectshowdown.dto.UserDTO;
@@ -37,7 +38,10 @@ import com.google.cloud.firestore.WriteResult;
 public class UserServiceTest {
 
     @Mock
-    private Firestore firestore;
+    Firestore firestore;
+
+    @Mock
+    CollectionReference collectionReference;
 
     @Mock
     private ApiFuture<QuerySnapshot> querySnapshotApiFuture;
@@ -63,6 +67,7 @@ public class UserServiceTest {
         mockUserDTO = new UserDTO();
         mockUserDTO.setEmail("testuser@example.com");
         mockUserDTO.setRole("player");
+        when(firestore.collection("users")).thenReturn(collectionReference);
     }
 
     @Test

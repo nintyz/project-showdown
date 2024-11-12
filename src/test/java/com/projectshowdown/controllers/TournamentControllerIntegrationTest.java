@@ -1,6 +1,5 @@
 package com.projectshowdown.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.projectshowdown.config.TestSecurityConfig;
 import com.projectshowdown.dto.UserDTO;
 import com.projectshowdown.entities.Player;
@@ -33,9 +32,6 @@ public class TournamentControllerIntegrationTest {
 
     @Autowired
     private TestRestTemplate restTemplate;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     private String baseUrl;
     private HttpHeaders headers;
@@ -75,6 +71,7 @@ public class TournamentControllerIntegrationTest {
         );
         System.out.println(response.getBody());
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertNotNull(response.getBody(), "Response body should not be null");
         assertTrue(response.getBody().contains("Tournament created successfully with ID:"));
 
         // Extract and store tournament ID for cleanup
@@ -116,13 +113,14 @@ public class TournamentControllerIntegrationTest {
         String tournamentId = extractTournamentId(createResponse.getBody());
 
         // Get the tournament
+        @SuppressWarnings("rawtypes")
         ResponseEntity<Map> response = restTemplate.getForEntity(
                 baseUrl + "/tournament/" + tournamentId,
                 Map.class
         );
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
+        assertNotNull(response.getBody(), "Response body should not be null");
         assertEquals("Test Tournament", response.getBody().get("name"));
     }
 
@@ -188,15 +186,18 @@ void testCancelTournament() throws Exception {
 
         // Assertions to verify cancellation
         assertEquals(HttpStatus.OK, cancelResponse.getStatusCode());
+        assertNotNull(cancelResponse.getBody(), "Cancel response body should not be null");
         assertTrue(cancelResponse.getBody().contains("updated successfully"));
         
         // Fetch the tournament to verify its status is now "cancelled"
+        @SuppressWarnings("rawtypes")
         ResponseEntity<Map> tournamentResponse = restTemplate.getForEntity(
                 baseUrl + "/tournament/" + tournamentId,
                 Map.class
         );
 
         assertEquals(HttpStatus.OK, tournamentResponse.getStatusCode());
+        assertNotNull(tournamentResponse.getBody(), "Tournament response body should not be null");
         assertEquals("cancelled", tournamentResponse.getBody().get("status"));
 }
 
@@ -206,15 +207,17 @@ void testCancelTournament() throws Exception {
         Player playerDetails = new Player(1, "2000-01-01", 1500.0, 24, 2500.0, "", "", "");
         UserDTO testUser = new UserDTO(
                 "testUserId",
-                "test" + System.currentTimeMillis() + "@example.com",
+                "testName",
+                "testProfileUrl",
+                "testEmail",
                 "Password1@",
                 "player",
-                null,
+                "testTwoFactorSecret",
                 playerDetails,
-                null,
-                null,
-                null,
-                true
+                null, // organizerDetails
+                "testVerificationCode",
+                null, // verificationCodeExpiresAt
+                true // enabled
         );
 
         HttpEntity<UserDTO> userRequest = new HttpEntity<>(testUser, headers);
