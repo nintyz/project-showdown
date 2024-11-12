@@ -1,0 +1,30 @@
+name: Project-Showdown
+
+services:
+  projectshowdown-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: projectshowdown-backend
+    image: nintyz/projectshowdown-api:1.1
+    ports:
+      - 8080:8080
+    networks:
+      - showdown-network
+
+  projectshowdown-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: projectshowdown-frontend
+    image: nintyz/projectshowdown-ui:1.0
+    ports:
+      - 3000:3000
+    networks:
+      - showdown-network
+    depends_on:
+      - projectshowdown-backend
+
+networks:
+  showdown-network:
+    driver: bridge
