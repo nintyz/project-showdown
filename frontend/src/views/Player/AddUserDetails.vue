@@ -5,9 +5,6 @@
     <div class="details-box-wrapper">
       <h1>Complete Your Profile</h1>
 
-      <!-- Display User ID -->
-      <p v-if="userId" class="user-id-display">User ID: {{ userId }}</p>
-
       <!-- New Player Checkbox -->
       <div class="form-group">
         <label>
@@ -78,10 +75,6 @@
 import axios from 'axios';
 
 export default {
-  created() {
-    this.userId = localStorage.getItem('userId');
-    console.log(this.userId);
-  },
   data() {
     return {
       fullname: '',
@@ -103,7 +96,7 @@ export default {
       if (newVal) {
         this.elo = 2000;
         this.peakElo = 2000;
-        this.rank = null;
+        this.rank = 0;
         this.calculatePeakAge();
       } else {
         // Clear fields if they uncheck "new player"

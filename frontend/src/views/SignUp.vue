@@ -8,10 +8,32 @@
             </div>
 
             <div class="signup-box">
-                <h1>Verify Email and Sign Up</h1>
+                <h1>{{ isVerificationStep ? 'Sign Up' : 'Complete Your Profile' }}</h1>
 
-                <!-- Sign Up Form -->
+                <!-- Step 1: Role selection and details form -->
                 <div v-if="!isVerificationStep">
+                    <!-- Role Dropdown -->
+                    <div class="form-group">
+                        <label for="role">Role</label>
+                        <select id="role" v-model="role">
+                            <option value="" disabled>Select your role</option>
+                            <option value="player">Player</option>
+                            <option value="organizer">Organizer</option>
+                        </select>
+                    </div>
+
+                    <!-- Conditionally Render Player/Organizer Details -->
+                    <PlayerDetailsForm v-if="role === 'player'" ref="playerForm" />
+                    <OrganizerDetailsForm v-if="role === 'organizer'" ref="organizerForm" />
+
+                    <!-- Next Button to Proceed to Email/Password Signup -->
+                    <button @click="goToVerificationStep" class="sign-up-btn" :disabled="!role">
+                        Next
+                    </button>
+                </div>
+
+                <!-- Step 2: Email and password signup fields -->
+                <div v-if="isVerificationStep">
                     <!-- Email Input -->
                     <div class="form-group">
                         <label for="email">Email</label>
@@ -37,23 +59,13 @@
                         </p>
                     </div>
 
-                    <!-- Role Dropdown -->
-                    <div class="form-group">
-                        <label for="role">Role</label>
-                        <select id="role" v-model="role">
-                            <option value="" disabled>Select your role</option>
-                            <option value="player">Player</option>
-                            <option value="organizer">Organizer</option>
-                        </select>
-                    </div>
-
                     <!-- Sign Up Button -->
                     <button @click="handleSignUp" class="sign-up-btn" :disabled="!isPasswordValid">
-                        Verify Email and Sign Up
+                        Sign Up
                     </button>
                 </div>
 
-                <!-- Display Success/Error Messages -->
+                <!-- Success/Error Messages -->
                 <p v-if="message" :class="{ success: success, error: !success }">{{ message }}</p>
             </div>
         </div>
@@ -61,18 +73,21 @@
 </template>
 
 <script>
+import PlayerDetailsForm from '@/components/PlayerDetailsForm.vue';
+import OrganizerDetailsForm from '@/components/OrganizerDetailsForm.vue';
 import axios from 'axios';
 
 export default {
+    components: { PlayerDetailsForm, OrganizerDetailsForm },
     data() {
         return {
+            role: '',
             email: '',
             password: '',
-            showPassword: false,
-            role: '',
             message: '',
             success: false,
-            isVerificationStep: false
+            isVerificationStep: false,
+            showPassword: false,
         };
     },
     computed: {
@@ -97,89 +112,45 @@ export default {
         isPasswordValid() {
             return this.requirementsMetCount === 5;
         },
-        isOAuth: false
-    },
-    created() {
-        // Get email from URL parameters
-        const email = this.$route.query.email;
-        const isOAuth = this.$route.query.oauth === 'true';
-
-        if (email) {
-            this.email = email;
-            this.isOAuth = isOAuth;
-        }
     },
     methods: {
+        goToVerificationStep() {
+            this.isVerificationStep = true;
+        },
         async handleSignUp() {
-            if (!this.email || !this.password || !this.role) {
-                this.message = "Please fill out all fields.";
+            if (!this.role || !this.email || !this.password) {
+                this.message = 'Please fill out all required fields.';
                 this.success = false;
                 return;
             }
 
-            if (!this.isPasswordValid) {
-                this.message = "Password does not meet the requirements.";
-                this.success = false;
-                return;
+            const userData = {
+                email: this.email,
+                password: this.password,
+                role: this.role,
+            };
+
+            if (this.role === 'player') {
+                userData.playerDetails = this.$refs.playerForm.getFormData();
+            } else if (this.role === 'organizer') {
+                userData.organizerDetails = this.$refs.organizerForm.getFormData();
             }
 
             try {
-                // Set organizerDetails or playerDetails to null based on the selected role
-                const requestData = {
-                    email: this.email,
-                    password: this.password,
-                    role: this.role,
-                    organizerDetails: this.role === 'player' ? {} : null, 
-                    playerDetails: this.role === 'organizer' ? {} : null,
-                };
-
-                // Call the backend to create the user and initiate email verification
-                const response = await axios.post('http://localhost:8080/users', requestData);
-                localStorage.setItem("role", this.role);
+                const response = await axios.post('http://localhost:8080/users', userData);
+                localStorage.setItem('userId', response.data.userId);
+                localStorage.setItem('role', this.role);
                 this.success = true;
-
-                console.log(response);
-
-                await new Promise(resolve => setTimeout(resolve, 1000));
-
-                // Send verification email after successful user creation
-                const sendEmail = await axios.post('http://localhost:8080/send-verification-email', this.email, {
-                    headers: {
-                        'Content-Type': 'text/plain'
-                    }
-                });
-                this.message = "Verification code sent to your email.";
-                this.isVerificationStep = true;
-                console.log(sendEmail);
-
-                // Redirect to the /verify page with the email as a query parameter
-                this.$router.push({ path: '/verify', query: { email: this.email, source: 'signup' } });
-
+                this.message = 'Sign-up successful! Verification email sent.';
             } catch (error) {
-                this.message = error.response?.data || "Sign-up failed. Please try again.";
+                this.message = error.response?.data || 'Sign-up failed. Please try again.';
                 this.success = false;
             }
-
         },
-
-
         togglePasswordVisibility() {
             this.showPassword = !this.showPassword;
         },
-
-        handleGoogleSignUp() {
-            // Perform Google sign-up
-            window.location.href = 'http://localhost:8080/oauth2/authorization/google';
-        },
-        handleFacebookSignUp() {
-            // Perform Facebook sign-up
-            window.location.href = 'http://localhost:8080/oauth2/authorization/facebook';
-        },
-        goToLogin() {
-            // Redirect to login page
-            this.$router.push('/login');
-        }
-    }
+    },
 };
 </script>
 
@@ -189,8 +160,8 @@ export default {
     flex-direction: column;
     align-items: center;
     background-color: #f3eeea;
-    height: 100vh;
     justify-content: center;
+    padding: 20px;
 }
 
 .logo {
@@ -206,13 +177,22 @@ export default {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
     overflow: hidden;
-    height: 660px;
+}
+
+.left-side {
+    width: 40%;
+}
+
+.full-size-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .signup-box {
     background-color: #ebe3d5;
     padding: 30px;
-    width: 50%;
+    width: 60%;
     display: flex;
     flex-direction: column;
 }
@@ -296,16 +276,6 @@ select {
 .sign-up-btn:disabled {
     background-color: #ccc;
     cursor: not-allowed;
-}
-
-.left-side {
-    width: 50%;
-}
-
-.full-size-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
 }
 
 .success {

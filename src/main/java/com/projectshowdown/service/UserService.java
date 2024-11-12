@@ -208,7 +208,7 @@ public class UserService implements UserDetailsService {
     ApiFuture<WriteResult> writeResult = docRef.update(filteredUpdates);
 
     // Return success message
-    return "User with ID: " + userId + " updated successfully at: " + writeResult.get().getUpdateTime();
+    return userId;
   }
 
   // Method to verify organizer account
