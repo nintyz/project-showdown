@@ -116,7 +116,7 @@ public class TournamentService {
         Query query = tournaments.whereArrayContains("users", userId);
         QuerySnapshot querySnapshot = query.get().get();
 
-        return querySnapshot.toObjects(Tournament.class);  // Converts the result to a list of Tournament objects
+        return querySnapshot.toObjects(Tournament.class); // Converts the result to a list of Tournament objects
     }
 
     // Method to save tournament details to Firestore
@@ -155,7 +155,7 @@ public class TournamentService {
         }
     }
 
-    // Method to get specific tournament from firebase.
+    // Method to get specific tournament from Firebase with error handling
     public Map<String, Object> displayTournament(String tournamentId) throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
         Map<String, Object> response = new HashMap<>();
@@ -168,42 +168,75 @@ public class TournamentService {
         }
         response.putAll(tournamentSnapshot.getData());
 
+        // Step 2: Initialize rounds data, and check if rounds exist
         List<Map<String, Object>> roundsData = new ArrayList<>();
-
-        // Step 2: Iterate over each round
         List<Map<String, Object>> rounds = (List<Map<String, Object>>) tournamentSnapshot.get("rounds");
-        for (Map<String, Object> round : rounds) {
-            Map<String, Object> roundData = new HashMap<>();
-            roundData.put("name", round.get("name"));
 
-            List<String> matchIds = (List<String>) round.get("matches");
-            List<Map<String, Object>> matchesData = new ArrayList<>();
+        // Check if rounds are present and iterate over each round
+        if (rounds != null) {
+            for (Map<String, Object> round : rounds) {
+                Map<String, Object> roundData = new HashMap<>();
+                roundData.put("name", round.get("name"));
 
-            // Step 3: Fetch each match in the round
-            for (String matchId : matchIds) {
-                DocumentReference matchRef = db.collection("matches").document(matchId);
-                DocumentSnapshot matchSnapshot = matchRef.get().get();
-                if (matchSnapshot.exists()) {
-                    Map<String, Object> matchData = matchSnapshot.getData();
-                    String player1Id = (String) matchData.get("player1Id");
-                    String player2Id = (String) matchData.get("player2Id");
+                // Initialize matches data, check if matches exist in the round
+                List<String> matchIds = (List<String>) round.get("matches");
+                List<Map<String, Object>> matchesData = new ArrayList<>();
 
-                    // Fetch player1 and player2 data
-                    DocumentReference player1Ref = db.collection("users").document(player1Id);
-                    DocumentReference player2Ref = db.collection("users").document(player2Id);
+                if (matchIds != null) {
+                    // Step 3: Fetch each match in the round
+                    for (String matchId : matchIds) {
+                        DocumentReference matchRef = db.collection("matches").document(matchId);
+                        DocumentSnapshot matchSnapshot = matchRef.get().get();
+                        if (matchSnapshot.exists()) {
+                            Map<String, Object> matchData = matchSnapshot.getData();
 
-                    DocumentSnapshot player1Snapshot = player1Ref.get().get();
-                    DocumentSnapshot player2Snapshot = player2Ref.get().get();
+                            // Fetch player1 and player2 data if available
+                            String player1Id = (String) matchData.get("player1Id");
+                            String player2Id = (String) matchData.get("player2Id");
 
-                    if (player1Snapshot.exists() && player2Snapshot.exists()) {
-                        matchData.put("player1", player1Snapshot.getData());
-                        matchData.put("player2", player2Snapshot.getData());
+                            if (player1Id != null && player2Id != null) {
+                                DocumentReference player1Ref = db.collection("users").document(player1Id);
+                                DocumentReference player2Ref = db.collection("users").document(player2Id);
+
+                                DocumentSnapshot player1Snapshot = player1Ref.get().get();
+                                DocumentSnapshot player2Snapshot = player2Ref.get().get();
+
+                                if (player1Snapshot.exists()) {
+                                    matchData.put("player1", player1Snapshot.getData());
+                                } else {
+                                    matchData.put("player1", "Player 1 data not found");
+                                }
+
+                                if (player2Snapshot.exists()) {
+                                    matchData.put("player2", player2Snapshot.getData());
+                                } else {
+                                    matchData.put("player2", "Player 2 data not found");
+                                }
+                            } else {
+                                matchData.put("player1", "Player 1 ID missing");
+                                matchData.put("player2", "Player 2 ID missing");
+                            }
+                            matchesData.add(matchData);
+                        } else {
+                            // Handle missing match document
+                            Map<String, Object> missingMatchData = new HashMap<>();
+                            missingMatchData.put("matchId", matchId);
+                            missingMatchData.put("error", "Match data not found");
+                            matchesData.add(missingMatchData);
+                        }
                     }
-                    matchesData.add(matchData);
+                } else {
+                    roundData.put("matches", "No matches available for this round");
                 }
+                roundData.put("matches", matchesData);
+                roundsData.add(roundData);
             }
-            roundData.put("matches", matchesData);
-            roundsData.add(roundData);
+        } else {
+            roundsData.add(new HashMap<>() {
+                {
+                    put("error", "No rounds data available");
+                }
+            });
         }
 
         // Step 4: Add rounds data to tournament data
@@ -246,7 +279,8 @@ public class TournamentService {
             // check if tournament has begun
             Tournament tournament = getTournament(tournamentId);
             if (tournament.inProgress()) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You are not allowed to cancel a tournament that has already begun!");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "You are not allowed to cancel a tournament that has already begun!");
             }
 
             // EMAIL NOTIFICATION TO LET REGISTERED PLAYERS KNOW ABOUT ITS CANCELLATION
@@ -279,9 +313,9 @@ public class TournamentService {
         }
 
         // Return success message with the update time
-        return "Tournament with ID: " + tournamentId + " updated successfully at: " + updateWriteResult.get().getUpdateTime();
+        return "Tournament with ID: " + tournamentId + " updated successfully at: "
+                + updateWriteResult.get().getUpdateTime();
     }
-
 
     // Method to register a new player
     public String registerUser(String tournamentId, String userId)
@@ -499,17 +533,19 @@ public class TournamentService {
             throws ExecutionException, InterruptedException {
         List<String> matches = new ArrayList<>(); // List to store match IDs
 
-        // Define seeded positions. Keys are match positions, values are indices of top-seeded users. Assuming 4 seeded players.
+        // Define seeded positions. Keys are match positions, values are indices of
+        // top-seeded users. Assuming 4 seeded players.
         Map<Integer, Integer> seedPositions = Map.of(
                 1, 0,
                 users.size() / 2, 1,
                 users.size() / 4, 2,
                 users.size() / 4 + 1, 3);
 
-        int left = 4; // Points to the strongest non-seeded player, as indexes 0 - 3 are seeded players
+        int left = 4; // Points to the strongest non-seeded player, as indexes 0 - 3 are seeded
+                      // players
         int right = users.size() - 1; // Points to the weakest non-seeded players
         List<Integer> usedPlayers = new ArrayList<>(); // Track users who have been matched already
-        
+
         // Loop to generate matches for each pair of players
         for (int i = 1; i <= users.size() / 2; i++) {
             User user1, user2;
@@ -532,14 +568,15 @@ public class TournamentService {
                 while (usedPlayers.contains(right))
                     right--; // Move right pointer to retrieve the next strongest player
 
-                user2 = users.get(right); // Pair with the next weakest user 
+                user2 = users.get(right); // Pair with the next weakest user
                 usedPlayers.add(right--); // Mark as used and decrement right pointer
             }
 
             // Create the match between the two selected players
             matches.add(createMatch(tournament, stage, user1, user2, totalMatches + matches.size() + 1));
 
-            // Send email notifications to both players about the match, however dateTime is TBC
+            // Send email notifications to both players about the match, however dateTime is
+            // TBC
             try {
                 System.out.println("Sending player match email ....");
                 notificationService.notifyPlayerMatched(

@@ -20,6 +20,9 @@ import EditProfile from '@/views/EditProfile.vue'
 import AllPlayers from '@/views/AllPlayers.vue'
 import PersonalProfile from '@/views/Player/PersonalProfile.vue'
 import SpecificPlayerProfile from '@/views/Player/SpecificPlayerProfile.vue'
+import AllTournamentsAdmin from '@/views/Admin/AllTournamentsAdmin.vue'
+import OrganizerTournaments from '@/views/Organizer/OrganizerTournaments.vue'
+import PlayerTournaments from '@/views/Player/PlayerTournaments.vue'
 
 const routes = [
     {
@@ -63,7 +66,7 @@ const routes = [
         component: SpecificPlayerProfile,
         props: true,
     },
-    
+
     {
         path: '/edit-profile',
         name: 'EditProfile',
@@ -115,6 +118,21 @@ const routes = [
         path: '/all-players',
         name: 'AllPlayers',
         component: AllPlayers,
+    },
+    {
+        path: '/admin/tournaments',
+        name: 'AllTournamentsAdmin',
+        component: AllTournamentsAdmin
+    },
+    {
+        path: '/organizer/tournaments',
+        name: 'OrganizerTournaments',
+        component: OrganizerTournaments
+    },
+    {
+        path: '/player/tournaments',
+        name: 'PlayerTournaments',
+        component: PlayerTournaments
     },
 ]
 

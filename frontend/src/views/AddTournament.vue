@@ -12,27 +12,16 @@
                         placeholder="Enter tournament name" required />
                 </div>
 
-                <!-- Tournament Date -->
+                <!-- Tournament Date and Time -->
                 <div class="mb-3">
-                    <label for="date" class="form-label">Registration Deadline</label>
-                    <input type="date" id="date" v-model="tournament.date" class="form-control" required />
-                </div>
-
-                <!-- Tournament Type (Dropdown) -->
-                <div class="mb-3">
-                    <label for="type" class="form-label">Tournament Type</label>
-                    <select id="type" v-model="tournament.type" class="form-control" required>
-                        <option value="clay">Clay</option>
-                        <option value="raw">Raw</option>
-                        <option value="hard">Hard</option>
-                    </select>
+                    <label for="dateTime" class="form-label">Registration Deadline</label>
+                    <input type="datetime-local" id="dateTime" v-model="tournament.dateTime" class="form-control" required />
                 </div>
 
                 <!-- Tournament Logo -->
                 <div class="mb-3">
                     <label for="tournamentLogo" class="form-label">Tournament Logo</label>
-                    <input type="file" id="tournamentLogo" @change="onFileChange" class="form-control" accept="image/*"
-                        required />
+                    <input type="file" id="tournamentLogo" @change="onFileChange" class="form-control" accept="image/*" />
                     <div v-if="tournament.logo" class="preview mt-3">
                         <h5>Logo Preview:</h5>
                         <img :src="tournament.logoPreview" alt="Tournament Logo Preview" class="img-fluid" />
@@ -88,7 +77,6 @@
         </div>
     </div>
 </template>
-
 <script>
 import axios from 'axios';
 import Navbar from '@/components/NavbarComponent.vue';
@@ -102,8 +90,7 @@ export default {
         return {
             tournament: {
                 name: '',
-                date: '',
-                type: '',
+                dateTime: '', // Updated to include both date and time
                 logo: null,
                 logoPreview: '',
                 numPlayers: 16,
@@ -112,6 +99,7 @@ export default {
                 country: '',
                 venue: '',
             },
+            organizerId: 'anQ1ep6A96Wh5oNhidaJ', // Hardcoded organizer ID for demonstration
         };
     },
     methods: {
@@ -125,20 +113,25 @@ export default {
         async submitForm() {
             try {
                 const formData = new FormData();
+                
+                // Append fields based on the specified format
                 formData.append('name', this.tournament.name);
-                formData.append('date', this.tournament.date);
-                formData.append('type', this.tournament.type);
-                formData.append('status', "upcoming")
-                formData.append('logo', this.tournament.logo);
+                formData.append('year', new Date(this.tournament.dateTime).getFullYear());
+                formData.append('type', 'Tournament');
+                formData.append('venue', this.tournament.venue);
+                formData.append('dateTime', this.tournament.dateTime);
                 formData.append('numPlayers', this.tournament.numPlayers);
+                formData.append('status', 'Registration');
                 formData.append('minMMR', this.tournament.minMMR);
                 formData.append('maxMMR', this.tournament.maxMMR);
                 formData.append('country', this.tournament.country);
-                formData.append('venue', this.tournament.venue);
+                formData.append('logo', this.tournament.logo); // Optional: add image file if selected
 
-                const response = await axios.post('http://localhost:8080/tournaments', formData, {
+                // Call the endpoint including the organizerId in the path
+                const response = await axios.post(`http://localhost:8080/tournaments/${this.organizerId}`, formData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
+                
                 console.log('Tournament created successfully:', response.data);
                 this.$router.push('/tournaments'); // Redirect to the tournaments list after creation
             } catch (error) {
@@ -152,7 +145,6 @@ export default {
     },
 };
 </script>
-
 <style scoped>
 .create-tournament-container {
     background-color: #f3eeea;

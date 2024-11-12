@@ -5,10 +5,12 @@
 
         <!-- Tournament Details Section -->
         <div class="details-card p-4 mb-4">
-            <img :src="tournament.logoUrl" alt="Tournament Logo" class="img-fluid tournament-logo mb-3" />
+            <img :src="tournament.logoUrl || defaultLogo" alt="Tournament Logo" class="img-fluid tournament-logo mb-3" />
             <p><strong>Location:</strong> {{ tournament.venue }}</p>
-            <p><strong>Date:</strong> {{ tournament.date }}</p>
-            <p><strong>Status:</strong> <span :class="getStatusClass(tournament.status)">{{ tournament.status }}</span>
+            <p><strong>Date:</strong> {{ formattedDateTime }}</p>
+            <p>
+                <strong>Status:</strong>
+                <span :class="getStatusClass(tournament.status)">{{ statusText }}</span>
             </p>
             <p><strong>Number of Players:</strong> {{ tournament.numPlayers }}</p>
             <p><strong>Minimum MMR:</strong> {{ tournament.minMMR }}</p>
@@ -16,9 +18,37 @@
 
             <!-- Action Buttons -->
             <div class="action-buttons mt-4">
-                <button class="btn btn-outline-primary me-2" @click="editTournament">Edit</button>
-                <button class="btn btn-outline-danger me-2" @click="deleteTournament">Delete</button>
-                <button class="btn btn-outline-secondary me-2" @click="viewBrackets">View Brackets</button>
+                <!-- For Players -->
+                <template v-if="isPlayer">
+                    <button v-if="!isUserRegistered" class="btn btn-outline-primary me-2" @click="registerForTournament">
+                        Register
+                    </button>
+                    <button v-else class="btn btn-outline-secondary me-2" @click="unregisterFromTournament">
+                        Unregister
+                    </button>
+                    <button :disabled="bracketButtonDisabled" class="btn btn-outline-secondary me-2" @click="viewBrackets">
+                        {{ bracketButtonText }}
+                    </button>
+                </template>
+
+                <!-- For Organizers -->
+                <template v-else-if="isOrganizer && isUserOrganizer">
+                    <button class="btn btn-outline-primary me-2" @click="editTournament">Edit</button>
+                    <button class="btn btn-outline-danger me-2" @click="cancelTournament">Cancel</button>
+                    <button :disabled="bracketButtonDisabled" class="btn btn-outline-secondary me-2" @click="viewBrackets">
+                        {{ bracketButtonText }}
+                    </button>
+                    <button class="btn btn-outline-success me-2" @click="progressTournament">
+                        Progress Tournament
+                    </button>
+                </template>
+
+                <!-- For Mutual Access -->
+                <template v-else>
+                    <button :disabled="bracketButtonDisabled" class="btn btn-outline-secondary me-2" @click="viewBrackets">
+                        {{ bracketButtonText }}
+                    </button>
+                </template>
             </div>
         </div>
 
@@ -28,6 +58,9 @@
             <div v-for="(player, index) in sortedPlayers" :key="player.id" class="player-info">
                 <h6>{{ index + 1 }}. {{ player.name }} || {{ player.playerDetails.country }}</h6>
             </div>
+        </div>
+        <div v-else>
+            <p>No players are currently registered for this tournament.</p>
         </div>
     </div>
 
@@ -46,72 +79,140 @@ export default {
     data() {
         return {
             tournament: null, // Will hold tournament data once fetched
+            userId: 'n7T2VSiOZ2m0kuzEh9yJ', // Hardcoded player ID
+            organizerId: 'anQ1ep6A96Wh5oNhidaJ', // Hardcoded organizer ID
+            defaultLogo: 'https://via.placeholder.com/150', // Default logo if none provided
         };
     },
     computed: {
+        isUserRegistered() {
+            return this.tournament.users && this.tournament.users.includes(this.userId);
+        },
+        isUserOrganizer() {
+            return this.tournament.organizerId === this.organizerId;
+        },
+        isPlayer() {
+            return this.userId === 'n7T2VSiOZ2m0kuzEh9yJ';
+        },
+        isOrganizer() {
+            return this.organizerId === 'anQ1ep6A96Wh5oNhidaJ';
+        },
         sortedPlayers() {
             const players = [];
 
-            // Collect all players from each match
-            this.tournament.rounds?.forEach(round => {
-                round.matches.forEach(match => {
-                    players.push(match.player1);
-                    players.push(match.player2);
+            if (this.tournament?.rounds && Array.isArray(this.tournament.rounds)) {
+                this.tournament.rounds.forEach((round) => {
+                    if (round.matches && Array.isArray(round.matches)) {
+                        round.matches.forEach((match) => {
+                            if (match.player1) players.push(match.player1);
+                            if (match.player2) players.push(match.player2);
+                        });
+                    }
                 });
-            });
+            }
 
-            // Remove duplicates and sort alphabetically by player name
-            const uniquePlayers = Array.from(new Set(players.map(p => p.id)))
-                .map(id => players.find(p => p.id === id))
-                .sort((a, b) => a.name.localeCompare(b.name)); // Use player.name directly
+            const uniquePlayers = Array.from(new Set(players.map((p) => p.id)))
+                .map((id) => players.find((p) => p.id === id))
+                .sort((a, b) => a.name.localeCompare(b.name));
 
             return uniquePlayers;
-        }
+        },
+        bracketButtonText() {
+            return this.tournament && this.tournament.rounds && this.tournament.rounds.length
+                ? 'View Brackets'
+                : 'Brackets Not Available Yet';
+        },
+        bracketButtonDisabled() {
+            return !this.tournament || !this.tournament.rounds || !this.tournament.rounds.length;
+        },
+        formattedDateTime() {
+            return new Date(this.tournament.dateTime).toLocaleString(undefined, {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+            });
+        },
+        statusText() {
+            return this.tournament.status === 'registration' ? 'Open for Registration' : this.tournament.status;
+        },
     },
-
     methods: {
         async fetchTournamentDetails() {
             const tournamentId = this.$route.params.id;
             try {
                 const response = await axios.get(`http://localhost:8080/tournament/${tournamentId}`);
                 this.tournament = response.data;
+                console.log(this.tournament);
+                
             } catch (error) {
-                console.error("Error fetching tournament details:", error);
+                console.error('Error fetching tournament details:', error);
             }
         },
         getStatusClass(status) {
             switch (status) {
-                case "Upcoming":
-                    return "text-warning";
-                case "Ongoing":
-                    return "text-success";
-                case "Ended":
-                    return "text-danger";
+                case 'Upcoming':
+                    return 'text-warning';
+                case 'Ongoing':
+                    return 'text-success';
+                case 'Ended':
+                    return 'text-danger';
                 default:
-                    return "text-muted";
+                    return 'text-muted';
             }
         },
         editTournament() {
             this.$router.push(`/tournament/${this.$route.params.id}/edit`);
         },
-        async deleteTournament() {
+        async cancelTournament() {
+            if (confirm('Are you sure you want to cancel this tournament?')) {
+                try {
+                    const tournamentId = this.$route.params.id;
+                    await axios.put(`http://localhost:8080/tournament/${tournamentId}/${this.organizerId}`, {
+                        status: 'Cancelled',
+                    });
+                    alert('Tournament cancelled successfully.');
+                    this.$router.push('/tournaments');
+                } catch (error) {
+                    console.error('Error cancelling tournament:', error);
+                    alert('Failed to cancel the tournament.');
+                }
+            }
+        },
+        async registerForTournament() {
             try {
-                const tournamentId = this.$route.params.id;
-                await axios.delete(`http://localhost:8080/tournament/${tournamentId}`);
-                console.log("Tournament deleted successfully.");
-                this.$router.push("/tournaments");
+                await axios.put(
+                    `http://localhost:8080/tournament/${this.tournament.id}/register/${this.userId}`
+                );
+                alert('Successfully registered for the tournament.');
+                await this.fetchTournamentDetails();
             } catch (error) {
-                console.error("Error deleting tournament:", error);
+                console.error('Error registering for tournament:', error);
+                alert('Failed to register for the tournament.');
+            }
+        },
+        async unregisterFromTournament() {
+            try {
+                await axios.put(
+                    `http://localhost:8080/tournament/${this.tournament.id}/cancelRegistration/${this.userId}`
+                );
+                alert('Successfully unregistered from the tournament.');
+                await this.fetchTournamentDetails();
+            } catch (error) {
+                console.error('Error unregistering from tournament:', error);
+                alert('Failed to unregister from the tournament.');
             }
         },
         async progressTournament() {
             const tournamentId = this.$route.params.id;
             try {
-                const response = await axios.put(`http://localhost:8080/tournament/${tournamentId}/matches`);
-                console.log("Tournament progressed successfully:", response.data);
+                await axios.put(`http://localhost:8080/tournament/${tournamentId}/matches`);
+                alert('Tournament progressed successfully.');
                 await this.fetchTournamentDetails(); // Refresh details to show updated rounds and matches
             } catch (error) {
-                console.error("Error progressing tournament:", error);
+                console.error('Error progressing tournament:', error);
+                alert('Failed to progress the tournament.');
             }
         },
         viewBrackets() {
@@ -123,6 +224,7 @@ export default {
     },
 };
 </script>
+
 
 <style scoped>
 .body {
@@ -148,22 +250,6 @@ h2 {
 .tournament-logo {
     width: 150px;
     height: auto;
-}
-
-.rounds-section h3 {
-    color: #776b5d;
-}
-
-.round-card {
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-.match-card {
-    background-color: #ebe3d5;
-    border-radius: 5px;
-    padding: 15px;
 }
 
 .player-info {
@@ -208,6 +294,16 @@ h2 {
 
 .action-buttons .btn-outline-secondary:hover {
     background-color: #5a6268;
+}
+
+.action-buttons .btn-outline-success {
+    background-color: #28a745;
+    color: white;
+    border: none;
+}
+
+.action-buttons .btn-outline-success:hover {
+    background-color: #218838;
 }
 
 .text-warning {

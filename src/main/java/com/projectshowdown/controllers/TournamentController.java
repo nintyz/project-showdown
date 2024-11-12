@@ -96,9 +96,38 @@ public class TournamentController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/tournaments/{organizerId}")
-    public String addTournament(@Valid @RequestBody Tournament tournamentData, @PathVariable String organizerId)
-            throws ExecutionException, InterruptedException {
-        return tournamentService.addTournament(tournamentData, organizerId);
+    public String addTournament(
+            @Valid @RequestParam String name,
+            @RequestParam String dateTime,
+            @RequestParam int numPlayers,
+            @RequestParam int year,
+            @RequestParam double minMMR,
+            @RequestParam double maxMMR,
+            @RequestParam String country,
+            @RequestParam String venue,
+            @RequestParam String status,
+            @RequestParam("logo") MultipartFile file,
+            @PathVariable String organizerId)
+            throws ExecutionException, InterruptedException, IOException {
+        Tournament tournament = new Tournament();
+        tournament.setName(name);
+        tournament.setDateTime(dateTime);
+        tournament.setYear(year);
+        tournament.setNumPlayers(numPlayers);
+        tournament.setMinMMR(minMMR);
+        tournament.setMaxMMR(maxMMR);
+        tournament.setCountry(country);
+        tournament.setVenue(venue);
+        tournament.setOrganizerId(organizerId);
+        tournament.setStatus(status);
+
+        String generatedId = tournamentService.addTournament(tournament, organizerId);
+        if (generatedId == null) {
+            throw new RuntimeException("Failed to create tournament");
+        }
+
+        tournamentService.uploadLogoToFirebase(generatedId, file);
+        return "Tournament created successfully with ID: " + generatedId;
     }
 
     @PutMapping("/tournament/{id}/{organizerId}")
