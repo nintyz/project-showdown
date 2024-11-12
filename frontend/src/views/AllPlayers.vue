@@ -1,57 +1,57 @@
 <template>
     <div class="all-players-container">
+        <Navbar />
+        <div class="container mt-4">
+            <h1 class="text-center mb-4">All Players</h1>
+            <div class="sort-container mb-3">
+                <label for="sortColumn" class="sort-label">Sort by:</label>
+                <select v-model="sortColumn" class="form-select" id="sortColumn">
+                    <option value="name">Name</option>
+                    <option value="country">Country</option>
+                    <option value="rank">Rank</option>
+                    <option value="elo">ELO</option>
+                </select>
+            </div>
+            <table class="players-table table table-striped table-hover">
+                <thead class="table-header">
+                    <tr>
+                        <th>Name</th>
+                        <th>Country</th>
+                        <th>Rank</th>
+                        <th>ELO</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="player in sortedPlayers" :key="player.id" @click="viewPlayer(player.id)"
+                        class="clickable-row">
+                        <td>{{ player.name || 'N/A' }}</td>
+                        <td>{{ player.playerDetails?.country || 'N/A' }}</td>
+                        <td>{{ player.playerDetails?.rank || 'N/A' }}</td>
+                        <td>{{ player.playerDetails?.elo || 'N/A' }}</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm"
+                                @click.stop="showDeleteModal(player.id)">Delete</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
 
-    <Navbar />
-    <div class="container mt-4">
-        <h1 class="text-center mb-4">All Players</h1>
-        <div class="sort-container mb-3">
-            <label for="sortColumn" class="sort-label">Sort by:</label>
-            <select v-model="sortColumn" class="form-select" id="sortColumn">
-                <option value="name">Name</option>
-                <option value="country">Country</option>
-                <option value="rank">Rank</option>
-                <option value="elo">ELO</option>
-            </select>
-        </div>
-        <table class="table table-striped table-hover">
-            <thead class="table-header">
-                <tr>
-                    <th>Name</th>
-                    <th>Country</th>
-                    <th>Rank</th>
-                    <th>ELO</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="player in sortedPlayers" :key="player.id">
-                    <td>{{ player.name || 'N/A' }}</td>
-                    <td>{{ player.playerDetails?.country || 'N/A' }}</td>
-                    <td>{{ player.playerDetails?.rank || 'N/A' }}</td>
-                    <td>{{ player.playerDetails?.elo || 'N/A' }}</td>
-                    <td>
-                        <button class="btn btn-primary btn-sm me-2" @click="viewPlayer(player.id)">View</button>
-                        <button class="btn btn-danger btn-sm" @click="showDeleteModal(player.id)">Delete</button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-
-        <!-- Delete Confirmation Modal -->
-        <div v-if="showModal" class="modal-backdrop">
-            <div class="modal-content">
-                <h5>Confirm Deletion</h5>
-                <p>Are you sure you want to delete this player?</p>
-                <div class="modal-actions">
-                    <button class="btn btn-secondary" @click="cancelDelete">Cancel</button>
-                    <button class="btn btn-danger" @click="deletePlayer(playerToDelete)">Delete</button>
+            <!-- Delete Confirmation Modal -->
+            <div v-if="showModal" class="modal-backdrop">
+                <div class="modal-content">
+                    <h5>Confirm Deletion</h5>
+                    <p>Are you sure you want to delete this player?</p>
+                    <div class="modal-actions">
+                        <button class="btn btn-secondary" @click="cancelDelete">Cancel</button>
+                        <button class="btn btn-danger" @click="deletePlayer(playerToDelete)">Delete</button>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Notification Message -->
-        <div v-if="notificationMessage" class="notification">{{ notificationMessage }}</div>
-    </div>
+            <!-- Notification Message -->
+            <div v-if="notificationMessage" class="notification">{{ notificationMessage }}</div>
+        </div>
     </div>
 </template>
 
@@ -133,6 +133,7 @@ export default {
 .all-players-container {
     background-color: #f3eeea;
 }
+
 .container {
     background-color: #f3f4f6;
     border-radius: 10px;
@@ -169,23 +170,16 @@ h1 {
     border: 1px solid #d1d5db;
 }
 
-.table {
-    border-collapse: separate;
-    width: 100%;
-    border-radius: 8px;
-    overflow: hidden;
-}
-
 .table-header {
     background-color: #4b5563;
-    color: white;
+    color: white !important;
+    /* Ensure text color is set */
 }
 
 .table thead th {
     font-weight: bold;
     padding: 12px;
     text-align: left;
-    color: #fff;
 }
 
 .table tbody tr {
@@ -193,26 +187,9 @@ h1 {
     transition: background-color 0.2s;
 }
 
-.table tbody tr:hover {
-    background-color: #f1f5f9;
+.clickable-row {
+    cursor: pointer;
 }
-
-.btn {
-    border-radius: 5px;
-    padding: 6px 12px;
-    margin: 0px 10px;
-}
-
-.btn-primary {
-    background-color: #b0a695;
-    color: white;
-    border: none;
-}
-
-.btn-primary:hover {
-    background-color: #776b5d;
-}
-
 
 .btn-danger {
     background-color: #dd4f4f;
@@ -223,7 +200,9 @@ h1 {
 .btn-danger:hover {
     background-color: #b91c1c;
 }
-
+.table-hover tbody tr:hover td, .table-hover tbody tr:hover th {
+  background-color: #efece4;
+}
 /* Modal styling */
 .modal-backdrop {
     position: fixed;
@@ -269,4 +248,6 @@ h1 {
     font-weight: bold;
     z-index: 1000;
 }
+
+
 </style>
