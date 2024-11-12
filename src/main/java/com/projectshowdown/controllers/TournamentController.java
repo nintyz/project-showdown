@@ -46,20 +46,21 @@ public class TournamentController {
             @RequestParam("country") String country,
             @RequestParam("venue") String venue,
             @RequestParam("status") String status,
+            @RequestParam("organizerId") String organizerId,
             @RequestParam("logo") MultipartFile file) throws ExecutionException, InterruptedException, IOException {
 
         Tournament tournament = new Tournament();
         tournament.setName(name);
-        tournament.setDate(date);
-        tournament.setType(type);
+        tournament.setDateTime(date);
         tournament.setNumPlayers(numPlayers);
         tournament.setMinMMR(minMMR);
         tournament.setMaxMMR(maxMMR);
         tournament.setCountry(country);
         tournament.setVenue(venue);
+        tournament.setOrganizerId(organizerId);
         tournament.setStatus(status);
 
-        String generatedId = tournamentService.addTournament(tournament);
+        String generatedId = tournamentService.addTournament(tournament, organizerId);
         if (generatedId == null) {
             throw new RuntimeException("Failed to create tournament");
         }
