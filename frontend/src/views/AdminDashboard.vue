@@ -1,45 +1,48 @@
 <template>
-    <!-- Navbar -->
     <Navbar />
     <div class="admin-dashboard container mt-3">
-        <!-- Header Section -->
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>All Tournaments</h2>
+            <h2>{{ isOrganizer && activeTab === 1 ? 'My Tournaments' : 'All Tournaments' }}</h2>
         </div>
 
-        <!-- Tabs for Organizer Role -->
         <div v-if="isOrganizer">
-            <b-tabs
-                v-model="activeTab"
-                @input="onTabChange"
-                class="custom-tabs"
-                align="centered"
-                pills
-                nav-wrapper-class="custom-tab-wrapper"
-            >
+            <div class="d-flex justify-content-between align-items-center mb-4">
+            <b-tabs v-model="activeTab" @input="fetchTournaments" class="custom-tabs" align="centered" pills
+                nav-wrapper-class="custom-tab-wrapper">
                 <b-tab title="All Tournaments"></b-tab>
                 <b-tab title="My Tournaments"></b-tab>
             </b-tabs>
+            <button class="btn btn-outline-dark" @click="addNewTournament">
+                <i class="bi bi-plus"></i> Add New
+            </button>
+        </div>
+        </div>
+        <div v-else>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>All tournaments</h2>
+            </div>
+
         </div>
 
-        <!-- Tournament List -->
-        <div v-for="(tournament, index) in tournaments" :key="index" class="tournament-card row mb-3 p-3 hoverable"
-            @click="viewTournament(tournament.id)">
-            <div class="col-md-2 d-flex align-items-center">
-                <img :src="tournament.logoUrl || defaultLogo" alt="Tournament Logo" class="img-fluid tournament-logo" />
+        <div v-for="(tournament, index) in tournaments" :key="index"
+            class="tournament-card row mb-4 p-4 align-items-center" @click="viewTournament(tournament.id)">
+            <div class="col-md-2 text-center">
+                <img :src="tournament.logoUrl || defaultLogo" alt="Tournament Logo" class="tournament-logo" />
             </div>
-            <div class="col-md-8 d-flex flex-column justify-content-center">
+            <div class="col-md-7">
                 <h4>{{ tournament.name }}</h4>
-                <p>{{ tournament.location }} | {{ tournament.date }}</p>
+                <p>{{ tournament.country }} | {{ tournament.venue }}</p>
             </div>
-            <div class="col-md-2 d-flex align-items-center">
-                <span :class="getStatusClass(tournament.status)">{{ tournament.status }}</span>
+            <div class="col-md-3 text-right">
+                <span :class="['badge', getStatusBadgeClass(tournament.status)]">{{ tournament.status }}</span>
             </div>
         </div>
     </div>
 </template>
 
+
 <script>
+import '@/assets/main.css';
 import Navbar from '@/components/NavbarComponent.vue';
 import axios from 'axios';
 
@@ -49,11 +52,11 @@ export default {
     },
     data() {
         return {
-            tournaments: [], // Initialize as an empty array
-            activeTab: 0, // Track the active tab
-            defaultLogo: 'https://via.placeholder.com/80', // Placeholder logo
-            role: localStorage.getItem("role") || "guest", // Get role from local storage
-            organizerId: localStorage.getItem("userId") || "guest", // Organizer ID from local storage
+            tournaments: [],
+            activeTab: 0,
+            defaultLogo: 'https://via.placeholder.com/100',
+            role: localStorage.getItem("role") || "guest",
+            organizerId: localStorage.getItem("userId"),
         };
     },
     computed: {
@@ -61,26 +64,19 @@ export default {
             return this.role === "organizer";
         },
     },
-    methods: {
-        getStatusClass(status) {
-            switch (status) {
-                case "Upcoming":
-                    return "text-warning";
-                case "In Progress":
-                    return "text-success";
-                case "Ended":
-                    return "text-inactive";
-                case "Cancelled":
-                    return "text-danger";
-                default:
-                    return "text-muted";
-            }
+    watch: {
+        activeTab(newTab) {
+            console.log("Tab switched to:", newTab);
+            this.fetchTournaments(); // Fetch tournaments based on the new tab
         },
-        async onTabChange() {
-            await this.fetchTournaments(); // Call fetchTournaments when tab changes
+    },
+    methods: {
+        addNewTournament() {
+            this.$router.push("/new-tournament");
         },
         async fetchTournaments() {
             try {
+                console.log('Fetching tournaments, Active Tab:', this.activeTab);
                 let response;
                 if (this.isOrganizer && this.activeTab === 1) {
                     // Fetch tournaments for this organizer only
@@ -91,8 +87,9 @@ export default {
                 }
                 this.tournaments = response.data.map(tournament => ({
                     ...tournament,
-                    logoUrl: tournament.logoUrl || this.defaultLogo, // Set a default logo if none exists
+                    logoUrl: tournament.logoUrl || this.defaultLogo,
                 }));
+                console.log("Tournaments fetched:", this.tournaments);
             } catch (error) {
                 console.error("Error fetching tournaments:", error);
             }
@@ -100,86 +97,115 @@ export default {
         viewTournament(id) {
             this.$router.push(`/tournament/${id}`);
         },
+        getStatusBadgeClass(status) {
+            switch (status) {
+                case "Registration":
+                    return "badge-warning";
+                case "In Progress":
+                    return "badge-success";
+                case "Ended":
+                    return "badge-secondary";
+                case "Cancelled":
+                    return "badge-danger";
+                default:
+                    return "badge-light";
+            }
+        },
     },
-    async mounted() {
-        await this.fetchTournaments(); // Fetch tournaments when component mounts
+    mounted() {
+        this.fetchTournaments();
+        console.log("Organizer ID:", this.organizerId);
     },
 };
 </script>
+
+
+
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
 .admin-dashboard {
     background-color: #f3eeea;
     padding: 30px;
+    font-family: 'Roboto', sans-serif;
 }
 
 h2 {
-    font-family: 'Arial', sans-serif;
-    color: #776b5d;
+    color: #343a40;
+    font-weight: 700;
 }
 
-.custom-tabs .nav-item {
+.custom-tabs .nav-item .nav-link {
+    color: #495057;
     font-size: 16px;
-    font-weight: bold;
-    color: #776b5d;
+    font-weight: 500;
+    padding: 10px 20px;
+    border-radius: 50px;
+    transition: background-color 0.3s, color 0.3s;
 }
 
-.custom-tab-wrapper {
-    border-bottom: 2px solid #776b5d;
+.custom-tabs .nav-item .nav-link.active {
+    background-color: #776b5d !important;
+    color: #fff !important;
 }
 
-.custom-tabs .nav-link.active {
+.custom-tabs .nav-item .nav-link:hover {
     background-color: #776b5d;
     color: #fff !important;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-.custom-tabs .nav-link:hover {
-    background-color: #c9b8a8;
-    color: #fff;
 }
 
 .tournament-card {
     background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: transform 0.3s, box-shadow 0.3s;
 }
 
 .tournament-card:hover {
-    background-color: #f7f7f7;
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
 }
 
 .tournament-logo {
-    width: 80px;
-    height: auto;
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
 }
 
 .tournament-card h4 {
-    font-size: 18px;
-    color: #776b5d;
+    font-size: 22px;
+    color: #343a40;
+    margin-bottom: 8px;
 }
 
 .tournament-card p {
     margin: 0;
-    font-size: 14px;
-    color: #776b5d;
-}
-
-.text-warning {
-    color: #FFA500;
-}
-
-.text-success {
-    color: #28a745;
-}
-
-.text-danger {
-    color: #dc3545;
-}
-
-.text-inactive {
+    font-size: 16px;
     color: #6c757d;
+}
+
+.badge {
+    font-size: 14px;
+    padding: 8px 12px;
+    border-radius: 12px;
+}
+
+.badge-warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.badge-success {
+    background-color: #28a745;
+}
+
+.badge-secondary {
+    background-color: #6c757d;
+}
+
+.badge-danger {
+    background-color: #dc3545;
 }
 </style>

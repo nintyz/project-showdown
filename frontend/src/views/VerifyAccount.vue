@@ -97,7 +97,9 @@ export default {
         this.success = response.data.message || 'Email verified successfully!';
         this.isEmailVerified = true;
         this.resendCooldown = 0; // Hide the resend section
-
+        if (response.data.token) {
+          localStorage.setItem("token", response.token);
+        }
         if (response.data.status === 'requires_2fa') {
           this.$router.push({ path: '/verify-2fa', query: { email: this.email } });
         }
