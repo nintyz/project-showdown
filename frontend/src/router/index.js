@@ -21,7 +21,7 @@ import EditProfile from '@/views/EditProfile.vue'
 import AllPlayers from '@/views/AllPlayers.vue'
 import PersonalProfile from '@/views/Player/PersonalProfile.vue'
 import SpecificPlayerProfile from '@/views/Player/SpecificPlayerProfile.vue'
-
+import MatchUpdate from '@/views/MatchUpdate.vue'
 
 const routes = [
     {
@@ -122,6 +122,11 @@ const routes = [
         path: '/all-players',
         name: 'AllPlayers',
         component: AllPlayers,
+    },
+    {
+        path: '/match-management',
+        name: 'MatchUpdate',
+        component: MatchUpdate,
     },
 
 ]

@@ -425,7 +425,7 @@ public class TournamentService {
     }
 
     private String determineNextRoundName(Tournament tournament) {
-        int roundCount = tournament.getRounds().size();
+        int roundCount = tournament.getRounds() != null ? tournament.getRounds().size() : 0;
         int totalUsers = tournament.getUsers().size();
 
         switch (roundCount) {

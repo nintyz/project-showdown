@@ -1,6 +1,12 @@
 <template>
     <Navbar />
-    <div v-if="tournament" class="tournament-details p-5">
+    <div v-if="loading" class="loading-screen">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>{{ currentPhrase }}</p>
+        </div>
+    </div>
+    <div v-else-if="tournament" class="tournament-details p-5">
         <h2>{{ tournament.name }}</h2>
 
         <!-- Notification Popup -->
@@ -10,11 +16,12 @@
 
         <!-- Tournament Details Section -->
         <div class="details-card p-4 mb-4">
-            <img :src="tournament.logoUrl || defaultLogo" alt="Tournament Logo" class="img-fluid tournament-logo mb-3" />
-            <p><strong>Location:</strong> {{ tournament.venue }}</p>
-            <p><strong>Date:</strong> {{ formattedDateTime }}</p>
+            <img :src="tournament.logoUrl || defaultLogo" alt="Tournament Logo"
+                class="img-fluid tournament-logo mb-3" />
+            <p><strong>Location: </strong> {{ tournament.venue }}</p>
+            <p><strong>Registration Deadline: </strong> {{ formattedDateTime }}</p>
             <p>
-                <strong>Status:</strong>
+                <strong>Status: </strong>
                 <span :class="getStatusClass(tournament.status)">{{ statusText }}</span>
             </p>
             <p><strong>Number of Players:</strong> {{ tournament.numPlayers }}</p>
@@ -42,12 +49,12 @@
                 <template v-else-if="role === 'organizer'">
                     <button class="btn btn-outline-primary me-2" @click="editTournament">Edit</button>
                     <button class="btn btn-outline-danger me-2" @click="cancelTournament">Cancel</button>
+                    <button class="btn btn-outline-success me-2" @click="progressTournament">
+                        Progress Tournament
+                    </button>
                     <button :disabled="bracketButtonDisabled" :class="{ 'btn-disabled': bracketButtonDisabled }"
                         class="btn btn-outline-secondary me-2" @click="viewBrackets">
                         {{ bracketButtonText }}
-                    </button>
-                    <button class="btn btn-outline-success me-2" @click="progressTournament">
-                        Progress Tournament
                     </button>
                 </template>
 
@@ -80,7 +87,7 @@
 <script>
 import axios from 'axios';
 import Navbar from '@/components/NavbarComponent.vue';
-
+/* eslint-disable */
 export default {
     components: {
         Navbar,
@@ -90,13 +97,25 @@ export default {
             tournament: null,
             userId: 'n7T2VSiOZ2m0kuzEh9yJ', // Sample player ID
             defaultLogo: 'https://via.placeholder.com/150',
-            // role: localStorage.getItem('role') , // Retrieve role from local storage
             role: 'player', // Retrieve role from local storage
             users: [], // Store user data for registered players
             notification: {
                 message: '',
                 type: '' // 'success' or 'error'
             },
+            loading: false, // Loading state
+            phrases: [
+                "Calculating player MMR... Hold tight!",
+                "Finding the perfect opponents...",
+                "Sharpening swords and loading brackets...",
+                "Balancing MMR scales for fair play!",
+                "Locating rivals... Who will you face?",
+                "Crafting match-ups with precision!",
+                "Setting the stage for an epic showdown...",
+                "Evaluating player strengths and weaknesses..."
+            ],
+            currentPhrase: '',
+            phraseInterval: null
         };
     },
     computed: {
@@ -104,8 +123,6 @@ export default {
             return this.tournament?.users?.includes(this.userId);
         },
         sortedPlayers() {
-            // Sort players by name and return with country details
-            // eslint-disable-next-line
             return this.users.sort((a, b) => a.name.localeCompare(b.name));
         },
         bracketButtonText() {
@@ -125,8 +142,6 @@ export default {
         showNotification(message, type = 'success') {
             this.notification.message = message;
             this.notification.type = type;
-
-            // Hide the notification after 3 seconds
             setTimeout(() => {
                 this.notification.message = '';
             }, 3000);
@@ -137,7 +152,6 @@ export default {
                 const response = await axios.get(`http://localhost:8080/tournament/${tournamentId}`);
                 this.tournament = response.data;
 
-                // Fetch details of users registered in the tournament
                 if (this.tournament.users?.length) {
                     const userPromises = this.tournament.users.map(userId => axios.get(`http://localhost:8080/user/${userId}`));
                     const userResponses = await Promise.all(userPromises);
@@ -167,7 +181,6 @@ export default {
         },
         async registerForTournament() {
             try {
-                 // eslint-disable-next-line 
                 const response = await axios.put(
                     `http://localhost:8080/tournament/${this.tournament.id}/register/${this.userId}`
                 );
@@ -180,13 +193,11 @@ export default {
         },
         async unregisterFromTournament() {
             try {
-                 // eslint-disable-next-line 
                 const response = await axios.put(
                     `http://localhost:8080/tournament/${this.tournament.id}/cancelRegistration/${this.userId}`
                 );
                 this.showNotification('Successfully unregistered from the tournament.', 'success');
                 await this.fetchTournamentDetails();
-                // Remove user from the users array after successful unregistration
                 this.users = this.users.filter((user) => user.id !== this.userId);
             } catch (error) {
                 console.error('Error unregistering from tournament:', error);
@@ -194,6 +205,8 @@ export default {
             }
         },
         async progressTournament() {
+            this.loading = true;
+            this.startLoadingPhrases();
             try {
                 await axios.put(`http://localhost:8080/tournament/${this.$route.params.id}/matches`);
                 this.showNotification('Tournament progressed successfully.', 'success');
@@ -201,7 +214,18 @@ export default {
             } catch (error) {
                 console.error('Error progressing tournament:', error);
                 this.showNotification('Failed to progress the tournament.', 'error');
+            } finally {
+                this.loading = false;
+                clearInterval(this.phraseInterval);
             }
+        },
+        startLoadingPhrases() {
+            let index = 0;
+            this.currentPhrase = this.phrases[index];
+            this.phraseInterval = setInterval(() => {
+                index = (index + 1) % this.phrases.length;
+                this.currentPhrase = this.phrases[index];
+            }, 2000);
         },
         viewBrackets() {
             this.$router.push(`/tournament/${this.$route.params.id}/dashboard`);
@@ -280,7 +304,8 @@ h2 {
         opacity: 0;
         transform: translateY(-10px);
     }
-    10%, 90% {
+    10%,
+    90% {
         opacity: 1;
         transform: translateY(0);
     }
@@ -290,30 +315,25 @@ h2 {
     }
 }
 
-.btn-outline-primary {
+.btn-outline-primary,
+.btn-outline-secondary,
+.btn-outline-success,
+.btn-outline-danger {
     background-color: #b0a695;
     color: white;
     border: none;
+    padding: 0.5rem 1rem;
+    font-weight: bold;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
 }
 
 .btn-outline-primary:hover {
     background-color: #776b5d;
 }
 
-.btn-outline-danger {
-    background-color: #dc3545;
-    color: white;
-    border: none;
-}
-
-.btn-outline-danger:hover {
-    background-color: #a71d2a;
-}
-
 .btn-outline-secondary {
     background-color: #6c757d;
-    color: white;
-    border: none;
 }
 
 .btn-outline-secondary:hover {
@@ -322,12 +342,23 @@ h2 {
 
 .btn-outline-success {
     background-color: #28a745;
-    color: white;
-    border: none;
 }
 
 .btn-outline-success:hover {
     background-color: #218838;
+}
+
+.btn-outline-danger {
+    background-color: #dc3545;
+}
+
+.btn-outline-danger:hover {
+    background-color: #a71d2a;
+}
+
+.btn-disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
 }
 
 .text-warning {
@@ -342,9 +373,39 @@ h2 {
     color: #dc3545;
 }
 
-.btn-disabled {
-    cursor: not-allowed;
-    opacity: 0.65;
-    background-color: #218838;
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1001;
+}
+
+.loading-content {
+    text-align: center;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #ddd;
+    border-top-color: #28a745;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 </style>

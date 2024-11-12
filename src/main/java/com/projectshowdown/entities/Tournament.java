@@ -31,13 +31,20 @@ public class Tournament {
     private double minMMR;
     private double maxMMR;
     private String logoUrl;
-    private List<Round> rounds;
+    private List<Round> rounds = new ArrayList<>(); 
 
     private String organizerId;
     private List<String> users = new ArrayList<>();
 
     public List<Round> getRounds() {
+        if (this.rounds == null) {
+            this.rounds = new ArrayList<>();
+        }
         return this.rounds;
+    }
+    
+    public void setRounds(List<Round> rounds) {
+        this.rounds = rounds;
     }
 
     public void setId(String id) {
