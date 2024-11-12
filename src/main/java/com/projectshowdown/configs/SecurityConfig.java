@@ -80,7 +80,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/users", "/user/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/send-verification-email").permitAll()
                         .requestMatchers(HttpMethod.POST, "/users").permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/organizer/*").hasAuthority("admin")
+                        .requestMatchers(HttpMethod.DELETE, "/organizers", "/organizer/*").hasAuthority("admin")
                         .requestMatchers(HttpMethod.POST, "/addRandomData").permitAll()
                         // .requestMatchers(HttpMethod.PUT, "/user/*").hasAuthority("admin")
                         .requestMatchers(HttpMethod.PUT, "/user/*").permitAll()
@@ -89,17 +89,20 @@ public class SecurityConfig {
 
                         // tournaments CRUD
                         .requestMatchers(HttpMethod.GET, "/tournaments", "/tournaments/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/tournaments").permitAll() 
-                        .requestMatchers(HttpMethod.PUT, "/tournament").permitAll() 
-                        // .requestMatchers(HttpMethod.POST, "/tournaments").hasAnyAuthority("admin","organizer")
-                        .requestMatchers(HttpMethod.PUT, "/tournaments/**").hasAnyAuthority("admin","organizer")
+                        .requestMatchers(HttpMethod.POST, "/tournaments").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/tournament").permitAll()
+                        // .requestMatchers(HttpMethod.POST,
+                        // "/tournaments").hasAnyAuthority("admin","organizer")
+                        .requestMatchers(HttpMethod.PUT, "/tournaments/**").hasAnyAuthority("admin", "organizer")
                         .requestMatchers(HttpMethod.PUT, "/user/*").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/user/*").hasAuthority("admin")
 
                         // tournaments CRUD
-                        .requestMatchers(HttpMethod.GET, "/tournaments",  "/tournament/*", "/tournaments/organizer/*", "tournaments/player/*").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/tournaments/*/*").hasAnyAuthority("admin","organizer")
-                        .requestMatchers(HttpMethod.PUT, "/tournaments/*/*").hasAnyAuthority("admin","organizer")
+                        .requestMatchers(HttpMethod.GET, "/tournaments", "/tournament/*", "/tournaments/organizer/*",
+                                "tournaments/player/*")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.POST, "/tournaments/*/*").hasAnyAuthority("admin", "organizer")
+                        .requestMatchers(HttpMethod.PUT, "/tournaments/*/*").hasAnyAuthority("admin", "organizer")
                         .requestMatchers(HttpMethod.PUT, "/tournaments/*/register/*").hasAuthority("player")
                         .requestMatchers(HttpMethod.PUT, "/tournaments/*/cancelRegistration/*").hasAuthority("player")
 
@@ -112,7 +115,7 @@ public class SecurityConfig {
 
                 // ensure that the application won’t create any session in our stateless REST
                 // APIs
-                .cors( cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(configurer -> configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable()) // CSRF protection is needed only for browser based attacks
@@ -130,7 +133,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000","http://localhost:8080"));
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:8080"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
 
