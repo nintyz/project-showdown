@@ -2,7 +2,9 @@ package com.projectshowdown.controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.projectshowdown.config.TestGoogleServiceConfig;
 import com.projectshowdown.config.TestSecurityConfig;
+import com.projectshowdown.configs.JwtUtil;
 import com.projectshowdown.dto.UserDTO;
 import com.projectshowdown.entities.Player;
 import org.junit.jupiter.api.AfterEach;
@@ -10,12 +12,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.*;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,11 +26,17 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-// @Import(TestSecurityConfig.class)
-@DirtiesContext
+@TestPropertySource(properties = "SUPPORT_EMAIL=admin@gmail.com")
+@TestPropertySource(properties = "APP_PASSWORD=Password1!")
+@TestPropertySource(properties = "GOOGLE_CONFIG_PATH=/Users/arthurchan/Documents/firebasekey/serviceAccountKey.json")
+
+@Import({TestGoogleServiceConfig.class, TestSecurityConfig.class})
 @ActiveProfiles("test")
 public class UserControllerIntegrationTest {
 
+    @MockBean
+    private JwtUtil jwtUtil;
+    
     @LocalServerPort
     private int port;
 
@@ -88,7 +97,7 @@ public class UserControllerIntegrationTest {
     void testAddPlayer() {
         HttpEntity<UserDTO> request = new HttpEntity<>(testUserDTO, headers);
         ResponseEntity<String> response = restTemplate.postForEntity(baseUrl + "/users", request, String.class);
-        extractUserId(response.getBody());
+        response.getBody();
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertTrue(response.getBody().contains("User created successfully with ID:"));
@@ -99,7 +108,7 @@ public class UserControllerIntegrationTest {
         // First, add a player
         HttpEntity<UserDTO> addRequest = new HttpEntity<>(testUserDTO, headers);
         ResponseEntity<String> addResponse = restTemplate.postForEntity(baseUrl + "/users", addRequest, String.class);
-        String userId = extractUserId(addResponse.getBody());
+        String userId = addResponse.getBody();
 
         // Then, get the player
         ResponseEntity<String> getResponse = restTemplate.exchange(
@@ -161,7 +170,7 @@ public class UserControllerIntegrationTest {
         // First, add a player
         HttpEntity<UserDTO> addRequest = new HttpEntity<>(testUserDTO, headers);
         ResponseEntity<String> addResponse = restTemplate.postForEntity(baseUrl + "/users", addRequest, String.class);
-        String userId = extractUserId(addResponse.getBody());
+        String userId = addResponse.getBody();
 
         // Delete the player
         ResponseEntity<String> deleteResponse = restTemplate.exchange(
@@ -214,7 +223,7 @@ public class UserControllerIntegrationTest {
             testUserDTO.setEmail("test" + i + System.currentTimeMillis() + "@example.com");
             HttpEntity<UserDTO> request = new HttpEntity<>(testUserDTO, headers);
             ResponseEntity<String> addResponse = restTemplate.postForEntity(baseUrl + "/users", request, String.class);
-            extractUserId(addResponse.getBody());
+            addResponse.getBody();
         }
 
         // Get all players
@@ -232,13 +241,5 @@ public class UserControllerIntegrationTest {
         JsonNode jsonArray = objectMapper.readTree(response.getBody());
         assertTrue(jsonArray.isArray());
         assertFalse(jsonArray.isEmpty());
-    }
-
-    private String extractUserId(String response) {
-        int start = response.indexOf("ID: ") + 4;
-        int end = response.indexOf(" at:");
-        String userId = response.substring(start, end);
-        createdUserIds.add(userId); // Track the created user ID
-        return userId;
     }
 }
