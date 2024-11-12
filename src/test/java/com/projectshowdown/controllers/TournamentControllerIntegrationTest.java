@@ -43,12 +43,6 @@ public class TournamentControllerIntegrationTest {
     @MockBean
     private JwtUtil jwtUtil;
 
-//     @MockBean
-//     private Firestore firestore; // Mock Firestore instead of actual instance
-
-//     @Autowired
-//     private TournamentController tournamentController;
-
     @Autowired
     private TestRestTemplate restTemplate;
 
