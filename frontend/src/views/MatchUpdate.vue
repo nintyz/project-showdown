@@ -455,4 +455,37 @@ input[type="number"] {
         transform: rotate(360deg);
     }
 }
+.completion-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.popup-content {
+    background-color: #ffffff;
+    padding: 20px 30px;
+    border-radius: 8px;
+    text-align: center;
+    color: #333;
+    max-width: 500px;
+}
+
+.btn-close {
+    margin-top: 15px;
+    background-color: #776b5d;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 30px;
+}
 </style>

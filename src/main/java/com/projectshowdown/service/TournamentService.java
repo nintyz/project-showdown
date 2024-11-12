@@ -371,18 +371,27 @@ public class TournamentService {
     @EventListener
     public void handleMatchUpdated(MatchUpdatedEvent event) throws ExecutionException, InterruptedException {
         String tournamentId = event.getTournamentId();
-        // Check if tournament needs an update based on the match update
         Tournament tournament = getTournament(tournamentId);
-        List<String> lastRound = tournament.getRounds().get(tournament.getRounds().size() - 1).getMatches();
-        // already the finals, dont need update, so return
-        // but need to update player achivements
-        if (lastRound.size() == 1) {
-            updateUserAchievements(tournament, event.getMatch().winnerId(), true);
-            updateUserAchievements(tournament, event.getMatch().loserId(), false);
-            return;
-        }
-        if (matchService.checkCurrentRoundCompletion(lastRound)) {
-            progressTournament(tournamentId);
+        List<String> lastRoundMatches = tournament.getRounds().get(tournament.getRounds().size() - 1).getMatches();
+
+        System.out.println("Checking if all matches in the round are completed...");
+        System.out.println(tournament);
+        // Check if all matches are completed before progressing
+        if (matchService.checkCurrentRoundCompletion(lastRoundMatches)) {
+            System.out.println("All matches completed for this round.");
+
+            // If final round, award achievements and do not progress further
+            if (lastRoundMatches.size() == 1) {
+                updateUserAchievements(tournament, event.getMatch().winnerId(), true);
+                updateUserAchievements(tournament, event.getMatch().loserId(), false);
+                System.out.println("Final round completed. No further progression needed.");
+            } else {
+                // Proceed to the next round
+                String progressionResult = progressTournament(tournamentId);
+                System.out.println("Tournament progression result: " + progressionResult);
+            }
+        } else {
+            System.out.println("Not all matches in this round are completed.");
         }
     }
 
@@ -411,17 +420,26 @@ public class TournamentService {
 
     public String progressTournament(String tournamentId) throws ExecutionException, InterruptedException {
         Tournament tournament = getTournament(tournamentId);
-        String roundName = determineNextRoundName(tournament);
+        String nextRoundName = determineNextRoundName(tournament);
 
-        System.out.println("Progressing tournament ...");
-
-        if ("Error".equals(roundName)) {
+        if ("Error".equals(nextRoundName)) {
             return "The tournament has already completed!";
-        } else if ("Round 1".equals(roundName)) {
-            return initializeTournament(tournament, roundName);
+        } else if ("Round 1".equals(nextRoundName)) {
+            System.out.println("Initializing tournament with the first round.");
+            return initializeTournament(tournament, nextRoundName);
         }
 
-        return generateNextRound(tournament, roundName);
+        System.out.println("Generating next round: " + nextRoundName);
+        String result = generateNextRound(tournament, nextRoundName);
+        System.out.println("Next round generation result: " + result);
+
+        // After generating the round, update the tournament in Firestore
+        Firestore db = getFirestore();
+        DocumentReference tournamentRef = db.collection("tournaments").document(tournamentId);
+        ApiFuture<WriteResult> updateResult = tournamentRef.set(tournament); // Update tournament document
+        updateResult.get(); // Wait for the update to complete
+
+        return "Next round processed. Result: " + result;
     }
 
     private String determineNextRoundName(Tournament tournament) {
