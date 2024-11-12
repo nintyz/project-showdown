@@ -8,7 +8,7 @@
                     <img src="@/assets/player-image.jpg" alt="Tennis Player" class="player-photo" />
                 </div>
                 <div class="player-info col-md-9">
-                    <h1 class="player-name">{{ player.name }} ({{ calculateAge(player.dob) }} years)</h1>
+                    <h1 class="player-name">{{ name }} ({{ calculateAge(player.dob) }} years)</h1>
                     <h3>{{ player.country }}</h3>
                     <h3>#{{ player.rank }}</h3>
                     <p v-if="player.bio" class="player-bio">
@@ -38,18 +38,7 @@
                     <label>ELO</label>
                     <p>{{ player.elo }}</p>
                 </div>
-                <div class="stat col-md-4 mt-4">
-                    <label>Clay ELO</label>
-                    <p>{{ player.clayRaw }}</p>
-                </div>
-                <div class="stat col-md-4 mt-4">
-                    <label>Grass ELO</label>
-                    <p>{{ player.grassRaw }}</p>
-                </div>
-                <div class="stat col-md-4 mt-4">
-                    <label>Hard ELO</label>
-                    <p>{{ player.hardRaw }}</p>
-                </div>
+
             </div>
 
             <!-- Achievements Section -->
@@ -103,8 +92,8 @@ export default {
     },
     data() {
         return {
+            name: "",
             player: {
-                name: "",
                 dob: "",
                 rank: "",
                 elo: "",
@@ -135,13 +124,14 @@ export default {
             try {
                 const response = await axios.get(`http://localhost:8080/user/${this.computedUserId}`);
                 this.player = response.data.playerDetails;
+                this.name = response.data.name;
             } catch (error) {
                 console.error("Error fetching player data:", error);
             }
         },
         async fetchTournaments() {
             try {
-                const response = await axios.get(`http://localhost:8080/tournaments/user/${this.computedUserId}`);
+                const response = await axios.get(`http://localhost:8080/tournaments/player/${this.computedUserId}`);
                 this.tournaments = response.data;
             } catch (error) {
                 console.error("Error fetching tournaments:", error);

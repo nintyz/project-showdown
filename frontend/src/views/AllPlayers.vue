@@ -25,7 +25,7 @@
             </thead>
             <tbody>
                 <tr v-for="player in sortedPlayers" :key="player.id">
-                    <td>{{ player.playerDetails?.name || 'N/A' }}</td>
+                    <td>{{ player.name || 'N/A' }}</td>
                     <td>{{ player.playerDetails?.country || 'N/A' }}</td>
                     <td>{{ player.playerDetails?.rank || 'N/A' }}</td>
                     <td>{{ player.playerDetails?.elo || 'N/A' }}</td>
@@ -75,8 +75,8 @@ export default {
     computed: {
         sortedPlayers() {
             return [...this.players].sort((a, b) => {
-                const colA = a.playerDetails?.[this.sortColumn]?.toString().toLowerCase() || '';
-                const colB = b.playerDetails?.[this.sortColumn]?.toString().toLowerCase() || '';
+                const colA = a[this.sortColumn]?.toString().toLowerCase() || '';
+                const colB = b[this.sortColumn]?.toString().toLowerCase() || '';
                 if (colA < colB) return -1;
                 if (colA > colB) return 1;
                 return 0;

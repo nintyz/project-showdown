@@ -71,13 +71,13 @@
           games: round.matches.map(match => ({
             player1: {
               id: match.player1Id,
-              name: match.player1.playerDetails.name,
+              name: match.player1.name,
               winner: match.player1Score > match.player2Score,
               scores: [match.player1Score],
             },
             player2: {
               id: match.player2Id,
-              name: match.player2.playerDetails.name,
+              name: match.player2.name,
               winner: match.player2Score > match.player1Score,
               scores: [match.player2Score],
             },

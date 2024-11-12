@@ -212,7 +212,6 @@ public class UserService implements UserDetailsService {
       throw new PlayerNotFoundException("User with ID: " + userId + " does not exist.");
     }
 
-    // Check if "organizerDetails" contains "verified" and remove it if present
     if (userData.get("organizerDetails") != null) {
       Map<String, Object> organizerDetails = (Map<String, Object>) userData.get("organizerDetails");
       // Remove the "verified" field if it's present
