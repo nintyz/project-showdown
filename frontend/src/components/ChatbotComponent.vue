@@ -55,7 +55,7 @@
     </div>
 
     <button v-if="!isChatOpen" @click="toggleChat" class="chatbot-toggle-btn">
-      <img src="@/assets/chatbot.png" alt="Chatbot Icon" />
+      <img src="@/assets/chatbot2.png" alt="Chatbot Icon" />
     </button>
   </div>
 </template>
