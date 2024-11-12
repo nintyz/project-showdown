@@ -44,7 +44,7 @@
         },
         methods: {
             goToLogin() {
-                this.$router.push('/all-tournaments-dashboard');
+                this.$router.push('/signup');
             },
         },
     };

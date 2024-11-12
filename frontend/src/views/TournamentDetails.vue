@@ -113,8 +113,10 @@ export default {
             tournament: null,
             defaultLogo: 'https://via.placeholder.com/150',
             role: localStorage.getItem("role"), // Retrieve role from local storage
-            users: [], // Store user data for registered players
             userId: localStorage.getItem("userId"),
+            // role: "organizer",
+            // userId: "anQ1ep6A96Wh5oNhidaJ",
+            users: [], // Store user data for registered players
             notification: {
                 message: '',
                 type: '' // 'success' or 'error'

@@ -55,8 +55,10 @@ export default {
             tournaments: [],
             activeTab: 0,
             defaultLogo: 'https://via.placeholder.com/100',
-            role: localStorage.getItem("role")|| "guest",
+            role: localStorage.getItem("role"),
             userId: localStorage.getItem("userId"),
+            // role: "organizer",
+            // userId: "anQ1ep6A96Wh5oNhidaJ",
         };
     },
     computed: {
