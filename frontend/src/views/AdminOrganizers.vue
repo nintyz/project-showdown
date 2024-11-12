@@ -12,17 +12,17 @@
       </div>
       <table v-if="activeTab === 'allOrganizers'" class="table table-striped">
         <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Date Verified</th>
-          </tr>
+        <tr>
+          <th class="name-column">Name</th>
+          <th class="email-column">Email</th>
+          <th class="date-column">Date Verified</th>
+        </tr>
         </thead>
         <tbody>
           <tr v-for="organizer in verifiedOrganizers" :key="organizer.id">
             <td>{{ organizer.name }}</td>
             <td>{{ organizer.email }}</td>
-            <td>{{ formatDate(organizer.organizerDetails.dateVerified) }}</td>
+            <td>{{ organizer.organizerDetails?.dateVerified ? formatDate(organizer.organizerDetails.dateVerified) : 'Not Verified' }}</td>
           </tr>
         </tbody>
       </table>
@@ -35,11 +35,11 @@
       </div>
         <table v-if="activeTab === 'pendingApproval'" class="table table-striped">
           <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Action</th>
-            </tr>
+          <tr>
+            <th class="name-column">Name</th>
+            <th class="email-column">Email</th>
+            <th class="action-column">Action</th>
+          </tr>
           </thead>
           <tbody>
             <tr v-for="organizer in pendingOrganizers" :key="organizer.id">
@@ -79,12 +79,21 @@
       },
       async fetchOrganizers() {
         try {
-          const response = await axios.get('http://localhost:8080/organizers');
+          const token = localStorage.getItem('token');
+          const response = await axios.get('http://localhost:8080/organizers', {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
           console.log(response.data);
           this.organizers = response.data;
 
-          this.verifiedOrganizers = this.organizers.filter(organizer => organizer.organizerDetails.dateVerified != null);
-          this.pendingOrganizers = this.organizers.filter(organizer => organizer.organizerDetails.dateVerified == null);
+          this.verifiedOrganizers = this.organizers.filter(organizer =>
+              organizer.organizerDetails && organizer.organizerDetails.dateVerified != null
+          );
+          this.pendingOrganizers = this.organizers.filter(organizer =>
+              !organizer.organizerDetails || organizer.organizerDetails.dateVerified == null
+          );
         
         } catch (error) {
           console.error("Error fetching organizers:", error);
@@ -92,8 +101,13 @@
       },
       async verifyOrganizer(id) {
         try {
-          await axios.put(`http://localhost:8080/organizer/${id}`);
-          this.fetchOrganizers(); 
+          const token = localStorage.getItem('token');
+          await axios.put(`http://localhost:8080/organizer/${id}`, null, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
+          this.fetchOrganizers();
         } catch (error) {
           console.error("Error verifying organizer:", error);
         }
@@ -103,6 +117,23 @@
   </script>
   
   <style scoped>
+    .table {
+      table-layout: fixed;
+      width: 100%;
+    }
+
+    .name-column {
+      width: 25%;
+    }
+
+    .email-column {
+      width: 55%;
+    }
+
+    .date-column,
+    .action-column {
+      width: 20%;
+    }
     .admin-dashboard {
         background-color: #f3eeea;
         padding: 30px;
