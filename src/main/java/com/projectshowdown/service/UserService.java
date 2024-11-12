@@ -87,28 +87,28 @@ public class UserService implements UserDetailsService {
     return response;
   }
 
-  public List<UserDTO> getAllPlayers() throws ExecutionException, InterruptedException {
+  public List<UserDTO> getAllUsersByRole(String role) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
-    Query playersCollection = db.collection("users").whereEqualTo("role", "player");
+    Query playersCollection = db.collection("users").whereEqualTo("role", role);
     ApiFuture<QuerySnapshot> future = playersCollection.get();
     List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 
     // Prepare a list to hold each document's data
-    List<UserDTO> players = new ArrayList<>();
+    List<UserDTO> users = new ArrayList<>();
 
     // Iterate through the documents and add their data to the list
     for (DocumentSnapshot document : documents) {
       if (document.exists()) {
         // Add document data to the list
-        UserDTO currentPlayer = document.toObject(UserDTO.class);
+        UserDTO currentUser = document.toObject(UserDTO.class);
         // set id.
-        currentPlayer.setId(document.getId());
-        players.add(currentPlayer);
-
+        currentUser.setId(document.getId());
+        users.add(currentUser);
       }
     }
-    return players; // Return the list of players
+    return users; // Return the list of players
   }
+
 
   public String getUserIdByEmail(String email) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
@@ -171,14 +171,12 @@ public class UserService implements UserDetailsService {
 
     // if its an organizer, set verified as false.
     if (userData.getOrganizerDetails() != null) {
-      userData.getOrganizerDetails().setVerified(false);
+      userData.getOrganizerDetails().setDateVerified(null);
     }
 
     // Convert User object to UserDTO and set the generated ID
     UserDTO userDTO = UserMapper.toUserDTO(userData);
     userDTO.setId(generatedId);
-
-    System.out.println("USER PASSWORD:" + userDTO.getPassword());
 
     // Save the updated UserDTO to Firestore
     ApiFuture<WriteResult> writeResult = docRef.set(userDTO);
@@ -249,7 +247,6 @@ public class UserService implements UserDetailsService {
     }
 
     Map<String, Object> updates = new HashMap<>();
-    updates.put("organizerDetails.verified", true);
     updates.put("organizerDetails.dateVerified",
         LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")).toString());
     ApiFuture<WriteResult> writeResult = docRef.update(updates);

@@ -198,6 +198,8 @@ public class TournamentService {
                                         .get();
                                 if (player1Snapshot.exists()) {
                                     matchData.put("player1", player1Snapshot.getData());
+                                } else {
+                                    matchData.put("player1", "Player account has been deleted");
                                 }
                             }
                             if (player2Id != null) {
@@ -205,6 +207,8 @@ public class TournamentService {
                                         .get();
                                 if (player2Snapshot.exists()) {
                                     matchData.put("player2", player2Snapshot.getData());
+                                } else {
+                                    matchData.put("player2", "Player account has been deleted");
                                 }
                             }
                             matchesData.add(matchData);
@@ -267,8 +271,9 @@ public class TournamentService {
             // Retrieve the list of registered users
             List<String> registeredUsers = (List<String>) document.get("users");
             for (String userId : registeredUsers) {
-                UserDTO user = userService.getUser(userId);
+
                 try {
+                    UserDTO user = userService.getUser(userId);
                     // Send cancellation notification to each user
                     notificationService.notifyTournamentCancelled(user.getEmail(), tournamentName);
                     System.out.println("Cancellation notification sent to user: " + user.getName());
