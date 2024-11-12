@@ -14,8 +14,8 @@
                 <ul class="navbar-nav ms-auto">
                     <!-- Common Links for All Roles -->
                     <li class="nav-item" >
-                       <router-link to="all-tournaments-dashboard" class="nav-link"
-                            :class="{ active: isActive('all-tournaments-dashboard') }">All Tournaments</router-link>
+                       <router-link to="/all-tournaments-dashboard" class="nav-link"
+                            :class="{ active: isActive('/all-tournaments-dashboard') }">All Tournaments</router-link>
                     </li>
 
                     <!-- Role-Specific Links -->
