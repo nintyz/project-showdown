@@ -386,7 +386,7 @@ public class TournamentService {
             throws ExecutionException, InterruptedException {
         UserDTO user = userService.getUser(userId);
         HashMap<String, Object> achievements = new HashMap<>();
-        String newAchievement = " Obtained " + (gold ? "Gold" : "Silver") + " from " + tournament.getName();
+        String newAchievement = "Obtained " + (gold ? "Gold" : "Silver") + " from " + tournament.getName() + ". ";
         achievements.put("playerDetails.achievements", user.getPlayerDetails().getAchievements() + newAchievement);
 
         userService.updateUser(userId, achievements);

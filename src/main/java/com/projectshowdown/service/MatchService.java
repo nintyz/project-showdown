@@ -12,8 +12,6 @@ import com.google.cloud.firestore.WriteResult;
 import com.google.firebase.cloud.FirestoreClient;
 
 import com.projectshowdown.dto.UserDTO;
-import com.projectshowdown.dto.UserMapper;
-import com.projectshowdown.entities.User;
 import com.projectshowdown.entities.Match;
 import com.projectshowdown.events.MatchUpdatedEvent;
 
@@ -148,9 +146,10 @@ public class MatchService {
         // Perform the update operation
         ApiFuture<WriteResult> writeResult = docRef.update(filteredUpdates);
 
-        // check if Round has been completed
-        // Publish event
+
         Match match = document.toObject(Match.class);
+        // check if Round has been completed
+        // publish event for progress tournament and update player achievements
         eventPublisher.publishEvent(new MatchUpdatedEvent(this, tournamentId, match));
 
         // if trying to update scores, update the winner player's elo
@@ -166,6 +165,8 @@ public class MatchService {
             userService.updateUser(winner.getId(), toUpdateScore);
             matchData.put("completed", true);
         }
+
+        
 
         // Return success message with the update time
         return "Match with ID: " + id + " updated successfully at: " + writeResult.get().getUpdateTime();
