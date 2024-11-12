@@ -116,7 +116,7 @@ public class TournamentService {
         Query query = tournaments.whereArrayContains("users", userId);
         QuerySnapshot querySnapshot = query.get().get();
 
-        return querySnapshot.toObjects(Tournament.class);  // Converts the result to a list of Tournament objects
+        return querySnapshot.toObjects(Tournament.class); // Converts the result to a list of Tournament objects
     }
 
     // Method to save tournament details to Firestore
@@ -195,9 +195,15 @@ public class TournamentService {
                     DocumentSnapshot player1Snapshot = player1Ref.get().get();
                     DocumentSnapshot player2Snapshot = player2Ref.get().get();
 
-                    if (player1Snapshot.exists() && player2Snapshot.exists()) {
+                    if (player1Snapshot.exists()) {
                         matchData.put("player1", player1Snapshot.getData());
+                    } else {
+                        matchData.put("player1", "Player account has been deleted");
+                    }
+                    if (player2Snapshot.exists()) {
                         matchData.put("player2", player2Snapshot.getData());
+                    } else {
+                        matchData.put("player2", "Player account has been deleted");
                     }
                     matchesData.add(matchData);
                 }
@@ -246,7 +252,8 @@ public class TournamentService {
             // check if tournament has begun
             Tournament tournament = getTournament(tournamentId);
             if (tournament.inProgress()) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You are not allowed to cancel a tournament that has already begun!");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "You are not allowed to cancel a tournament that has already begun!");
             }
 
             // EMAIL NOTIFICATION TO LET REGISTERED PLAYERS KNOW ABOUT ITS CANCELLATION
@@ -256,8 +263,9 @@ public class TournamentService {
             // Retrieve the list of registered users
             List<String> registeredUsers = (List<String>) document.get("users");
             for (String userId : registeredUsers) {
-                UserDTO user = userService.getUser(userId);
+
                 try {
+                    UserDTO user = userService.getUser(userId);
                     // Send cancellation notification to each user
                     notificationService.notifyTournamentCancelled(user.getEmail(), tournamentName);
                     System.out.println("Cancellation notification sent to user: " + user.getName());
@@ -279,9 +287,9 @@ public class TournamentService {
         }
 
         // Return success message with the update time
-        return "Tournament with ID: " + tournamentId + " updated successfully at: " + updateWriteResult.get().getUpdateTime();
+        return "Tournament with ID: " + tournamentId + " updated successfully at: "
+                + updateWriteResult.get().getUpdateTime();
     }
-
 
     // Method to register a new player
     public String registerUser(String tournamentId, String userId)
@@ -499,17 +507,19 @@ public class TournamentService {
             throws ExecutionException, InterruptedException {
         List<String> matches = new ArrayList<>(); // List to store match IDs
 
-        // Define seeded positions. Keys are match positions, values are indices of top-seeded users. Assuming 4 seeded players.
+        // Define seeded positions. Keys are match positions, values are indices of
+        // top-seeded users. Assuming 4 seeded players.
         Map<Integer, Integer> seedPositions = Map.of(
                 1, 0,
                 users.size() / 2, 1,
                 users.size() / 4, 2,
                 users.size() / 4 + 1, 3);
 
-        int left = 4; // Points to the strongest non-seeded player, as indexes 0 - 3 are seeded players
+        int left = 4; // Points to the strongest non-seeded player, as indexes 0 - 3 are seeded
+                      // players
         int right = users.size() - 1; // Points to the weakest non-seeded players
         List<Integer> usedPlayers = new ArrayList<>(); // Track users who have been matched already
-        
+
         // Loop to generate matches for each pair of players
         for (int i = 1; i <= users.size() / 2; i++) {
             User user1, user2;
@@ -532,14 +542,15 @@ public class TournamentService {
                 while (usedPlayers.contains(right))
                     right--; // Move right pointer to retrieve the next strongest player
 
-                user2 = users.get(right); // Pair with the next weakest user 
+                user2 = users.get(right); // Pair with the next weakest user
                 usedPlayers.add(right--); // Mark as used and decrement right pointer
             }
 
             // Create the match between the two selected players
             matches.add(createMatch(tournament, stage, user1, user2, totalMatches + matches.size() + 1));
 
-            // Send email notifications to both players about the match, however dateTime is TBC
+            // Send email notifications to both players about the match, however dateTime is
+            // TBC
             try {
                 System.out.println("Sending player match email ....");
                 notificationService.notifyPlayerMatched(
