@@ -34,9 +34,8 @@ public class TournamentTest {
         tournament.setId("T001");
         tournament.setName("Showdown Tournament");
         tournament.setYear(2024);
-        tournament.setType("Single Elimination");
         tournament.setVenue("Stadium");
-        tournament.setDate("2024-10-15");
+        tournament.setDateTime("2024-10-15");
         tournament.setNumPlayers(32);
         tournament.setStatus("ongoing");
         tournament.setMinMMR(1000);
@@ -50,9 +49,8 @@ public class TournamentTest {
         assertEquals("T001", tournament.getId());
         assertEquals("Showdown Tournament", tournament.getName());
         assertEquals(2024, tournament.getYear());
-        assertEquals("Single Elimination", tournament.getType());
         assertEquals("Stadium", tournament.getVenue());
-        assertEquals("2024-10-15", tournament.getDate());
+        assertEquals("2024-10-15", tournament.getDateTime());
         assertEquals(32, tournament.getNumPlayers());
         assertEquals("ongoing", tournament.getStatus());
         assertEquals(1000, tournament.getMinMMR());
@@ -101,9 +99,8 @@ public class TournamentTest {
         tournament.setId("T002");
         tournament.setName("New Tournament");
         tournament.setYear(2025);
-        tournament.setType("Double Elimination");
         tournament.setVenue("New Stadium");
-        tournament.setDate("2025-10-15");
+        tournament.setDateTime("2025-10-15");
         tournament.setNumPlayers(16);
         tournament.setStatus("completed");
         tournament.setMinMMR(1100);
@@ -112,37 +109,12 @@ public class TournamentTest {
         assertEquals("T002", tournament.getId());
         assertEquals("New Tournament", tournament.getName());
         assertEquals(2025, tournament.getYear());
-        assertEquals("Double Elimination", tournament.getType());
         assertEquals("New Stadium", tournament.getVenue());
-        assertEquals("2025-10-15", tournament.getDate());
+        assertEquals("2025-10-15", tournament.getDateTime());
         assertEquals(16, tournament.getNumPlayers());
         assertEquals("completed", tournament.getStatus());
         assertEquals(1100, tournament.getMinMMR());
         assertEquals(1600, tournament.getMaxMMR());
-    }
-
-    @Test
-    public void testConstructorWithRounds() {
-        // Create test rounds
-        List<Round> testRounds = new ArrayList<>();
-        Round round = new Round();
-        round.setName("Round 1");
-        List<String> matches = new ArrayList<>();
-        matches.add("match1");
-        matches.add("match2");
-        round.setMatches(matches);
-        testRounds.add(round);
-
-        // Create tournament
-        Tournament tournamentWithRounds = new Tournament("T002", "Test Tournament", 2024,
-                "Single Elimination", "Venue", "2024-10-15", 32, "ongoing", 1000, 1500, testRounds);
-
-        // Set rounds after construction since constructor creates new ArrayList
-        tournamentWithRounds.setRounds(testRounds);
-
-        assertEquals("T002", tournamentWithRounds.getId());
-        assertEquals(1, tournamentWithRounds.getRounds().size());
-        assertEquals(2, tournamentWithRounds.totalMatches());
     }
 
     @Test
@@ -211,9 +183,8 @@ public class TournamentTest {
         assertNull(emptyTournament.getId());
         assertNull(emptyTournament.getName());
         assertEquals(0, emptyTournament.getYear());
-        assertNull(emptyTournament.getType());
         assertNull(emptyTournament.getVenue());
-        assertNull(emptyTournament.getDate());
+        assertNull(emptyTournament.getDateTime());
         assertEquals(0, emptyTournament.getNumPlayers());
         assertNull(emptyTournament.getStatus());
         assertEquals(0.0, emptyTournament.getMinMMR());

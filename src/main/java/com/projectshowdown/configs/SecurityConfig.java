@@ -77,10 +77,11 @@ public class SecurityConfig {
                         .requestMatchers("/login").permitAll()
 
                         // users CRUD
-                        .requestMatchers(HttpMethod.GET, "/users", "/user/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/users", "/user/*").permitAll()
                         .requestMatchers(HttpMethod.POST, "/users").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "/organizer/*").hasAuthority("admin")
                         .requestMatchers(HttpMethod.POST, "/addRandomData").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/user/*").hasAuthority("admin")
+                        .requestMatchers(HttpMethod.PUT, "/user/*").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/user/*").hasAuthority("admin")
 
                         // tournaments CRUD
@@ -89,6 +90,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/tournament").permitAll() 
                         // .requestMatchers(HttpMethod.POST, "/tournaments").hasAnyAuthority("admin","organizer")
                         .requestMatchers(HttpMethod.PUT, "/tournaments/**").hasAnyAuthority("admin","organizer")
+                        .requestMatchers(HttpMethod.GET, "/tournaments",  "/tournament/*", "/tournaments/organizer/*", "tournaments/player/*").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/tournaments/*/*").hasAnyAuthority("admin","organizer")
+                        .requestMatchers(HttpMethod.PUT, "/tournaments/*/*").hasAnyAuthority("admin","organizer")
                         .requestMatchers(HttpMethod.PUT, "/tournaments/*/register/*").hasAuthority("player")
                         .requestMatchers(HttpMethod.PUT, "/tournaments/*/cancelRegistration/*").hasAuthority("player")
 
@@ -107,7 +111,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable()) // CSRF protection is needed only for browser based attacks
                 .formLogin(form -> form.disable())
                 .oauth2Login((oauth2) -> oauth2
-                        .successHandler(oAuth2AuthenticationSuccessHandler))
+                        .successHandler(oAuth2AuthenticationSuccessHandler)
+                        .loginPage("http://localhost:3000/login"))
                 .headers(header -> header.disable()) // disable the security headers, as we do not return HTML in our
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
                 .authenticationProvider(authenticationProvider());

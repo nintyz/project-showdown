@@ -25,7 +25,7 @@
             <div class="col-md-2 d-flex justify-content-end align-items-center">
                 <button class="btn btn-outline-primary me-2" @click="viewTournament(tournament.id)">view</button>
                 <button class="btn btn-outline-secondary me-2" @click="editTournament(tournament.id)">edit</button>
-                <button class="btn btn-icon" @click="deleteTournament(tournament.id)">
+                <button class="btn btn-icon" @click="cancelTournament(tournament.id, tournament.organizerId)">
                     <img src="@/assets/remove.png" alt="Icon" />
                 </button>
             </div>
@@ -34,9 +34,9 @@
 </template>
 
 <script>
-import axios from 'axios';
-import Navbar from '@/components/NavbarComponent.vue';
 import '@/assets/main.css';
+import Navbar from '@/components/NavbarComponent.vue';
+import axios from 'axios';
 
 export default {
     components: {
@@ -52,9 +52,11 @@ export default {
             switch (status) {
                 case "Upcoming":
                     return "text-warning";
-                case "Ongoing":
+                case "In Progress":
                     return "text-success";
                 case "Ended":
+                    return "text-inactive";
+                case "Cancelled":
                     return "text-danger";
                 default:
                     return "text-muted";
@@ -70,7 +72,9 @@ export default {
                 this.tournaments = response.data.map(tournament => ({
                     ...tournament,
                     logoUrl: tournament.logoUrl, // Fallback to placeholder if no logoUrl
+                    organizerId: tournament.organizerId,
                 }));
+                console.log("Tournaments fetched successfully." + this.tournaments[0]);
             } catch (error) {
                 console.error("Error fetching tournaments:", error);
             }
@@ -82,13 +86,32 @@ export default {
         editTournament(id) {
             this.$router.push(`/tournament/${id}/edit`);
         },
-        async deleteTournament(id) {
-            try {
-                await axios.delete(`http://localhost:8080/tournament/${id}`); // Replace with your API endpoint
-                this.tournaments = this.tournaments.filter(tournament => tournament.id !== id);
-                console.log(`Tournament with ID ${id} deleted successfully.`);
-            } catch (error) {
-                console.error("Error deleting tournament:", error);
+        async cancelTournament(id, organizerId) {
+            // Confirm before cancelling the tournament
+            if (confirm("Are you sure you want to cancel this tournament?")) {
+                try {
+                    // Sending a PUT request to update the tournament status to "Cancelled"
+                    await axios.put(`http://localhost:8080/tournament/${id}/${organizerId}`, {
+                        status: "Cancelled"
+                    });
+
+                    // If the backend update was successful, update the local state
+                    this.tournaments = this.tournaments.map(tournament =>
+                        tournament.id === id ? { ...tournament, status: "Cancelled" } : tournament
+                    );
+
+                    console.log(`Tournament with ID ${id} cancelled successfully.`);
+
+                } catch (error) {
+                    // Check if the error response contains specific information from the backend
+                    if (error.response && error.response.data) {
+                        console.error("Backend error:", error.response.data);
+                        alert(error.response.data.message); // Display the backend message to the user
+                    } else {
+                        console.error("Error cancelling tournament:", error);
+                        alert("An error occurred while trying to cancel the tournament. Please try again later.");
+                    }
+                }
             }
         },
     },
@@ -166,6 +189,10 @@ h2 {
 
 .text-danger {
     color: #dc3545;
+}
+
+.text-inactive {
+    color:#6c757d;
 }
 
 .btn-icon img {

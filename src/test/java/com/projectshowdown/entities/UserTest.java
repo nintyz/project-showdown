@@ -26,7 +26,9 @@ public class UserTest {
         validator = factory.getValidator();
 
         // Arrange
-        user = new User("test@example.com", "Password1@", "player", null);
+        Player playerDetails = new Player(1, "2000-01-01", 2000.0, 24, 2500.0, "", "", "");
+        Organizer organizerDetails = new Organizer("Test Organizer", true, "2000-01-01", "", "Singpore", "test.com");
+        user = new User(null, "name", "picture","test@example.com" , "Password1@", "player", null, playerDetails, organizerDetails, null, null, true);
     }
 
     @Test

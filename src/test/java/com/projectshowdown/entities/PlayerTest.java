@@ -1,18 +1,19 @@
 package com.projectshowdown.entities;
 
+import java.time.LocalDate;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.time.LocalDate;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public class PlayerTest {
 
@@ -25,38 +26,9 @@ public class PlayerTest {
         validator = factory.getValidator();
 
         // Arrange
-        player = new Player(1, "John Doe", LocalDate.now().toString(), 24, 2000.0, 2500.0, 500.0, 400.0, 300.0,"","","");
+        player = new Player(1,"", 24, 2000.0, 2500.0,"","","");
     }
 
-    @Test
-    public void testPlayerNameTooShort() {
-        // Act
-        player.setName("A");
-
-        // Assert
-        Set<ConstraintViolation<Player>> violations = validator.validate(player);
-        assertFalse(violations.isEmpty(), "There should be a violation for the player's name being too short.");
-    }
-
-    @Test
-    public void testPlayerNameValid() {
-        // Act
-        player.setName("John Doe");
-
-        // Assert
-        Set<ConstraintViolation<Player>> violations = validator.validate(player);
-        assertTrue(violations.isEmpty(), "There should be no violations for a valid name.");
-    }
-
-    @Test
-    public void testPlayerAgeValid() {
-        // Act
-        player.setDob(LocalDate.now().minusYears(26).toString());
-
-        // Assert
-        Set<ConstraintViolation<Player>> violations = validator.validate(player);
-        assertTrue(violations.isEmpty(), "There should be no violations for a valid age.");
-    }
 
     @Test
     public void testPlayerEloNegative() {
@@ -98,25 +70,6 @@ public class PlayerTest {
         assertTrue(violations.isEmpty(), "There should be no violations for a valid Peak Elo.");
     }
 
-    @Test
-    public void testPlayerRawScoreNegative() {
-        // Act
-        player.setHardRaw(-1);
-
-        // Assert
-        Set<ConstraintViolation<Player>> violations = validator.validate(player);
-        assertFalse(violations.isEmpty(), "There should be a violation for negative hard raw score.");
-    }
-
-    @Test
-    public void testPlayerRawScoreValid() {
-        // Act
-        player.setHardRaw(500.0);
-
-        // Assert
-        Set<ConstraintViolation<Player>> violations = validator.validate(player);
-        assertTrue(violations.isEmpty(), "There should be no violations for a valid hard raw score.");
-    }
 
     @Test
     public void testCalculateMMR() {
@@ -177,23 +130,6 @@ public class PlayerTest {
         assertEquals(25, player.getPeakAge(), "Peak age should match the set value.");
     }
 
-    @Test
-    public void testGetAndSetClayRaw() {
-        // Act
-        player.setClayRaw(450.0);
-
-        // Assert
-        assertEquals(450.0, player.getClayRaw(), 0.0001, "Clay raw score should match the set value.");
-    }
-
-    @Test
-    public void testGetAndSetGrassRaw() {
-        // Act
-        player.setGrassRaw(350.0);
-
-        // Assert
-        assertEquals(350.0, player.getGrassRaw(), 0.0001, "Grass raw score should match the set value.");
-    }
 
     @Test
     public void testAge() {

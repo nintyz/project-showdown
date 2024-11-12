@@ -15,11 +15,26 @@ export default {
       loading: true
     };
   },
+  methods: {
+    extractRoleFromToken(token) {
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(window.atob(base64));
+        return payload.role || 'player';
+      } catch (error) {
+        console.error('Error extracting role from token:', error);
+        return 'player';
+      }
+    }
+  },
   async created() {
     const token = this.$route.query.token;
+    const role = this.extractRoleFromToken(token);
+
     if (token) {
       localStorage.setItem('token', token);
-      localStorage.setItem("role", "player");
+      localStorage.setItem('role', role);
       this.$router.push('/dashboard');
     } else {
       try {

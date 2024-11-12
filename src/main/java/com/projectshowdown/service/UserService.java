@@ -22,13 +22,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -140,14 +143,20 @@ public class UserService implements UserDetailsService {
     }
   }
 
+  public boolean checkEmailExists(String email) throws ExecutionException, InterruptedException {
+    Firestore db = getFirestore();
+    // Generate a new document reference with a random ID
+    ApiFuture<QuerySnapshot> future = db.collection("users").whereEqualTo("email", email).get();
+
+    QuerySnapshot querySnapshot = future.get();
+    return !querySnapshot.isEmpty();
+
+  }
+
   // Method to add a new player document to the 'users' collection
   public String createUser(User userData) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
-    // Generate a new document reference with a random ID
-    ApiFuture<QuerySnapshot> future = db.collection("users").whereEqualTo("email", userData.getEmail()).get();
-
-    QuerySnapshot querySnapshot = future.get();
-    if (!querySnapshot.isEmpty()) {
+    if (checkEmailExists(userData.getEmail())) {
       return "A user account with the email " + userData.getEmail() + " already exists!";
     }
 
@@ -160,21 +169,39 @@ public class UserService implements UserDetailsService {
     userData.setVerificationCodeExpiresAt(DateTimeUtils.toEpochSeconds(LocalDateTime.now().plusMinutes(15)));
     userData.setEnabled(false);
 
+    // if its an organizer, set verified as false.
+    if (userData.getOrganizerDetails() != null) {
+      userData.getOrganizerDetails().setVerified(false);
+    }
+
     // Convert User object to UserDTO and set the generated ID
     UserDTO userDTO = UserMapper.toUserDTO(userData);
     userDTO.setId(generatedId);
+
+    System.out.println("USER PASSWORD:" + userDTO.getPassword());
 
     // Save the updated UserDTO to Firestore
     ApiFuture<WriteResult> writeResult = docRef.set(userDTO);
 
     // Return success message with timestamp
-    return "Player created successfully with ID: " + generatedId + " at: " + writeResult.get().getUpdateTime();
+    return "User created successfully with ID: " + generatedId + " at: " + writeResult.get().getUpdateTime();
   }
 
   // Method to update a player's document in the 'players' collection
   public String updateUser(String userId, Map<String, Object> userData)
       throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
+
+    if (userData.containsKey("email")) {
+      if (checkEmailExists((String) userData.get("email"))) {
+        return "A user account with the email " + userData.get("email") + " already exists!";
+      }
+    }
+
+    if (userData.containsKey("password")) {
+      BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+      userData.put("password", passwordEncoder.encode((String) userData.get("password")));
+    }
 
     // Check if the user document exists
     DocumentReference docRef = db.collection("users").document(userId);
@@ -183,6 +210,14 @@ public class UserService implements UserDetailsService {
     DocumentSnapshot document = future.get();
     if (!document.exists()) {
       throw new PlayerNotFoundException("User with ID: " + userId + " does not exist.");
+    }
+
+    if (userData.get("organizerDetails") != null) {
+      Map<String, Object> organizerDetails = (Map<String, Object>) userData.get("organizerDetails");
+      // Remove the "verified" field if it's present
+      if (organizerDetails.containsKey("verified")) {
+        organizerDetails.put("verified", false);
+      }
     }
 
     // Filter out null values from the update data
@@ -195,6 +230,31 @@ public class UserService implements UserDetailsService {
 
     // Return success message
     return "User with ID: " + userId + " updated successfully at: " + writeResult.get().getUpdateTime();
+  }
+
+  // Method to verify organizer account
+  public String verifyOrganizer(String userId)
+      throws ExecutionException, InterruptedException {
+    Firestore db = getFirestore();
+
+    // Check if the user document exists
+    DocumentReference docRef = db.collection("users").document(userId);
+    ApiFuture<DocumentSnapshot> future = docRef.get();
+    DocumentSnapshot document = future.get();
+    if (!document.exists()) {
+      throw new PlayerNotFoundException("User with ID: " + userId + " does not exist.");
+    }
+    if (document.get("organizerDetails") == null) {
+      return "This is not an Organizer account!";
+    }
+
+    Map<String, Object> updates = new HashMap<>();
+    updates.put("organizerDetails.verified", true);
+    updates.put("organizerDetails.dateVerified",
+        LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")).toString());
+    ApiFuture<WriteResult> writeResult = docRef.update(updates);
+    // Return success message
+    return "Organizer with ID: " + userId + " has been verified successfully at: " + writeResult.get().getUpdateTime();
   }
 
   public String deletePlayer(String userId) throws ExecutionException, InterruptedException {
@@ -241,25 +301,24 @@ public class UserService implements UserDetailsService {
 
         String email = values[1].replaceAll("\\u00A0", "").toLowerCase().trim();
         email += "@gmail.com";
-        String fixedPassword = "$2a$12$NLiiv7gVsA1ltsI1tux.xuE8kEKfAmIHIkloVXwqxHXArgfiJ1XoK";
+        String fixedPassword = "player.Password1!";
 
         int rank = Integer.parseInt(values[0]);
         String name = values[1];
         String dob = values[2];
         Double elo = Double.parseDouble(values[3]);
-        Double hardRaw = values[4].equals("-") ? null : Double.parseDouble(values[4]);
-        Double clayRaw = values[5].equals("-") ? null : Double.parseDouble(values[5]);
-        Double grassRaw = values[6].equals("-") ? null : Double.parseDouble(values[6]);
-        Double peakAge = Double.parseDouble(values[7]);
-        Double peakElo = Double.parseDouble(values[8]);
-        String country = values[9];
+        Double peakAge = Double.parseDouble(values[4]);
+        Double peakElo = Double.parseDouble(values[5]);
+        String country = values[6];
         String bio = "";
         String achievements = "";
 
-        Player currentRowPlayerDetails = new Player(rank, name, dob, elo, hardRaw, clayRaw, grassRaw, peakAge, peakElo,
+        Player currentRowPlayerDetails = new Player(rank, dob, elo, peakAge, peakElo,
             country, bio, achievements);
 
-        UserDTO currentRowUser = new UserDTO("", email, fixedPassword, "player", null, currentRowPlayerDetails, null,
+        UserDTO currentRowUser = new UserDTO("", name, "", email, fixedPassword, "player", null,
+            currentRowPlayerDetails, null,
+            null,
             DateTimeUtils.toEpochSeconds(LocalDateTime.now().plusMinutes(15)), false);
 
         DocumentReference docRef = usersCollection.document(); // Create a new document reference with a unique ID

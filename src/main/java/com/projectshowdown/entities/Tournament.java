@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,12 +21,9 @@ public class Tournament {
 
     @NotNull(message = "Tournament name should not be empty")
     private String name;
-
-    // private int year;
-    private String type;
+    private int year;
     private String venue;
-    private String country;
-    private String date;
+    private String dateTime;
     private int numPlayers;
     private String status;
     private double minMMR;
@@ -33,23 +31,8 @@ public class Tournament {
     private String logoUrl;
     private List<Round> rounds;
 
+    private String organizerId;
     private List<String> users = new ArrayList<>();
-
-    public Tournament(String id, String name, String type, String venue, String country, String date, int numPlayers,
-            String status, double minMMR, double maxMMR, List<Round> rounds) {
-        this.id = id;
-        this.name = name;
-        this.type = type;
-        this.venue = venue;
-        this.country = country;
-        this.date = date;
-        this.numPlayers = numPlayers;
-        this.status = status;
-        this.minMMR = minMMR;
-        this.maxMMR = maxMMR;
-        this.users = new ArrayList<>();
-        this.rounds = new ArrayList<>();
-    }
 
     public List<Round> getRounds() {
         return this.rounds;
@@ -75,14 +58,6 @@ public class Tournament {
     //     this.year = year;
     // }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
     public String getVenue() {
         return venue;
     }
@@ -91,20 +66,12 @@ public class Tournament {
         this.venue = venue;
     }
 
-    public String getCountry() {
-        return country;
+    public String getDateTime() {
+        return dateTime;
     }
 
-    public void setCountry(String country) {
-        this.country = country;
-    }
-
-    public String getDate() {
-        return date;
-    }
-
-    public void setDate(String date) {
-        this.date = date;
+    public void setDateTime(String dateTime) {
+        this.dateTime = dateTime;
     }
 
     public int getNumPlayers() {
@@ -113,6 +80,10 @@ public class Tournament {
 
     public void setNumPlayers(int numPlayers) {
         this.numPlayers = numPlayers;
+    }
+
+    public boolean inProgress(){
+        return status.equalsIgnoreCase("in progress");
     }
 
     public double getMinMMR() {
@@ -158,87 +129,97 @@ public class Tournament {
         }
     }
 
+    public boolean checkDate(UserDTO player) {
+        if (LocalDateTime.now().isAfter(LocalDateTime.parse(dateTime))) {
+            return false;
+        }
+        return true;
+    }
+
     // public TreeMap<Integer, User> getSeedings() {
-    //     TreeMap<Integer, User> seedings = new TreeMap<>();
-    //     List<String> users = this.getUsers();
+    // TreeMap<Integer, User> seedings = new TreeMap<>();
+    // List<String> users = this.getUsers();
 
-    //     Collections.sort(users, new Comparator<User>() {
-    //         @Override
-    //         public int compare(User p1, User p2) {
-    //             double mmr1 = p1.getPlayerDetails().calculateMMR();
-    //             double mmr2 = p2.getPlayerDetails().calculateMMR();
-    //             return Double.compare(mmr2, mmr1);
-    //         }
-    //     });
+    // Collections.sort(users, new Comparator<User>() {
+    // @Override
+    // public int compare(User p1, User p2) {
+    // double mmr1 = p1.getPlayerDetails().calculateMMR();
+    // double mmr2 = p2.getPlayerDetails().calculateMMR();
+    // return Double.compare(mmr2, mmr1);
+    // }
+    // });
 
-    //     for (int i = 0; i < users.size(); i++) {
-    //         User player = users.get(i);
-    //         seedings.put(i + 1, player);
-    //     }
-    //     return seedings;
+    // for (int i = 0; i < users.size(); i++) {
+    // User player = users.get(i);
+    // seedings.put(i + 1, player);
+    // }
+    // return seedings;
     // }
 
     // public void initializeTournament() {
-    //     List<Match> matches = new ArrayList<>();
+    // List<Match> matches = new ArrayList<>();
 
-    //     Collections.sort(users, Comparator.comparingDouble(user -> user.getPlayerDetails().calculateMMR()));
+    // Collections.sort(users, Comparator.comparingDouble(user ->
+    // user.getPlayerDetails().calculateMMR()));
 
-    //     if (users.size() != numPlayers) {
-    //         throw new IllegalStateException("The required amount of registered player have not been met!");
-    //     }
+    // if (users.size() != numPlayers) {
+    // throw new IllegalStateException("The required amount of registered player
+    // have not been met!");
+    // }
 
-    //     if (users.size() % 2 != 0) {
-    //         throw new IllegalStateException("The number of players should be even to create matches.");
-    //     }
+    // if (users.size() % 2 != 0) {
+    // throw new IllegalStateException("The number of players should be even to
+    // create matches.");
+    // }
 
-    //     int max = users.size() / 2;
-    //     int increment = max / 2;
+    // int max = users.size() / 2;
+    // int increment = max / 2;
 
-    //     for (int i = 0; i < users.size() / 2; i++) {
-    //         User user1 = users.get(i);
-    //         User user2 = users.get(users.size() - 1 - i);
+    // for (int i = 0; i < users.size() / 2; i++) {
+    // User user1 = users.get(i);
+    // User user2 = users.get(users.size() - 1 - i);
 
-    //         double mmrDifference = Math
-    //                 .abs(user1.getPlayerDetails().calculateMMR() -
-    //                         user2.getPlayerDetails().calculateMMR());
+    // double mmrDifference = Math
+    // .abs(user1.getPlayerDetails().calculateMMR() -
+    // user2.getPlayerDetails().calculateMMR());
 
-    //         // logic to get the match id and number
-    //         int bracket = i % increment;
-    //         int matchNumber = 0;
+    // // logic to get the match id and number
+    // int bracket = i % increment;
+    // int matchNumber = 0;
 
-    //         if (i % 2 == 0) {
-    //             if (i < increment) {
-    //                 matchNumber = bracket + 1;
-    //             }
-    //             if (i >= increment) {
-    //                 matchNumber = bracket + 2;
-    //             }
-    //         } else {
-    //             if (i <= increment) {
-    //                 matchNumber = max - bracket + 1;
-    //             }
-    //             if (i > increment) {
-    //                 matchNumber = max - bracket;
-    //             }
-    //         }
+    // if (i % 2 == 0) {
+    // if (i < increment) {
+    // matchNumber = bracket + 1;
+    // }
+    // if (i >= increment) {
+    // matchNumber = bracket + 2;
+    // }
+    // } else {
+    // if (i <= increment) {
+    // matchNumber = max - bracket + 1;
+    // }
+    // if (i > increment) {
+    // matchNumber = max - bracket;
+    // }
+    // }
 
-    //         Match match = new Match();
-    //         match.setTournamentId(this.id);
-    //         match.setPlayer1Id(user1.getId());
-    //         match.setPlayer2Id(user2.getId());
-    //         match.setPlayer1Score(0);
-    //         match.setPlayer2Score(0);
-    //         match.setMmrDifference(mmrDifference);
-    //         match.setMatchDate(this.date);
-    //         match.setStage("Round 1");
-    //         String matchId = generateMatchId(match, matchNumber);
-    //         match.setMatchId(matchId);
-    //         matches.add(match);
-    //     }
+    // Match match = new Match();
+    // match.setTournamentId(this.id);
+    // match.setPlayer1Id(user1.getId());
+    // match.setPlayer2Id(user2.getId());
+    // match.setPlayer1Score(0);
+    // match.setPlayer2Score(0);
+    // match.setMmrDifference(mmrDifference);
+    // match.setMatchDate(this.date);
+    // match.setStage("Round 1");
+    // String matchId = generateMatchId(match, matchNumber);
+    // match.setMatchId(matchId);
+    // matches.add(match);
+    // }
 
-    //     Round newRound = new Round("initial", matches);
+    // Round newRound = new Round("initial", matches);
 
-    //     this.rounds.add(newRound);
+    // this.rounds.add(newRound);
     // }
 
 }

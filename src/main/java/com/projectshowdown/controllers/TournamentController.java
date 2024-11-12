@@ -18,13 +18,12 @@ import java.io.IOException;
 import com.google.cloud.firestore.Firestore;
 import com.google.firebase.cloud.FirestoreClient;
 
-
 @RestController
 public class TournamentController {
     public Firestore getFirestore() {
         return FirestoreClient.getFirestore();
     }
-    
+
     @Autowired
     TournamentService tournamentService;
 
@@ -47,7 +46,7 @@ public class TournamentController {
             @RequestParam("venue") String venue,
             @RequestParam("status") String status,
             @RequestParam("logo") MultipartFile file) throws ExecutionException, InterruptedException, IOException {
-    
+
         // Create the Tournament object with only the relevant fields
         Tournament tournament = new Tournament();
         tournament.setName(name);
@@ -59,23 +58,35 @@ public class TournamentController {
         tournament.setCountry(country);
         tournament.setVenue(venue);
         tournament.setStatus(status);
-    
+
         // Save the tournament to Firestore to generate an ID
         String generatedId = tournamentService.addTournament(tournament);
         if (generatedId == null) {
             throw new RuntimeException("Failed to create tournament");
         }
-    
+
         // Upload logo to Firebase Storage using only the generated ID as the filename
         tournamentService.uploadLogoToFirebase(generatedId, file);
-    
+
         return "Tournament created successfully with ID: " + generatedId;
+
     }
-    
-    
+
+    @GetMapping("/tournaments/organizer/{organizerId}")
+    public List<Tournament> getTournamentsByOrganizerId(@PathVariable String organizerId)
+            throws ExecutionException, InterruptedException {
+        return tournamentService.getTournamentsByOrganizerId(organizerId);
+    }
+
+    @GetMapping("/tournaments/player/{playerId}")
+    public List<Tournament> getTournamentsByPlayerId(@PathVariable String playerId)
+            throws ExecutionException, InterruptedException {
+        return tournamentService.getTournamentsByPlayerId(playerId);
+    }
 
     @GetMapping("/tournament/{id}")
-    public Map<String, Object> displayTournament(@PathVariable String id) throws ExecutionException, InterruptedException {
+    public Map<String, Object> displayTournament(@PathVariable String id)
+            throws ExecutionException, InterruptedException {
         Map<String, Object> tournament = tournamentService.displayTournament(id);
 
         // Need to handle "player not found" error using proper HTTP status code
@@ -86,11 +97,19 @@ public class TournamentController {
         return tournament;
     }
 
-    @PutMapping("/tournament/{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public String updateTournament(@PathVariable String id, @RequestBody Map<String, Object> tournamentData)
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/tournaments/{organizerId}")
+    public String addTournament(@Valid @RequestBody Tournament tournamentData, @PathVariable String organizerId)
             throws ExecutionException, InterruptedException {
-        return tournamentService.updateTournament(id, tournamentData);
+        return tournamentService.addTournament(tournamentData, organizerId);
+    }
+
+    @PutMapping("/tournament/{id}/{organizerId}")
+    @ResponseStatus(HttpStatus.OK)
+    public String updateTournament(@PathVariable String id, @PathVariable String organizerId,
+            @RequestBody Map<String, Object> tournamentData)
+            throws ExecutionException, InterruptedException {
+        return tournamentService.updateTournament(id, organizerId, tournamentData);
     }
 
     @PutMapping("/tournament/{id}/register/{userId}")

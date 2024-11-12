@@ -62,19 +62,35 @@ public class AuthenticationService {
 
     private void sendVerificationEmail(UserDTO user) { //TODO: Update with company logo
         String subject = "Account Verification";
-        String verificationCode = "VERIFICATION CODE " + user.getVerificationCode();
-        String htmlMessage = "<html>"
-                + "<body style=\"font-family: Arial, sans-serif;\">"
-                + "<div style=\"background-color: #f5f5f5; padding: 20px;\">"
-                + "<h2 style=\"color: #333;\">Welcome to our app!</h2>"
-                + "<p style=\"font-size: 16px;\">Please enter the verification code below to continue:</p>"
-                + "<div style=\"background-color: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1);\">"
-                + "<h3 style=\"color: #333;\">Verification Code:</h3>"
-                + "<p style=\"font-size: 18px; font-weight: bold; color: #007bff;\">" + verificationCode + "</p>"
-                + "</div>"
-                + "</div>"
-                + "</body>"
-                + "</html>";
+        String verificationCode = user.getVerificationCode();
+        String verificationLink = "http://localhost:3000/verify?email=" + user.getEmail() + "&code=" + verificationCode;
+
+        String htmlMessage =
+                "<!DOCTYPE html>" +
+                        "<html lang=\"en\">" +
+                        "<head><meta charset=\"UTF-8\"></head>" +
+                        "<body style=\"margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f3eeea;\">" +
+                        "<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:600px;margin:0 auto;\">" +
+                        "<tr><td style=\"padding:20px;\">" +
+                        "<div style=\"background-color:white;border-radius:10px;box-shadow:0 4px 6px rgba(0,0,0,0.1);padding:30px;text-align:center;\">" +
+                        "<img src=\"cid:showdown-logo.png\" alt=\"Logo\" style=\"width:150px;margin-bottom:1.5rem;\"/>" +
+                        "<h2 style=\"color:#776b5d;margin-bottom:1rem;font-size:24px;\">Verify Your Account</h2>" +
+                        "<p style=\"color:#666;margin-bottom:1.5rem;font-size:16px;\">Please use the verification code below or click the button to verify your account:</p>" +
+                        "<div style=\"background-color:#f3eeea;padding:20px;border-radius:5px;margin:25px 0;\">" +
+                        "<p style=\"font-size:32px;letter-spacing:0.2rem;color:#776b5d;font-weight:bold;margin:0;\">" + verificationCode + "</p>" +
+                        "</div>" +
+                        "<a href=\"" + verificationLink + "\" style=\"display:inline-block;background-color:#776b5d;color:white;text-decoration:none;padding:12px 30px;border-radius:5px;font-size:16px;margin:20px 0;\">Verify Account</a>" +
+                        "<p style=\"color:#666;font-size:14px;margin-bottom:25px;\">This code will expire in 1 hour.</p>" +
+                        "<div style=\"margin-top:30px;border-top:1px solid #b0a695;padding-top:20px;\">" +
+                        "<p style=\"color:#666;font-size:12px;margin:0;\">If you didn't request this verification, please ignore this email.</p>" +
+                        "<p style=\"color:#666;font-size:12px;margin-top:10px;\">Or copy and paste this link into your browser:<br>" +
+                        "<span style=\"color:#776b5d;word-break:break-all;\">" + verificationLink + "</span></p>" +
+                        "</div>" +
+                        "</div>" +
+                        "</td></tr>" +
+                        "</table>" +
+                        "</body>" +
+                        "</html>";
 
         try {
             emailService.sendEmail(user.getEmail(), subject, htmlMessage);

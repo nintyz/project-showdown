@@ -1,6 +1,7 @@
 package com.projectshowdown.service;
 
 import com.google.api.core.ApiFuture;
+import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
@@ -19,6 +20,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -35,6 +38,9 @@ import com.projectshowdown.entities.Match;
 import com.projectshowdown.entities.Round;
 import com.projectshowdown.entities.Tournament;
 import com.projectshowdown.exceptions.TournamentNotFoundException;
+
+import jakarta.mail.MessagingException;
+
 import com.projectshowdown.entities.User;
 import com.projectshowdown.events.MatchUpdatedEvent;
 import com.projectshowdown.events.MatchUpdatedEvent;
@@ -46,6 +52,9 @@ public class TournamentService {
 
     @Autowired
     MatchService matchService;
+
+    @Autowired
+    NotificationService notificationService;
 
     // Helper method to get Firestore instance
     private Firestore getFirestore() {
@@ -76,13 +85,49 @@ public class TournamentService {
         return allTournaments; // Return the list of tournament
     }
 
+    public List<Tournament> getTournamentsByOrganizerId(String organizerId)
+            throws ExecutionException, InterruptedException {
+        Firestore db = getFirestore();
+        Query tournamentsCollection = db.collection("tournaments").whereEqualTo("organizerId", organizerId);
+        ApiFuture<QuerySnapshot> future = tournamentsCollection.get();
+        List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+
+        // Prepare a list to hold each document's data
+        List<Tournament> allTournaments = new ArrayList<>();
+
+        // Iterate through the documents and add their data to the list
+        for (DocumentSnapshot document : documents) {
+            if (document.exists()) {
+                // Add document data to the listt
+                Tournament currTournament = document.toObject(Tournament.class);
+                // set id.
+                currTournament.setId(document.getId());
+                allTournaments.add(currTournament);
+
+            }
+        }
+        return allTournaments; // Return the list of tournament
+    }
+
+    public List<Tournament> getTournamentsByPlayerId(String userId) throws ExecutionException, InterruptedException {
+        CollectionReference tournaments = FirestoreClient.getFirestore().collection("tournaments");
+
+        // Use array-contains to check if the userId is in the "users" array field
+        Query query = tournaments.whereArrayContains("users", userId);
+        QuerySnapshot querySnapshot = query.get().get();
+
+        return querySnapshot.toObjects(Tournament.class);  // Converts the result to a list of Tournament objects
+    }
+
     // Method to save tournament details to Firestore
-    public String addTournament(Tournament tournament) {
-        try {
-            Firestore db = getFirestore();
-            DocumentReference docRef = db.collection("tournaments").document();
-            String generatedId = docRef.getId();
-            tournament.setId(generatedId);
+    public String addTournament(Tournament tournament, String userId) throws ExecutionException, InterruptedException {
+        Firestore db = getFirestore();
+        // Generate a new document reference with a random ID
+        DocumentReference docRef = db.collection("tournaments").document();
+        // Get the generated document ID
+        String generatedId = docRef.getId();
+        tournament.setId(generatedId);
+        tournament.setOrganizerId(userId);
 
             ApiFuture<WriteResult> writeResult = docRef.set(tournament);
             return generatedId;
@@ -234,7 +279,9 @@ public class TournamentService {
         return response;
     }
 
-    public String updateTournament(String tournamentId, Map<String, Object> tournamentData)
+
+    // Method to update a tournament document in the 'tournaments' collection
+    public String updateTournament(String tournamentId, String organizerId, Map<String, Object> tournamentData)
             throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
 
@@ -248,22 +295,55 @@ public class TournamentService {
             throw new TournamentNotFoundException(tournamentId);
         }
 
+        UserDTO editingUser = userService.getUser(organizerId);
+        // if the user is an organizer role and trying to edit another organizer's
+        // tournament
+        if (editingUser.getRole().equalsIgnoreCase("organizer") && !organizerId.equals(document.get("organizerId"))) {
+            return "You are not allowed to edit another organizer's tournament!";
+        }
+
         // Filter out null values from the update data
         Map<String, Object> filteredUpdates = tournamentData.entrySet().stream()
                 .filter(entry -> entry.getValue() != null) // Only include non-null fields
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        // Perform the update operation
-        ApiFuture<WriteResult> writeResult = docRef.update(filteredUpdates);
+        // check if the update is to cancel tournament
+        if (tournamentData.containsKey("status")
+                && ((String) tournamentData.get("status")).equalsIgnoreCase("Cancelled")) {
+            // check if tournament has begun
+            Tournament tournament = getTournament(tournamentId);
+            if (tournament.inProgress()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You are not allowed to cancel a tournament that has already begun!");
+            }
 
-        // Check if the "status" key exists and is set to "cancelled"
-        if ("cancelled".equals(tournamentData.get("status"))) {
             // EMAIL NOTIFICATION TO LET REGISTERED PLAYERS KNOW ABOUT ITS CANCELLATION
+            // Retrieve the tournament name from the document
+            String tournamentName = document.getString("name");
+
+            // Retrieve the list of registered users
+            List<String> registeredUsers = (List<String>) document.get("users");
+            for (String userId : registeredUsers) {
+                UserDTO user = userService.getUser(userId);
+                try {
+                    // Send cancellation notification to each user
+                    notificationService.notifyTournamentCancelled(user.getEmail(), tournamentName);
+                    System.out.println("Cancellation notification sent to user: " + user.getName());
+                } catch (MessagingException e) {
+                    System.out.println("Failed to send cancellation notification to user: " + userId);
+                    e.printStackTrace();
+                }
+            }
+
+            docRef.update(filteredUpdates);
+            return "Tournament with ID: " + tournamentId + " has been cancelled!";
         }
 
+        ApiFuture<WriteResult> updateWriteResult = docRef.update(filteredUpdates);
+
         // Return success message with the update time
-        return "Tournament with ID: " + tournamentId + " updated successfully at: " + writeResult.get().getUpdateTime();
+        return "Tournament with ID: " + tournamentId + " updated successfully at: " + updateWriteResult.get().getUpdateTime();
     }
+
 
     // Method to register a new player
     public String registerUser(String tournamentId, String userId)
@@ -280,8 +360,21 @@ public class TournamentService {
             throw new TournamentNotFoundException(tournamentId);
         }
 
+        // fetch data
         UserDTO user = userService.getUser(userId);
         Tournament tournament = getTournament(tournamentId);
+
+        // check tournament started
+        if (tournament.getRounds().size() != 0) {
+            return "Tournament's has already begin";
+        }
+
+        // check registration date over
+        if (!tournament.checkDate(user)) {
+            return "Tournament's registration date is already over!";
+        }
+
+        // check mmr
         if (!tournament.checkUserEligibility(user)) {
             return "Player with MMR " + user.getPlayerDetails().calculateMMR()
                     + " is not eligible for this tournament (Allowed range: " + tournament.getMinMMR() + " - "
@@ -367,8 +460,7 @@ public class TournamentService {
             throws ExecutionException, InterruptedException {
         UserDTO user = userService.getUser(userId);
         HashMap<String, Object> achievements = new HashMap<>();
-        String newAchievement = " Obtained " + (gold ? "Gold" : "Silver") + " from " + tournament.getName() + " at "
-                + tournament.getDate();
+        String newAchievement = "Obtained " + (gold ? "Gold" : "Silver") + " from " + tournament.getName() + ". ";
         achievements.put("playerDetails.achievements", user.getPlayerDetails().getAchievements() + newAchievement);
 
         userService.updateUser(userId, achievements);
@@ -390,6 +482,8 @@ public class TournamentService {
     public String progressTournament(String tournamentId) throws ExecutionException, InterruptedException {
         Tournament tournament = getTournament(tournamentId);
         String roundName = determineNextRoundName(tournament);
+
+        System.out.println("Progressing tournament ...");
 
         if ("Error".equals(roundName)) {
             return "The tournament has already completed!";
@@ -430,6 +524,7 @@ public class TournamentService {
             }
 
             List<String> matches = generateMatchesWithSeed(tournament, users, roundName, 0);
+            tournament.setStatus("In Progress");
             addRoundToTournament(tournament, "Initial", matches);
 
             return matches.size() + " matches have been generated for tournament id " + tournament.getId();
@@ -464,48 +559,65 @@ public class TournamentService {
     private List<String> generateMatchesWithSeed(Tournament tournament, List<User> users, String stage,
             int totalMatches)
             throws ExecutionException, InterruptedException {
-        List<String> matches = new ArrayList<>();
-        List<Match> tempMatches = new ArrayList<>();
+        List<String> matches = new ArrayList<>(); // List to store match IDs
+
+        // Define seeded positions. Keys are match positions, values are indices of top-seeded users. Assuming 4 seeded players.
         Map<Integer, Integer> seedPositions = Map.of(
                 1, 0,
                 users.size() / 2, 1,
                 users.size() / 4, 2,
                 users.size() / 4 + 1, 3);
 
-        int left = 4;
-        int right = users.size() - 1;
-        List<Integer> usedPlayers = new ArrayList<>();
-
+        int left = 4; // Points to the strongest non-seeded player, as indexes 0 - 3 are seeded players
+        int right = users.size() - 1; // Points to the weakest non-seeded players
+        List<Integer> usedPlayers = new ArrayList<>(); // Track users who have been matched already
+        
+        // Loop to generate matches for each pair of players
         for (int i = 1; i <= users.size() / 2; i++) {
             User user1, user2;
 
+            // Check if the current position is a seeded position
             if (seedPositions.containsKey(i)) {
                 int seedIndex = seedPositions.get(i);
-                user1 = users.get(seedIndex);
-                user2 = users.get(right);
+                user1 = users.get(seedIndex); // If position is seeded, get the index of the seeded player
+                user2 = users.get(right); // Pair with weakest user
                 usedPlayers.add(seedIndex);
-                usedPlayers.add(right--);
+                usedPlayers.add(right--); // Mark players as used and decrement right pointer
             } else {
                 // Find the next available players for non-seeded matches
                 while (usedPlayers.contains(left))
-                    left++;
+                    left++; // Move left pointer to retrieve the next weakest player
 
                 user1 = users.get(left);
-                usedPlayers.add(left++);
+                usedPlayers.add(left++); // Mark as used and increment left pointer
 
                 while (usedPlayers.contains(right))
-                    right--;
+                    right--; // Move right pointer to retrieve the next strongest player
 
-                user2 = users.get(right);
-                usedPlayers.add(right--);
+                user2 = users.get(right); // Pair with the next weakest user 
+                usedPlayers.add(right--); // Mark as used and decrement right pointer
             }
 
+            // Create the match between the two selected players
             matches.add(createMatch(tournament, stage, user1, user2, totalMatches + matches.size() + 1));
-            tempMatches.add(new Match("", tournament.getId(), user1.getId(), user2.getId(), 0, 0,
-                    Math.abs(user1.getPlayerDetails().calculateMMR() - user2.getPlayerDetails().calculateMMR()),
-                    tournament.getDate(), stage, false));
+
+            // Send email notifications to both players about the match, however dateTime is TBC
+            try {
+                System.out.println("Sending player match email ....");
+                notificationService.notifyPlayerMatched(
+                        user1.getEmail(), user1.getName(), user2.getName(),
+                        tournament.getName());
+                notificationService.notifyPlayerMatched(
+                        user2.getEmail(), user2.getName(), user1.getName(),
+                        tournament.getName());
+            } catch (MessagingException e) {
+                // Handle email sending failure
+                System.out.println("Failed to send match notification for players: "
+                        + user1.getId() + " and " + user2.getId());
+                e.printStackTrace();
+            }
         }
-        return matches;
+        return matches; // Return list of match IDs
     }
 
     private String createMatch(Tournament tournament, String stage, User user1, User user2, int matchIndex)
@@ -513,7 +625,7 @@ public class TournamentService {
         String matchId = tournament.getId() + "m_" + matchIndex;
         Match match = new Match(matchId, tournament.getId(), user1.getId(), user2.getId(), 0, 0,
                 Math.abs(user1.getPlayerDetails().calculateMMR() - user2.getPlayerDetails().calculateMMR()),
-                tournament.getDate(), stage, false);
+                "TBC", stage, false);
         return matchService.addMatch(match);
     }
 
@@ -532,7 +644,7 @@ public class TournamentService {
             throws ExecutionException, InterruptedException {
         Round newRound = new Round(roundName, matches);
         tournament.getRounds().add(newRound);
-        updateTournament(tournament.getId(), Map.of("rounds", tournament.getRounds()));
+        updateTournament(tournament.getId(), tournament.getOrganizerId(), Map.of("rounds", tournament.getRounds()));
     }
 
 

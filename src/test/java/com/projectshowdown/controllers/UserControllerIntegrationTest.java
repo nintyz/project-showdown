@@ -2,7 +2,9 @@ package com.projectshowdown.controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.projectshowdown.config.TestGoogleServiceConfig;
 import com.projectshowdown.config.TestSecurityConfig;
+import com.projectshowdown.configs.JwtUtil;
 import com.projectshowdown.dto.UserDTO;
 import com.projectshowdown.entities.Player;
 import org.junit.jupiter.api.AfterEach;
@@ -10,11 +12,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,10 +26,17 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(TestSecurityConfig.class)
+@TestPropertySource(properties = "SUPPORT_EMAIL=admin@gmail.com")
+@TestPropertySource(properties = "APP_PASSWORD=Password1!")
+@TestPropertySource(properties = "GOOGLE_CONFIG_PATH=/Users/arthurchan/Documents/firebasekey/serviceAccountKey.json")
+
+@Import({TestGoogleServiceConfig.class, TestSecurityConfig.class})
 @ActiveProfiles("test")
 public class UserControllerIntegrationTest {
 
+    @MockBean
+    private JwtUtil jwtUtil;
+    
     @LocalServerPort
     private int port;
 
@@ -38,21 +49,33 @@ public class UserControllerIntegrationTest {
     private String baseUrl;
     private UserDTO testUserDTO;
     private HttpHeaders headers;
-    private String authToken;
 
     private List<String> createdUserIds = new ArrayList<>();
 
     @BeforeEach
-    void setUp() throws Exception {
+    public void setUp() {
         baseUrl = "http://localhost:" + port;
-        Player playerDetails = new Player(1, "Test Player", "2000-01-01", 24, 2000.0, 2500.0, 500.0, 400.0, 300.0, "", "", "");
-        testUserDTO = new UserDTO(null, "test" + System.currentTimeMillis() + "@example.com" , "Password1@", "player", null, playerDetails, null, null, true);
+        Player playerDetails = new Player(1, "2000-01-01", 2000.0, 24, 2500.0, "", "", "");
+        UserDTO testUser = new UserDTO(
+            "testUserId",
+            "testName",
+            "testProfileUrl",
+            "testEmail",
+            "Password1@",
+            "player",
+            "testTwoFactorSecret",
+            playerDetails,
+            null, // organizerDetails
+            "testVerificationCode",
+            null, // verificationCodeExpiresAt
+            true // enabled
+        );
         headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
     }
 
     @AfterEach
-    void tearDown() throws Exception {
+    public void tearDown() {
         // Delete all users created during the test
         for (String userId : createdUserIds) {
             try {
@@ -71,13 +94,13 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    void testAddPlayer() throws Exception {
+    void testAddPlayer() {
         HttpEntity<UserDTO> request = new HttpEntity<>(testUserDTO, headers);
         ResponseEntity<String> response = restTemplate.postForEntity(baseUrl + "/users", request, String.class);
-        extractUserId(response.getBody());
+        response.getBody();
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertTrue(response.getBody().contains("Player created successfully with ID:"));
+        assertTrue(response.getBody().contains("User created successfully with ID:"));
     }
 
     @Test
@@ -85,7 +108,7 @@ public class UserControllerIntegrationTest {
         // First, add a player
         HttpEntity<UserDTO> addRequest = new HttpEntity<>(testUserDTO, headers);
         ResponseEntity<String> addResponse = restTemplate.postForEntity(baseUrl + "/users", addRequest, String.class);
-        String userId = extractUserId(addResponse.getBody());
+        String userId = addResponse.getBody();
 
         // Then, get the player
         ResponseEntity<String> getResponse = restTemplate.exchange(
@@ -116,41 +139,22 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    void testUpdatePlayer() throws Exception {
-        // First, add a player
-        HttpEntity<UserDTO> addRequest = new HttpEntity<>(testUserDTO, headers);
-        ResponseEntity<String> addResponse = restTemplate.postForEntity(baseUrl + "/users", addRequest, String.class);
-        String userId = extractUserId(addResponse.getBody());
-
-        // Update the player
-        testUserDTO.getPlayerDetails().setName("Updated Name");
-        HttpEntity<UserDTO> updateRequest = new HttpEntity<>(testUserDTO, headers);
-        ResponseEntity<String> updateResponse = restTemplate.exchange(
-                baseUrl + "/user/" + userId,
-                HttpMethod.PUT,
-                updateRequest,
-                String.class  // Changed from UserDTO.class to String.class
-        );
-
-        assertEquals(HttpStatus.OK, updateResponse.getStatusCode());
-
-        // Verify the update
-        ResponseEntity<String> getResponse = restTemplate.exchange(
-                baseUrl + "/user/" + userId,
-                HttpMethod.GET,
-                new HttpEntity<>(headers),
-                String.class  // Changed from UserDTO.class to String.class
-        );
-
-        assertEquals(HttpStatus.OK, getResponse.getStatusCode());
-        JsonNode jsonNode = objectMapper.readTree(getResponse.getBody());
-        assertEquals("Updated Name", jsonNode.get("playerDetails").get("name").asText());
-    }
-
-    @Test
-    void testUpdateNonExistentPlayer() throws Exception {
-        UserDTO updatedUser = new UserDTO(null, "updated@example.com", "NewPassword1@", "player", null, null,null, null, false);
-        HttpEntity<UserDTO> updateRequest = new HttpEntity<>(updatedUser, headers);
+    void testUpdateNonExistentPlayer() {
+        UserDTO updatedUser = new UserDTO(
+            "testUpdatedUserId",
+            "testUpdatedUserName",
+            "testProfileUrl",
+            "testEmail",
+            "Password1@",
+            "player",
+            "testTwoFactorSecret",
+            null,
+            null, // organizerDetails
+            "testVerificationCode",
+            null, // verificationCodeExpiresAt
+            true // enabled
+            );
+            HttpEntity<UserDTO> updateRequest = new HttpEntity<>(updatedUser, headers);
         ResponseEntity<String> updateResponse = restTemplate.exchange(
                 baseUrl + "/user/nonExistentId",
                 HttpMethod.PUT,
@@ -162,11 +166,11 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    void testDeletePlayer() throws Exception {
+    void testDeletePlayer() {
         // First, add a player
         HttpEntity<UserDTO> addRequest = new HttpEntity<>(testUserDTO, headers);
         ResponseEntity<String> addResponse = restTemplate.postForEntity(baseUrl + "/users", addRequest, String.class);
-        String userId = extractUserId(addResponse.getBody());
+        String userId = addResponse.getBody();
 
         // Delete the player
         ResponseEntity<String> deleteResponse = restTemplate.exchange(
@@ -190,7 +194,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    void testDeleteNonExistentPlayer() throws Exception {
+    void testDeleteNonExistentPlayer() {
         ResponseEntity<String> deleteResponse = restTemplate.exchange(
                 baseUrl + "/user/nonExistentId",
                 HttpMethod.DELETE,
@@ -202,7 +206,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    void testAddPlayerWithInvalidData() throws Exception {
+    void testAddPlayerWithInvalidData() {
         // Create invalid player data (missing required fields)
         testUserDTO.setEmail(null);
 
@@ -219,7 +223,7 @@ public class UserControllerIntegrationTest {
             testUserDTO.setEmail("test" + i + System.currentTimeMillis() + "@example.com");
             HttpEntity<UserDTO> request = new HttpEntity<>(testUserDTO, headers);
             ResponseEntity<String> addResponse = restTemplate.postForEntity(baseUrl + "/users", request, String.class);
-            extractUserId(addResponse.getBody());
+            addResponse.getBody();
         }
 
         // Get all players
@@ -237,13 +241,5 @@ public class UserControllerIntegrationTest {
         JsonNode jsonArray = objectMapper.readTree(response.getBody());
         assertTrue(jsonArray.isArray());
         assertFalse(jsonArray.isEmpty());
-    }
-
-    private String extractUserId(String response) {
-        int start = response.indexOf("ID: ") + 4;
-        int end = response.indexOf(" at:");
-        String userId = response.substring(start, end);
-        createdUserIds.add(userId); // Track the created user ID
-        return userId;
     }
 }
