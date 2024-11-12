@@ -80,12 +80,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/users", "/user/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/send-verification-email").permitAll()
                         .requestMatchers(HttpMethod.POST, "/users").permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/organizers", "/organizer/*").hasAuthority("admin")
+                        .requestMatchers(HttpMethod.PUT, "/user/*").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/user/*").authenticated()
+
+                        // organizers
+                        .requestMatchers(HttpMethod.GET,  "/organizers").hasAuthority("admin")
+                        .requestMatchers(HttpMethod.PUT,  "/organizer/*").hasAnyAuthority("admin","organizer")
+                        .requestMatchers(HttpMethod.DELETE,  "/organizer/*").hasAuthority("admin")
                         .requestMatchers(HttpMethod.POST, "/addRandomData").permitAll()
-                        // .requestMatchers(HttpMethod.PUT, "/user/*").hasAuthority("admin")
-                        .requestMatchers(HttpMethod.PUT, "/user/*").permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/user/*").permitAll()
-                        // .requestMatchers(HttpMethod.DELETE, "/user/*").hasAuthority("admin")
 
                         // tournaments CRUD
                         .requestMatchers(HttpMethod.GET, "/tournaments", "/tournaments/**").permitAll()
