@@ -56,7 +56,7 @@ export default {
             activeTab: 0,
             defaultLogo: 'https://via.placeholder.com/100',
             role: localStorage.getItem("role") || "guest",
-            organizerId: localStorage.getItem("userId"),
+            userId: localStorage.getItem("userId"),
         };
     },
     computed: {
@@ -80,7 +80,7 @@ export default {
                 let response;
                 if (this.isOrganizer && this.activeTab === 1) {
                     // Fetch tournaments for this organizer only
-                    response = await axios.get(`http://localhost:8080/tournaments/organizer/${this.organizerId}`);
+                    response = await axios.get(`http://localhost:8080/tournaments/organizer/${this.userId}`);
                 } else {
                     // Fetch all tournaments
                     response = await axios.get('http://localhost:8080/tournaments');
@@ -114,7 +114,7 @@ export default {
     },
     mounted() {
         this.fetchTournaments();
-        console.log("Organizer ID:", this.organizerId);
+        console.log("Organizer ID:", this.userId);
     },
 };
 </script>

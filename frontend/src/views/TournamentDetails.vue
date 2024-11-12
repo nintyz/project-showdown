@@ -32,9 +32,9 @@
             <div class="action-buttons mt-4">
                 <!-- Render for Players -->
                 <template v-if="role === 'player'">
-                    
-                    <button v-if="!isUserRegistered" class="btn btn-outline-primary me-2"
-                        @click="registerForTournament" :disabled="isRegistrationFull || isRegistrationClosed">
+
+                    <button v-if="!isUserRegistered" class="btn btn-outline-primary me-2" @click="registerForTournament"
+                        :disabled="isRegistrationFull || isRegistrationClosed">
                         {{ registrationStatus }}
                     </button>
                     <button v-else-if="isUserRegistered" class="btn btn-outline-secondary me-2"
@@ -48,7 +48,9 @@
                 </template>
 
                 <!-- Render for Organizers -->
-                <template v-else-if="role === 'organizer'">
+                <!-- Action Buttons based on role and registration status -->
+                <div class="action-buttons mt-4" v-if="role === 'organizer' && isOrganizerOwner">
+                    <!-- Only render buttons if the user is the organizer and the owner -->
                     <button class="btn btn-outline-primary me-2" @click="editTournament">Edit</button>
                     <button class="btn btn-outline-danger me-2" @click="cancelTournament">Cancel</button>
                     <button class="btn btn-outline-success me-2" @click="progressTournament">
@@ -61,8 +63,16 @@
                         class="btn btn-outline-secondary me-2" @click="viewBrackets">
                         {{ bracketButtonText }}
                     </button>
+                </div>
 
-                </template>
+                <!-- For other users or roles, display only the brackets button if available -->
+                <div class="action-buttons mt-4" v-else-if="bracketButtonText">
+                    <button :disabled="bracketButtonDisabled" :class="{ 'btn-disabled': bracketButtonDisabled }"
+                        class="btn btn-outline-secondary me-2" @click="viewBrackets">
+                        {{ bracketButtonText }}
+                    </button>
+                </div>
+
 
                 <!-- For other roles or non-specific access -->
                 <template v-else>
@@ -101,10 +111,10 @@ export default {
     data() {
         return {
             tournament: null,
-            userId: 'n7T2VSiOZ2m0kuzEh9yJ', // Sample player ID
             defaultLogo: 'https://via.placeholder.com/150',
             role: 'organizer', // Retrieve role from local storage
             users: [], // Store user data for registered players
+            userId: localStorage.getItem("userId"),
             notification: {
                 message: '',
                 type: '' // 'success' or 'error'
@@ -125,6 +135,10 @@ export default {
         };
     },
     computed: {
+        isOrganizerOwner() {
+            // Check if the current user is the organizer of the tournament
+            return this.tournament && this.tournament.organizerId === this.userId;
+        },
         isUserRegistered() {
             return this.tournament?.users?.includes(this.userId);
         },
@@ -140,7 +154,7 @@ export default {
             return 'Register';
         },
         sortedPlayers() {
-             // eslint-disable-next-line
+            // eslint-disable-next-line
             return this.users.sort((a, b) => a.name.localeCompare(b.name));
         },
         bracketButtonText() {
