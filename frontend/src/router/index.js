@@ -5,6 +5,7 @@ import LoginPage from '@/views/LoginPage.vue'
 import DashboardPage from '@/views/DashboardPage.vue'
 // import PlayerProfile from '@/views/PlayerProfile.vue'
 import AdminDashboard from '@/views/AdminDashboard.vue'
+import AdminOrganizers from '@/views/AdminOrganizers.vue'
 import AddTournament from '@/views/AddTournament.vue'
 import SignUp from '@/views/SignUp.vue'
 import DashboardPageTwo from '@/views/DashboardPageTwo.vue'
@@ -73,6 +74,11 @@ const routes = [
         path: '/admin-dashboard',
         name: 'AdminDashboard',
         component: AdminDashboard,
+    },
+    {
+        path: '/admin-organizers',
+        name: 'AdminOrganizers',
+        component: AdminOrganizers,
     },
     {
         path: '/new-tournament',
