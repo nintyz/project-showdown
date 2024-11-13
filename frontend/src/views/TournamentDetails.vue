@@ -205,15 +205,15 @@ export default {
             if (confirm('Are you sure you want to cancel this tournament?')) {
                 try {
                     // await axios.put(`http://localhost:8080/tournament/${this.$route.params.id}/${this.userId}`, { status: 'Cancelled' });
-                  await axios.put(
-                      `http://localhost:8080/tournament/${this.$route.params.id}/${this.userId}`,
-                      { status: 'Cancelled' },
-                      {
-                        headers: {
-                          'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    await axios.put(
+                        `http://localhost:8080/tournament/${this.$route.params.id}/${this.userId}`,
+                        { status: 'Cancelled' },
+                        {
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            }
                         }
-                      }
-                  );
+                    );
                     this.showNotification('Tournament cancelled successfully.', 'success');
                     this.$router.push('/all-tournaments-dashboard');
                 } catch (error) {
@@ -224,13 +224,23 @@ export default {
         },
         async registerForTournament() {
             try {
-                await axios.put(`http://localhost:8080/tournament/${this.tournament.id}/register/${this.userId}`);
-                this.showNotification('Successfully registered for the tournament.', 'success');
+                const response = await axios.put(`http://localhost:8080/tournament/${this.tournament.id}/register/${this.userId}`);
+                this.showNotification(response.data, 'success');
                 await this.fetchTournamentDetails();
             } catch (error) {
-                console.error('Error registering for tournament:', error);
-                this.showNotification('Failed to register for the tournament.', 'error');
+                // If there's an error response, you can also handle it here if needed
+                this.showNotification('Registration failed. Please try again.', 'error');
             }
+
+            // try {
+
+            //     await axios.put(`http://localhost:8080/tournament/${this.tournament.id}/register/${this.userId}`);
+            //     this.showNotification('Successfully registered for the tournament.', 'success');
+            //     await this.fetchTournamentDetails();
+            // } catch (error) {
+            //     console.error('Error registering for tournament:', error);
+            //     this.showNotification('Failed to register for the tournament.', 'error');
+            // }
         },
         async unregisterFromTournament() {
             try {
@@ -247,15 +257,15 @@ export default {
             this.loading = true;
             this.startLoadingPhrases();
             try {
-              await axios.put(
-                  `http://localhost:8080/tournament/${this.$route.params.id}/matches`,
-                  {}, // empty body since it's not needed
-                  {
-                    headers: {
-                      'Authorization': `Bearer ${localStorage.getItem('token')}`
+                await axios.put(
+                    `http://localhost:8080/tournament/${this.$route.params.id}/matches`,
+                    {}, // empty body since it's not needed
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
                     }
-                  }
-              );
+                );
                 this.showNotification('Tournament progressed successfully.', 'success');
                 await this.fetchTournamentDetails();
             } catch (error) {
@@ -286,8 +296,8 @@ export default {
         this.fetchTournamentDetails();
         console.log(this.userId);
         console.log(this.role);
-        
-        
+
+
     },
 };
 </script>
