@@ -138,6 +138,11 @@ public class MatchService {
 
         }
 
+        // set match completed
+        if (matchData.containsKey("player1Score") && matchData.containsKey("player2Score")) {
+            matchData.put("completed", true);
+        }
+
         // Filter out null values from the update data
         Map<String, Object> filteredUpdates = matchData.entrySet().stream()
                 .filter(entry -> entry.getValue() != null) // Only include non-null fields
@@ -145,7 +150,6 @@ public class MatchService {
 
         // Perform the update operation
         ApiFuture<WriteResult> writeResult = docRef.update(filteredUpdates);
-
 
         Match match = document.toObject(Match.class);
         // check if Round has been completed
@@ -163,10 +167,7 @@ public class MatchService {
                 toUpdateScore.put("playerDetails.peakElo", newElo);
             }
             userService.updateUser(winner.getId(), toUpdateScore);
-            matchData.put("completed", true);
         }
-
-        
 
         // Return success message with the update time
         return "Match with ID: " + id + " updated successfully at: " + writeResult.get().getUpdateTime();
