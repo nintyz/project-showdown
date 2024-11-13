@@ -102,9 +102,9 @@ export default {
         getStatusBadgeClass(status) {
             switch (status) {
                 case "Registration":
-                    return "badge-warning";
-                case "In Progress":
                     return "badge-success";
+                case "In Progress":
+                    return "badge-warning";
                 case "Ended":
                     return "badge-secondary";
                 case "Cancelled":
