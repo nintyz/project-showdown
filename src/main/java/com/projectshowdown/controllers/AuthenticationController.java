@@ -93,7 +93,7 @@ public class AuthenticationController {
             if (isValid) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(verify2faDto.getEmail());
                 String token = jwtUtil.generateToken(userDetails);
-                return ResponseEntity.ok(Map.of("token", token));
+                return ResponseEntity.ok(Map.of("token", token, "userId", user.getId()));
             } else {
                 return ResponseEntity.badRequest().body("Invalid 2FA code");
             }
@@ -120,6 +120,7 @@ public class AuthenticationController {
                 return ResponseEntity.ok(Map.of(
                         "status", "success",
                         "token", token,
+                            "userId", user.getId(),
                         "message", "Account verified successfully"));
             }
         } catch (RuntimeException | ExecutionException | InterruptedException e) {

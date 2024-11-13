@@ -277,7 +277,11 @@ public class UserService implements UserDetailsService {
     UserDTO user = getUser(userid);
     String secret = twoFactorAuthService.generateSecretKey();
     user.setTwoFactorSecret(secret);
-    updateUser(userid, UserMapper.toMap(user));
+
+    HashMap<String, Object> data = new HashMap<>();
+    data.put("twoFactorSecret", secret);
+
+    updateUser(userid, data);
     String qrCodeUri = twoFactorAuthService.generateQrCodeImageUri(secret);
     return twoFactorAuthService.generateQrCodeImage(qrCodeUri);
   }

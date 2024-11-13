@@ -59,13 +59,13 @@ export default {
 
           localStorage.setItem('token', token);
           localStorage.setItem('role', role);
+          localStorage.setItem('userId', response.data.userId);
 
           this.success = 'Two-factor authentication successful!';
-          this.redirectBasedOnRole();
 
           this.startRedirectCountdown(1.5);
           setTimeout(() => {
-            this.$router.push('/dashboard');
+            this.$router.push('/all-tournaments-dashboard');
           }, 1500);
         } else {
           this.error = 'Authentication failed. Please try again.';
@@ -75,6 +75,16 @@ export default {
       } finally {
         this.isLoading = false;
       }
+    },
+    startRedirectCountdown(seconds) {
+      this.redirectCountdown = seconds;
+      this.redirectInterval = setInterval(() => {
+        if (this.redirectCountdown > 0) {
+          this.redirectCountdown--;
+        } else {
+          clearInterval(this.redirectInterval);
+        }
+      }, 1000);
     },
     redirectBasedOnRole() {
       if (this.role === 'player') {
