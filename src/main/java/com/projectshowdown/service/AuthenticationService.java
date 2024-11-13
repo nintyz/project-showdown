@@ -3,12 +3,14 @@ package com.projectshowdown.service;
 import com.projectshowdown.dto.UserDTO;
 import com.projectshowdown.dto.UserMapper;
 import com.projectshowdown.dto.VerifyUserDto;
+import com.projectshowdown.entities.Tournament;
 import com.projectshowdown.util.DateTimeUtils;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
@@ -32,10 +34,13 @@ public class AuthenticationService {
                 throw new RuntimeException("Verification code has expired");
             }
             if (user.getVerificationCode().equals(input.getVerificationCode())) {
-                user.setEnabled(true);
-                user.setVerificationCode(null);
-                user.setVerificationCodeExpiresAt(null);
-                userService.updateUser(userService.getUserIdByEmail(input.getEmail()), UserMapper.toMap(user));
+
+                HashMap<String, Object> verify = new HashMap<>();
+                verify.put("enabled", true);
+                verify.put("verificationCode", null);
+                verify.put("verificationCodeExpiresAt", null);
+                userService.updateUser(userService.getUserIdByEmail(input.getEmail()), verify);
+
             } else {
                 throw new RuntimeException("Invalid verification code");
             }
@@ -51,10 +56,22 @@ public class AuthenticationService {
             if (user.isEnabled()) {
                 throw new RuntimeException("Account is already verified");
             }
-            user.setVerificationCode(userService.generateVerificationCode());
-            user.setVerificationCodeExpiresAt(DateTimeUtils.toEpochSeconds(LocalDateTime.now().plusHours(1)));
+
+            // generate new verification code and expiration
+            String verificationCode = userService.generateVerificationCode();
+            long verificationCodeExpiresAt = DateTimeUtils.toEpochSeconds(LocalDateTime.now().plusHours(1));
+
+            //set new verification code and expiration to userDTO
+            user.setVerificationCode(verificationCode);
+            user.setVerificationCodeExpiresAt(verificationCodeExpiresAt);
+
             sendVerificationEmail(user);
-            userService.updateUser(userService.getUserIdByEmail(email), UserMapper.toMap(user));
+
+            // update user verification code and expiration
+            HashMap<String, Object> verify = new HashMap<>();
+            verify.put("verificationCode", verificationCode);
+            verify.put("verificationCodeExpiresAt", verificationCodeExpiresAt);
+            userService.updateUser(userService.getUserIdByEmail(email), verify);
         } else {
             throw new RuntimeException("User not found");
         }
