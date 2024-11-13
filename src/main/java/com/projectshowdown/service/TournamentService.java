@@ -10,10 +10,6 @@ import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
 import com.google.firebase.cloud.FirestoreClient;
-import com.google.api.client.util.Strings;
-import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.DocumentReference;
-import com.google.cloud.firestore.WriteResult;
 import com.google.firebase.cloud.StorageClient;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -42,7 +38,6 @@ import com.projectshowdown.exceptions.TournamentNotFoundException;
 import jakarta.mail.MessagingException;
 
 import com.projectshowdown.entities.User;
-import com.projectshowdown.events.MatchUpdatedEvent;
 import com.projectshowdown.events.MatchUpdatedEvent;
 
 @Service
@@ -467,7 +462,6 @@ public class TournamentService {
             }
 
             List<String> matches = generateMatchesWithSeed(tournament, users, roundName, 0);
-            tournament.setStatus("In Progress");
             addRoundToTournament(tournament, "Initial", matches);
 
             return matches.size() + " matches have been generated for tournament id " + tournament.getId();
@@ -590,7 +584,10 @@ public class TournamentService {
             throws ExecutionException, InterruptedException {
         Round newRound = new Round(roundName, matches);
         tournament.getRounds().add(newRound);
-        updateTournament(tournament.getId(), tournament.getOrganizerId(), Map.of("rounds", tournament.getRounds()));
+        Map<String, Object> toUpdateTournament = new HashMap<String, Object>();
+        toUpdateTournament.put("rounds", tournament.getRounds());
+        toUpdateTournament.put("status", "In Progress");
+        updateTournament(tournament.getId(), tournament.getOrganizerId(), toUpdateTournament);
     }
 
     // Upload logo to Firebase Storage
