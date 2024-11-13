@@ -83,13 +83,24 @@ export default {
     }
   },
   methods: {
+    extractRoleFromToken(token) {
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(window.atob(base64));
+        return payload.role || 'player'; // Default to PLAYER if no role found
+      } catch (error) {
+        console.error('Error extracting role from token:', error);
+        return 'player';
+      }
+    },
     async verifyAccount() {
       this.isLoading = true;
       this.error = null;
       this.success = null;
 
       try {
-        const response = await axios.post('http://localhost:8080/verify', {
+        const response = await axios.post('http://3.107.24.69:8080/verify', {
           email: this.email,
           verificationCode: this.verificationCode
         });
@@ -98,7 +109,10 @@ export default {
         this.isEmailVerified = true;
         this.resendCooldown = 0; // Hide the resend section
         if (response.data.token) {
-          localStorage.setItem("token", response.token);
+          localStorage.setItem("token", response.data.token);
+          localStorage.setItem("role", this.extractRoleFromToken(response.data.token));
+          localStorage.setItem("userId", response.data.userId);
+          this.$router.push('/all-tournaments-dashboard');
         }
         if (response.data.status === 'requires_2fa') {
           this.$router.push({ path: '/verify-2fa', query: { email: this.email } });
@@ -117,7 +131,7 @@ export default {
       this.success = null;
 
       try {
-        await axios.post('http://localhost:8080/resend', null, {
+        await axios.post('http://3.107.24.69:8080/resend', null, {
           params: { email: this.email }
         });
 
@@ -141,7 +155,7 @@ export default {
     },
     async enable2FA() {
       try {
-        const response = await axios.post('http://localhost:8080/enable-2fa', null, {
+        const response = await axios.post('http://3.107.24.69:8080/enable-2fa', null, {
           params: { email: this.email }
         });
         this.qrCodeImage = `data:image/png;base64,${response.data.qrCodeImage}`;
