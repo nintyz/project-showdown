@@ -104,7 +104,9 @@ export default {
           email: this.email,
           verificationCode: this.verificationCode
         });
-
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("role", this.extractRoleFromToken(response.data.token));
+        localStorage.setItem("userId", response.data.userId);
         this.success = response.data.message || 'Email verified successfully!';
         this.isEmailVerified = true;
         this.resendCooldown = 0; // Hide the resend section
