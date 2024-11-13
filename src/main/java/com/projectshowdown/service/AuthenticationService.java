@@ -1,9 +1,7 @@
 package com.projectshowdown.service;
 
 import com.projectshowdown.dto.UserDTO;
-import com.projectshowdown.dto.UserMapper;
 import com.projectshowdown.dto.VerifyUserDto;
-import com.projectshowdown.entities.Tournament;
 import com.projectshowdown.util.DateTimeUtils;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;

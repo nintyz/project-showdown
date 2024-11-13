@@ -132,7 +132,7 @@ export default {
             this.$router.push('/edit-organizer');
         },
         viewTournament(tournament) {
-            alert(`Redirecting to the dashboard for ${tournament.name}`);
+            this.$router.push(`/tournament/${tournament.id}`);
         },
     },
 };
