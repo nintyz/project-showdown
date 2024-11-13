@@ -44,7 +44,7 @@
         },
         methods: {
             goToLogin() {
-                this.$router.push('/signup');
+                this.$router.push('/login');
             },
         },
     };
