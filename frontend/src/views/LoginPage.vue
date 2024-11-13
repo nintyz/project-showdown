@@ -85,6 +85,9 @@
             const token = response.data.token;
             localStorage.setItem('token', token);
 
+            const userId = response.data.userId;
+            localStorage.setItem('userId', userId);
+
             // Extract role from JWT
             const role = this.extractRoleFromToken(token);
             localStorage.setItem('role', role);
