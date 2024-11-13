@@ -204,7 +204,16 @@ export default {
         async cancelTournament() {
             if (confirm('Are you sure you want to cancel this tournament?')) {
                 try {
-                    await axios.put(`http://localhost:8080/tournament/${this.$route.params.id}/${this.userId}`, { status: 'Cancelled' });
+                    // await axios.put(`http://localhost:8080/tournament/${this.$route.params.id}/${this.userId}`, { status: 'Cancelled' });
+                  await axios.put(
+                      `http://localhost:8080/tournament/${this.$route.params.id}/${this.userId}`,
+                      { status: 'Cancelled' },
+                      {
+                        headers: {
+                          'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                      }
+                  );
                     this.showNotification('Tournament cancelled successfully.', 'success');
                     this.$router.push('/all-tournaments-dashboard');
                 } catch (error) {
@@ -238,7 +247,15 @@ export default {
             this.loading = true;
             this.startLoadingPhrases();
             try {
-                await axios.put(`http://localhost:8080/tournament/${this.$route.params.id}/matches`);
+              await axios.put(
+                  `http://localhost:8080/tournament/${this.$route.params.id}/matches`,
+                  {}, // empty body since it's not needed
+                  {
+                    headers: {
+                      'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                  }
+              );
                 this.showNotification('Tournament progressed successfully.', 'success');
                 await this.fetchTournamentDetails();
             } catch (error) {
