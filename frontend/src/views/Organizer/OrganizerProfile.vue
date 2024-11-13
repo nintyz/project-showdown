@@ -9,7 +9,7 @@
                     <img src="@/assets/player-image.jpg" alt="Tennis Player" class="player-photo" />
                 </div>
                 <div class="player-info col-md-9">
-                    <h1 class="player-name">{{name }}</h1>
+                    <h1 class="player-name">{{ name }}</h1>
                     <h3>{{ organizerDetails.country }}</h3>
                     <p v-if="organizerDetails.bio" class="player-bio">
                         {{ organizerDetails.bio }}
@@ -17,7 +17,7 @@
                     <p v-else class="player-bio italic">
                         Organizer did not set any bio
                     </p>
-                    <p class="player-bio">Verified at: 
+                    <p class="player-bio">Verified on: 
                         {{ organizerDetails.dateVerified }}
                     </p>
 
@@ -39,7 +39,7 @@
                         <div class="col-md-8">
                             <div class="tournament-info">
                                 <h4>{{ tournament.name }}</h4>
-                                <p>{{ tournament.location }} | {{ tournament.date }}</p>
+                                <p>{{ tournament.venue }} | {{ formattedDateTime(tournament.dateTime) }}</p>
                             </div>
                         </div>
                         <div class="col-md-2 text-right">
@@ -80,12 +80,24 @@ export default {
         this.fetchPlayerData();
         this.fetchTournaments();
     },
+    computed: { 
+        formattedDateTime() {
+            return (dateTime) => {
+                if (!dateTime) return '';
+                return new Date(dateTime).toLocaleString(undefined, {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                });
+            };
+        },
+    },
     methods: {
         async fetchPlayerData() {
             this.organizerId = localStorage.getItem("userId")
             try {
                 const response = await axios.get(`http://localhost:8080/user/${this.organizerId}`);
-                this.organizer = response.data.organizerDetails;
+                this.organizerDetails = response.data.organizerDetails;
                 this.name = response.data.name;
                 this.profileUrl = response.data.profileUrl;
 
@@ -101,7 +113,9 @@ export default {
                 second: 'numeric',
                 hour12: true      // Use 12-hour format; set to false for 24-hour format
                 };
-                this.organizer.dateVerified = date.toLocaleString('en-UK', options);
+                this.organizerDetails.dateVerified = date.toLocaleString('en-UK', options)
+                    .replace(',', '')
+                    .replace(':00', '');
             } catch (error) {
                 console.error("Error fetching player data:", error);
             }
