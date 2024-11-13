@@ -10,3 +10,5 @@ createApp(App)
 .use(router)
 .use(BootstrapVue3)
 .mount('#app');
+
+document.title = "Showdown";
