@@ -103,6 +103,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/tournaments", "/tournaments/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/tournaments").permitAll() 
                         .requestMatchers(HttpMethod.PUT, "/tournament").permitAll() 
+                        .requestMatchers(HttpMethod.POST, "/tournaments/*").permitAll() 
                         // .requestMatchers(HttpMethod.POST, "/tournaments").hasAnyAuthority("admin","organizer")
                         .requestMatchers(HttpMethod.PUT, "/tournaments/**").hasAnyAuthority("admin","organizer")
                         .requestMatchers(HttpMethod.GET, "/tournaments",  "/tournament/*", "/tournaments/organizer/*", "tournaments/player/*").permitAll()

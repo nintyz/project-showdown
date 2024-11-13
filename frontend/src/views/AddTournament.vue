@@ -117,7 +117,7 @@ export default {
                 // Append fields based on the specified format
                 formData.append('name', this.tournament.name);
                 formData.append('year', new Date(this.tournament.dateTime).getFullYear());
-                formData.append('type', 'Tournament');
+                // formData.append('type', 'Tournament');
                 formData.append('venue', this.tournament.venue);
                 formData.append('dateTime', this.tournament.dateTime);
                 formData.append('numPlayers', this.tournament.numPlayers);
@@ -128,12 +128,12 @@ export default {
                 formData.append('logo', this.tournament.logo); // Optional: add image file if selected
 
                 // Call the endpoint including the organizerId in the path
-                const response = await axios.post(`http://localhost:8080/all-tournaments-dashboard/${this.organizerId}`, formData, {
+                const response = await axios.post(`http://localhost:8080/tournaments/${this.organizerId}`, formData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
                 
                 console.log('Tournament created successfully:', response.data);
-                this.$router.push('/tournaments'); // Redirect to the tournaments list after creation
+                this.$router.push('/all-tournaments-dashboard'); // Redirect to the tournaments list after creation
             } catch (error) {
                 console.error("Error creating tournament:", error);
             }
