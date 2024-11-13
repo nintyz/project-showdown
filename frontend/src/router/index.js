@@ -4,6 +4,7 @@ import LandingPage from '@/views/LandingPage.vue'
 import LoginPage from '@/views/LoginPage.vue'
 import DashboardPage from '@/views/DashboardPage.vue'
 // import PlayerProfile from '@/views/PlayerProfile.vue'
+import OrganizerProfile from '@/views/Organizer/OrganizerProfile.vue'
 import AdminDashboard from '@/views/AllTournamentsDashboard.vue'
 import AdminOrganizers from '@/views/AdminOrganizers.vue'
 import AddTournament from '@/views/AddTournament.vue'
@@ -18,6 +19,7 @@ import OAuthCallback from "@/views/OAuthCallback.vue";
 import Verify from "@/views/VerifyAccount.vue";
 import Verify2FA from "@/views/Verify2FA.vue";
 import EditProfile from '@/views/UpdatePlayer.vue'
+import EditOrganizer from '@/views/Organizer/UpdateOrganizer.vue'
 import AllPlayers from '@/views/AllPlayers.vue'
 import PersonalProfile from '@/views/Player/PersonalProfile.vue'
 import SpecificPlayerProfile from '@/views/Player/SpecificPlayerProfile.vue'
@@ -55,9 +57,14 @@ const routes = [
         component: DashboardPageTwo,
     },
     {
-        path: '/profile/player',
+        path: '/profile/player/',
         name: 'PersonalProfile',
         component: PersonalProfile,
+    },
+    {
+        path: '/profile/personalOrganizer/',
+        name: 'OrganizerProfile',
+        component: OrganizerProfile,
     },
     {
         path: '/player/:userId',
@@ -70,6 +77,11 @@ const routes = [
         path: '/edit-profile',
         name: 'EditProfile',
         component: EditProfile,
+    },
+    {
+        path: '/edit-organizer',
+        name: 'EditOrganizer',
+        component: EditOrganizer,
     },
     {
         path: '/all-tournaments-dashboard',
