@@ -223,15 +223,17 @@ export default {
             }
         },
         async registerForTournament() {
-            let response;
             try {
-                response = await axios.put(`http://localhost:8080/tournament/${this.tournament.id}/register/${this.userId}`);
-                this.showNotification(response.data, 'success');
+                const response = await axios.put(`http://localhost:8080/tournament/${this.tournament.id}/register/${this.userId}`);
+                const message = response.data.message; // Accessing the `message` field from the response
+                this.showNotification(message, 'success');
                 await this.fetchTournamentDetails();
             } catch (error) {
-                // If there's an error response, you can also handle it here if needed
-                this.showNotification(response.message, 'error');
+                // If there's an error response, handle it here
+                const errorMessage = error.response?.data?.message || error.message; // Use error.message if `response.data.message` isn't available
+                this.showNotification(errorMessage, 'error');
             }
+
 
             // try {
 
