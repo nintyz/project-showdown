@@ -85,7 +85,11 @@ export default {
         async updateTournament() {
             const tournamentId = this.$route.params.id;
             try {
-                await axios.put(`http://localhost:8080/tournament/${tournamentId}`, this.formData);
+                await axios.put(`http://localhost:8080/tournament/${tournamentId}`, this.formData, {
+                  headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                  }
+                });
                 console.log("Tournament updated successfully.");
                 this.$router.push(`/tournament/${tournamentId}`);
             } catch (error) {
