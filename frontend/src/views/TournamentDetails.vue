@@ -37,7 +37,7 @@
                         :disabled="isRegistrationFull || isRegistrationClosed">
                         {{ registrationStatus }}
                     </button>
-                    <button v-else-if="isUserRegistered" class="btn btn-outline-secondary me-2"
+                    <button v-else-if="isUserRegistered" class="btn btn-outline-secondary me-2" style="background-color:red"
                         @click="unregisterFromTournament">
                         Unregister
                     </button>
@@ -225,7 +225,7 @@ export default {
         async registerForTournament() {
             try {
                 const response = await axios.put(`http://localhost:8080/tournament/${this.tournament.id}/register/${this.userId}`);
-                const message = response.data.message; // Accessing the `message` field from the response
+                const message = response.data; // Accessing the `message` field from the response
                 this.showNotification(message, 'success');
                 await this.fetchTournamentDetails();
             } catch (error) {
