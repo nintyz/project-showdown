@@ -61,18 +61,46 @@ export default {
             const userId = localStorage.getItem("userId");
             try {
                 const response = await axios.get(`http://localhost:8080/user/${userId}`);
-                this.playerDetails = response.data.playerDetails; // Access the nested object
+                this.name = response.data.name;
+                this.playerDetails = {
+                    ...this.playerDetails,
+                    ...response.data.playerDetails
+                };
             } catch (error) {
                 console.error("Error fetching player data:", error);
             }
         },
         async updateProfile() {
             const userId = localStorage.getItem("userId");
+            const token = localStorage.getItem("token");
             try {
-                // Only update the nested playerDetails object
-                await axios.put(`http://localhost:8080/user/${userId}`, { playerDetails: this.playerDetails });
+                const updateData = {
+                    name: this.name || undefined,
+                    playerDetails: {
+                        country: this.playerDetails.country || undefined,
+                        bio: this.playerDetails.bio || undefined,
+                        dob: this.playerDetails.dob || undefined,
+                        achievements: this.playerDetails.achievements || undefined
+                    }
+                };
+
+                Object.keys(updateData.playerDetails).forEach(key => 
+                    updateData.playerDetails[key] === undefined && delete updateData.playerDetails[key]
+                );
+
+                await axios.put(
+                    `http://localhost:8080/user/${userId}`, 
+                    updateData, // Body
+                    {
+                        headers: {
+                        Authorization: `Bearer ${token}`
+                        }
+                    } // Headers
+                );
                 // alert("Profile updated successfully");
-                this.$router.push('/player-profile');
+                this.$router.push('/profile/player').then(() => {
+                    window.location.reload();
+                });
             } catch (error) {
                 console.error("Error updating profile:", error);
                 alert("Failed to update profile");
