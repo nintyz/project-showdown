@@ -284,6 +284,10 @@ export default {
     },
     mounted() {
         this.fetchTournamentDetails();
+        console.log(this.userId);
+        console.log(this.role);
+        
+        
     },
 };
 </script>
