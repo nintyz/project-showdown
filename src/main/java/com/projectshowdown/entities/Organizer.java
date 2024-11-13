@@ -10,7 +10,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Organizer {
-    String name;
     String dateVerified;
     String bio;
     String country;
