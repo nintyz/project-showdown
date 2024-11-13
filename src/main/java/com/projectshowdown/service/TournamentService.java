@@ -302,15 +302,18 @@ public class TournamentService {
 
         Tournament tournament = getTournament(tournamentId);
         if (tournament.getRounds() != null && tournament.getRounds().size() != 0) {
-            return "Tournament has already begun.";
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Tournament has already begun.");
         }
 
         UserDTO user = userService.getUser(userId);
         if (!tournament.checkDate(user)) {
-            return "Tournament's registration date is already over!";
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Tournament's registration date is already over!");
         }
         if (!tournament.checkUserEligibility(user)) {
-            return "Player MMR not eligible for this tournament.";
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Player MMR not eligible for this tournament.");
         }
 
         // Get the current list of users and check if the user is already registered
@@ -318,7 +321,8 @@ public class TournamentService {
         if (currentUsers == null)
             currentUsers = new ArrayList<>();
         if (currentUsers.contains(userId)) {
-            return "You have already registered for this tournament!";
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "You have already registered for this tournament!");
         }
 
         // Add user to the list and update in Firebase
@@ -372,6 +376,12 @@ public class TournamentService {
 
             // If final round, award achievements and do not progress further
             if (lastRoundMatches.size() == 1) {
+                // update status of tournament to ended
+                Map<String, Object> statusToUpdate = new HashMap<>();
+                statusToUpdate.put("status", "Ended");
+                updateTournament(tournamentId, tournament.getOrganizerId(), statusToUpdate);
+
+                // update user achievement
                 updateUserAchievements(tournament, event.getMatch().winnerId(), true);
                 updateUserAchievements(tournament, event.getMatch().loserId(), false);
                 System.out.println("Final round completed. No further progression needed.");
@@ -594,7 +604,8 @@ public class TournamentService {
     public String uploadLogoToFirebase(String tournamentId, MultipartFile file)
             throws IOException, ExecutionException, InterruptedException {
 
-        String bucketName = "projectshowdown-df5f2.firebasestorage.app"; // replace with your actual Firebase Storage bucket name
+        String bucketName = "projectshowdown-df5f2.firebasestorage.app"; // replace with your actual Firebase Storage
+                                                                         // bucket name
         String fileName = "tournament-logo/" + tournamentId + ".jpg";
 
         // Initialize StorageClient with the specified bucket
