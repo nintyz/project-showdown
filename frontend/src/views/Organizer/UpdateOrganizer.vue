@@ -45,15 +45,47 @@ export default {
             },
         };
     },
+    created() {
+        this.fetchUserData();
+    },
     methods: {
+        async fetchUserData() {
+            const userId = localStorage.getItem("userId");
+            try {
+                const response = await axios.get(`http://localhost:8080/user/${userId}`);
+                this.name = response.data.name;
+                this.profileUrl = response.data.profileUrl;
+                this.organizerDetails = {
+                    ...this.organizerDetails,
+                    ...response.data.organizerDetails
+                };
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+            }
+        },
         async updateProfile() {
             const userId = localStorage.getItem("userId");
             const token = localStorage.getItem("token");
             try {
+                const updateData = {
+                    name: this.name || undefined,
+                    organizerDetails: {
+                        country: this.organizerDetails.country || undefined,
+                        bio: this.organizerDetails.bio || undefined,
+                        dateVerified: this.organizerDetails.dateVerified,
+                        websiteLink: this.organizerDetails.websiteLink || undefined
+                    }
+                };
+
+                // Remove undefined fields
+                Object.keys(updateData.organizerDetails).forEach(key => 
+                    updateData.organizerDetails[key] === undefined && delete updateData.organizerDetails[key]
+                );
+
                 // Only update the nested playerDetails object
                 await axios.put(
                     `http://localhost:8080/user/${userId}`, 
-                    { organizerDetails: this.organizerDetails }, // Body
+                    updateData, // Body
                     {
                         headers: {
                         Authorization: `Bearer ${token}`
@@ -61,7 +93,9 @@ export default {
                     } // Headers
                 );
                 // alert("Profile updated successfully");
-                this.$router.push(`/profile/personalOrganizer`);
+                this.$router.push('/profile/personalOrganizer').then(() => {
+                    window.location.reload();
+                });
             } catch (error) {
                 console.error("Error updating profile:", error);
                 alert("Failed to update profile");
