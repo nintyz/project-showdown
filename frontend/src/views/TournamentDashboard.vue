@@ -56,6 +56,16 @@ export default {
           this.formatRoundsData();
       }
   },
+  computed: { 
+    formattedDateTime() {
+        if (!this.tournament?.dateTime) return '';
+        return new Date(this.tournament.dateTime).toLocaleString(undefined, {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        });
+      },
+  },
   methods: {
       async fetchTournamentData() {
           const tournamentId = this.$route.params.id;
@@ -100,15 +110,6 @@ export default {
                   },
               })),
           }));
-      },
-      formattedDateTime() {
-          return new Date(this.tournament.dateTime).toLocaleString(undefined, {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-          });
       },
   },
 };
