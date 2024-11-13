@@ -108,11 +108,13 @@ export default {
         this.success = response.data.message || 'Email verified successfully!';
         this.isEmailVerified = true;
         this.resendCooldown = 0; // Hide the resend section
-        if (response.data.token) {
-          localStorage.setItem("token", response.data.token);
-          localStorage.setItem("role", this.extractRoleFromToken(response.data.token));
-          localStorage.setItem("userId", response.data.userId);
-          // this.$router.push('/all-tournaments-dashboard');
+        if (this.source == 'login') {
+          if (response.data.token) {
+            localStorage.setItem("token", response.data.token);
+            localStorage.setItem("role", this.extractRoleFromToken(response.data.token));
+            localStorage.setItem("userId", response.data.userId);
+            this.$router.push('/all-tournaments-dashboard');
+          }
         }
         if (response.data.status === 'requires_2fa') {
           this.$router.push({ path: '/verify-2fa', query: { email: this.email } });
