@@ -100,7 +100,7 @@ export default {
       this.success = null;
 
       try {
-        const response = await axios.post('http://3.107.24.69:8080/verify', {
+        const response = await axios.post('http://localhost:8080/verify', {
           email: this.email,
           verificationCode: this.verificationCode
         });
@@ -131,7 +131,7 @@ export default {
       this.success = null;
 
       try {
-        await axios.post('http://3.107.24.69:8080/resend', null, {
+        await axios.post('http://localhost:8080/resend', null, {
           params: { email: this.email }
         });
 
@@ -155,7 +155,7 @@ export default {
     },
     async enable2FA() {
       try {
-        const response = await axios.post('http://3.107.24.69:8080/enable-2fa', null, {
+        const response = await axios.post('http://localhost:8080/enable-2fa', null, {
           params: { email: this.email }
         });
         this.qrCodeImage = `data:image/png;base64,${response.data.qrCodeImage}`;
