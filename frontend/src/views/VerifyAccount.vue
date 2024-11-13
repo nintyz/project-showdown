@@ -157,7 +157,7 @@ export default {
       this.redirectToLanding();
     },
     redirectToLanding() {
-      this.$router.push('/');
+      this.$router.push('/all-tournaments-dashboard');
     },
     numberOnly(event) {
       const charCode = event.which ? event.which : event.keyCode;
