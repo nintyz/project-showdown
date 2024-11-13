@@ -93,11 +93,11 @@
             localStorage.setItem('role', role);
 
             // Redirect based on role
-            if (role === 'admin') {
+            // if (role === 'admin') {
               this.$router.push('/all-tournaments-dashboard');
-            } else {
-              this.$router.push('/dashboard');
-            }
+            // } else {
+            //   this.$router.push('/dashboard');
+            // }
           }
         } catch (error) {
           console.error('Login error:', error);
