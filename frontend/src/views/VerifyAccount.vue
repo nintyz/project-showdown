@@ -112,7 +112,7 @@ export default {
           localStorage.setItem("token", response.data.token);
           localStorage.setItem("role", this.extractRoleFromToken(response.data.token));
           localStorage.setItem("userId", response.data.userId);
-          this.$router.push('/all-tournaments-dashboard');
+          // this.$router.push('/all-tournaments-dashboard');
         }
         if (response.data.status === 'requires_2fa') {
           this.$router.push({ path: '/verify-2fa', query: { email: this.email } });
