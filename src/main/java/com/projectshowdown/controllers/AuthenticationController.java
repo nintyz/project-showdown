@@ -63,7 +63,8 @@ public class AuthenticationController {
             } else {
                 // 2FA is not enabled, generate the JWT token
                 String token = jwtUtil.generateToken(userDetails);
-                return ResponseEntity.ok(Map.of("token", token, "requiresTwoFactor", false));
+                
+                return ResponseEntity.ok(Map.of("token", token, "requiresTwoFactor", false, "userId",user.getId()));
             }
         } catch (UsernameNotFoundException e) {
             return ResponseEntity.badRequest().body("Account with the specified email does not exist");
