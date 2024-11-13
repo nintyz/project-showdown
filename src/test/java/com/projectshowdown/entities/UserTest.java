@@ -27,7 +27,7 @@ public class UserTest {
 
         // Arrange
         Player playerDetails = new Player(1, "2000-01-01", 2000.0, 24, 2500.0, "", "", "");
-        Organizer organizerDetails = new Organizer("Test Organizer", true, "2000-01-01", "", "Singpore", "test.com");
+        Organizer organizerDetails = new Organizer("2000-01-01", "bio", "Singapore", "websitelink");
         user = new User(null, "name", "picture","test@example.com" , "Password1@", "player", null, playerDetails, organizerDetails, null, null, true);
     }
 
