@@ -25,7 +25,7 @@
                     </li>
 
                     
-                    <li v-if="role !== 'guest'" class="nav-item">
+                    <li v-if="role === 'admin'" class="nav-item">
                         <router-link to="/all-players" class="nav-link"
                         :class="{ active: isActive('/all-players') }">All Players</router-link>
                     </li>
@@ -35,14 +35,14 @@
                         :class="{ active: isActive('/admin-organizers') }">All Organizers</router-link>
                     </li>
                     
-                    <li v-if="role === 'organizer' || role === 'admin'" class="nav-item">
+                    <li v-if="role === 'organizer'" class="nav-item">
                         <router-link to="/new-tournament" class="nav-link"
                         :class="{ active: isActive('/new-tournament') }">Add Tournament</router-link>
                     </li>
                     
                     <li v-if="role === 'organizer'" class="nav-item">
-                        <router-link to="/profile/organizer" class="nav-link"
-                            :class="{ active: isActive('/profile/organizer') }">Profile</router-link>
+                        <router-link to="/profile/personalOrganizer/" class="nav-link"
+                            :class="{ active: isActive('/profile/personalOrganizer') }">Profile</router-link>
                     </li>
 
                     <li v-if="role !== 'guest'" class="nav-item">
@@ -58,8 +58,8 @@
 export default {
     data() {
         return {
-            role: "player",
-            // role: localStorage.getItem("role")
+            // role: "player",
+            role: localStorage.getItem("role")
         };
     },
     computed: {
