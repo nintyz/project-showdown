@@ -99,7 +99,7 @@ export default {
                 country: '',
                 venue: '',
             },
-            organizerId: 'anQ1ep6A96Wh5oNhidaJ', // Hardcoded organizer ID for demonstration
+            organizerId: localStorage.getItem("userId"),
         };
     },
     methods: {
