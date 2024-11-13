@@ -593,12 +593,21 @@ public class TournamentService {
     // Upload logo to Firebase Storage
     public String uploadLogoToFirebase(String tournamentId, MultipartFile file)
             throws IOException, ExecutionException, InterruptedException {
+
+        String bucketName = "projectshowdown-df5f2.firebasestorage.app"; // replace with your actual Firebase Storage bucket name
         String fileName = "tournament-logo/" + tournamentId + ".jpg";
-        StorageClient.getInstance().bucket().create(fileName, file.getInputStream(), file.getContentType());
+
+        // Initialize StorageClient with the specified bucket
+        StorageClient storageClient = StorageClient.getInstance();
+        if (storageClient.bucket(bucketName) == null) {
+            throw new IllegalArgumentException("Firebase Storage bucket name is not specified.");
+        }
+
+        storageClient.bucket(bucketName).create(fileName, file.getInputStream(), file.getContentType());
 
         // Generate logo URL
         String logoUrl = String.format("https://firebasestorage.googleapis.com/v0/b/%s/o/%s?alt=media",
-                StorageClient.getInstance().bucket().getName(), fileName.replace("/", "%2F"));
+                bucketName, fileName.replace("/", "%2F"));
 
         // Update Firestore with logo URL
         Firestore db = getFirestore();
@@ -609,6 +618,7 @@ public class TournamentService {
 
         return logoUrl;
     }
+
     // // Generates logo URL for a tournament without storing it in Firestore
     // public String getLogoUrl(String tournamentId) {
     // String fileName = "tournament-logo/" + tournamentId + ".jpg";

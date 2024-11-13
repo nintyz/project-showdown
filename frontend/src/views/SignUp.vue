@@ -257,6 +257,8 @@ export default {
                 // Call the backend to create the user and initiate email verification
                 const response = await axios.post('http://localhost:8080/users', requestData);
                 localStorage.setItem("userId", response.data.id);
+                console.log(response.data.id);
+                
                 localStorage.setItem("role", this.role);
                 this.success = true;
                 await new Promise(resolve => setTimeout(resolve, 1000));
