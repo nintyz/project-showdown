@@ -230,7 +230,7 @@ export default {
                 await this.fetchTournamentDetails();
             } catch (error) {
                 // If there's an error response, you can also handle it here if needed
-                this.showNotification(response.data.message, 'error');
+                this.showNotification(response.message, 'error');
             }
 
             // try {
