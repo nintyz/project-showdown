@@ -45,9 +45,6 @@ export default {
                 country: "",
                 bio: "",
                 achievements: "",
-                clayRaw: "",
-                grassRaw: "",
-                hardRaw: "",
                 elo: "",
                 rank: "",
             }
