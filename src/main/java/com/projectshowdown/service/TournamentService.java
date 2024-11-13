@@ -351,7 +351,8 @@ public class TournamentService {
         if (registeredUsers.contains(userId)) {
             registeredUsers.remove(userId);
         } else {
-            return "You are not registered to this event!";
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "You are not registered to this event!");
         }
 
         // Update the 'players' field with the updated list
