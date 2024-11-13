@@ -223,13 +223,14 @@ export default {
             }
         },
         async registerForTournament() {
+            let response;
             try {
-                const response = await axios.put(`http://localhost:8080/tournament/${this.tournament.id}/register/${this.userId}`);
+                response = await axios.put(`http://localhost:8080/tournament/${this.tournament.id}/register/${this.userId}`);
                 this.showNotification(response.data, 'success');
                 await this.fetchTournamentDetails();
             } catch (error) {
                 // If there's an error response, you can also handle it here if needed
-                this.showNotification('Registration failed. Please try again.', 'error');
+                this.showNotification(response.data.message, 'error');
             }
 
             // try {
