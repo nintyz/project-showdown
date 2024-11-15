@@ -9,7 +9,6 @@ import AdminDashboard from '@/views/AllTournamentsDashboard.vue'
 import AdminOrganizers from '@/views/AdminOrganizers.vue'
 import AddTournament from '@/views/AddTournament.vue'
 import SignUp from '@/views/SignUp.vue'
-import DashboardPageTwo from '@/views/DashboardPageTwo.vue'
 import AddUserDetails from '@/views/Player/AddUserDetails.vue'
 import AllTournaments from '@/views/AllTournaments.vue'
 import TournamentDetails from '@/views/TournamentDetails.vue'
@@ -50,11 +49,6 @@ const routes = [
         path: '/dashboard',
         name: 'DashboardPage',
         component: DashboardPage,
-    },
-    {
-        path: '/dashboard-register',
-        name: 'DashboardPageTwo',
-        component: DashboardPageTwo,
     },
     {
         path: '/profile/player/',
