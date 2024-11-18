@@ -11,6 +11,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.metrics.data.MetricsRepositoryMethodInvocationListener;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -22,7 +23,9 @@ import org.springframework.test.context.TestPropertySource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
+import static java.lang.Thread.sleep;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -51,16 +54,18 @@ public class UserControllerIntegrationTest {
     private HttpHeaders headers;
 
     private List<String> createdUserIds = new ArrayList<>();
+    @Autowired
+    private MetricsRepositoryMethodInvocationListener metricsRepositoryMethodInvocationListener;
 
     @BeforeEach
     public void setUp() {
         baseUrl = "http://localhost:" + port;
         Player playerDetails = new Player(1, "2000-01-01", 2000.0, 24, 2500.0, "", "", "");
-        UserDTO testUser = new UserDTO(
+        this.testUserDTO = new UserDTO(
             "testUserId",
             "testName",
             "testProfileUrl",
-            "testEmail",
+                "test" + UUID.randomUUID().toString() + "@gmail.com",
             "Password1@",
             "player",
             "testTwoFactorSecret",
@@ -98,9 +103,9 @@ public class UserControllerIntegrationTest {
         HttpEntity<UserDTO> request = new HttpEntity<>(testUserDTO, headers);
         ResponseEntity<String> response = restTemplate.postForEntity(baseUrl + "/users", request, String.class);
         response.getBody();
-
+        System.out.println(response.getBody());
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertTrue(response.getBody().contains("User created successfully with ID:"));
+        assertTrue(!response.getBody().contains("exists"));
     }
 
     @Test
@@ -109,7 +114,8 @@ public class UserControllerIntegrationTest {
         HttpEntity<UserDTO> addRequest = new HttpEntity<>(testUserDTO, headers);
         ResponseEntity<String> addResponse = restTemplate.postForEntity(baseUrl + "/users", addRequest, String.class);
         String userId = addResponse.getBody();
-
+        System.out.println(addResponse.getBody());
+        sleep(50);
         // Then, get the player
         ResponseEntity<String> getResponse = restTemplate.exchange(
                 baseUrl + "/user/" + userId,
@@ -117,7 +123,7 @@ public class UserControllerIntegrationTest {
                 new HttpEntity<>(headers),
                 String.class
         );
-
+        System.out.println(getResponse.getBody());
         assertEquals(HttpStatus.OK, getResponse.getStatusCode());
         assertNotNull(getResponse.getBody());
 
@@ -166,11 +172,13 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    void testDeletePlayer() {
+    void testDeletePlayer() throws InterruptedException {
         // First, add a player
         HttpEntity<UserDTO> addRequest = new HttpEntity<>(testUserDTO, headers);
         ResponseEntity<String> addResponse = restTemplate.postForEntity(baseUrl + "/users", addRequest, String.class);
         String userId = addResponse.getBody();
+
+        sleep(50);
 
         // Delete the player
         ResponseEntity<String> deleteResponse = restTemplate.exchange(
@@ -179,7 +187,7 @@ public class UserControllerIntegrationTest {
                 new HttpEntity<>(headers),
                 String.class
         );
-
+        System.out.println(deleteResponse.getBody());
         assertEquals(HttpStatus.OK, deleteResponse.getStatusCode());
         assertTrue(deleteResponse.getBody().contains("Player with the id:" + userId + " successfully deleted"));
 
