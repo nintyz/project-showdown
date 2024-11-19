@@ -149,7 +149,7 @@ public class TournamentController {
     public ResponseEntity<String> uploadLogo(@PathVariable String id, @RequestParam("file") MultipartFile file) {
         try {
             // Upload file and get URL
-            String logoUrl = tournamentService.uploadLogoToFirebase(id, file);
+            tournamentService.uploadLogoToFirebase(id, file);
             // Update tournament with the logo URL
             // tournamentService.updateTournamentLogoUrl(id, logoUrl);
             return ResponseEntity.ok("Logo uploaded successfully!");
