@@ -63,11 +63,6 @@ curl -X PUT "http://localhost:8080/user/7EeoRHWapP7NKFoGQHSI" \
         }
       }'
 
-###
-
-###
-POST http://localhost:8080/addRandomData
-Authorization: Basic testing@gmail.com:password
 
 ###
 DELETE http://localhost:8080/user/6ieMC9wKH2vlMRPtzPE0	
