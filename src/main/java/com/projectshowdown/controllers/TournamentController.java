@@ -38,8 +38,9 @@ public class TournamentController {
     @ResponseStatus(HttpStatus.CREATED)
     public String addTournamentWithParams(
             @RequestParam("name") String name,
-            @RequestParam("date") String date,
+            @RequestParam("date") String dateTime,
             @RequestParam("type") String type,
+            @RequestParam int year,
             @RequestParam("numPlayers") int numPlayers,
             @RequestParam("minMMR") double minMMR,
             @RequestParam("maxMMR") double maxMMR,
@@ -49,16 +50,8 @@ public class TournamentController {
             @RequestParam("organizerId") String organizerId,
             @RequestParam("logo") MultipartFile file) throws ExecutionException, InterruptedException, IOException {
 
-        Tournament tournament = new Tournament();
-        tournament.setName(name);
-        tournament.setDateTime(date);
-        tournament.setNumPlayers(numPlayers);
-        tournament.setMinMMR(minMMR);
-        tournament.setMaxMMR(maxMMR);
-        tournament.setCountry(country);
-        tournament.setVenue(venue);
-        tournament.setOrganizerId(organizerId);
-        tournament.setStatus(status);
+        Tournament tournament = new Tournament("", name, year, venue, country, dateTime, numPlayers, status, minMMR,
+                maxMMR, "", null, organizerId, null);
 
         String generatedId = tournamentService.addTournament(tournament, organizerId);
         if (generatedId == null) {
@@ -109,17 +102,9 @@ public class TournamentController {
             @RequestParam("logo") MultipartFile file,
             @PathVariable String organizerId)
             throws ExecutionException, InterruptedException, IOException {
-        Tournament tournament = new Tournament();
-        tournament.setName(name);
-        tournament.setDateTime(dateTime);
-        tournament.setYear(year);
-        tournament.setNumPlayers(numPlayers);
-        tournament.setMinMMR(minMMR);
-        tournament.setMaxMMR(maxMMR);
-        tournament.setCountry(country);
-        tournament.setVenue(venue);
-        tournament.setOrganizerId(organizerId);
-        tournament.setStatus(status);
+
+        Tournament tournament = new Tournament("", name, year, venue, country, dateTime, numPlayers, status, minMMR,
+                maxMMR, "", null, organizerId, null);
 
         String generatedId = tournamentService.addTournament(tournament, organizerId);
         if (generatedId == null) {

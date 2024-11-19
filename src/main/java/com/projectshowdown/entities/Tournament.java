@@ -26,7 +26,6 @@ public class Tournament {
     private int year;
     private String venue;
     private String country;
-    // private String date;
     private String dateTime;
     private int numPlayers;
     private String status;
@@ -61,13 +60,6 @@ public class Tournament {
         this.name = name;
     }
 
-    // public int getYear() {
-    //     return year;
-    // }
-
-    // public void setYear(int year) {
-    //     this.year = year;
-    // }
 
     public String getVenue() {
         return venue;
@@ -155,91 +147,5 @@ public class Tournament {
         }
         return true;
     }
-
-    // public TreeMap<Integer, User> getSeedings() {
-    // TreeMap<Integer, User> seedings = new TreeMap<>();
-    // List<String> users = this.getUsers();
-
-    // Collections.sort(users, new Comparator<User>() {
-    // @Override
-    // public int compare(User p1, User p2) {
-    // double mmr1 = p1.getPlayerDetails().calculateMMR();
-    // double mmr2 = p2.getPlayerDetails().calculateMMR();
-    // return Double.compare(mmr2, mmr1);
-    // }
-    // });
-
-    // for (int i = 0; i < users.size(); i++) {
-    // User player = users.get(i);
-    // seedings.put(i + 1, player);
-    // }
-    // return seedings;
-    // }
-
-    // public void initializeTournament() {
-    // List<Match> matches = new ArrayList<>();
-
-    // Collections.sort(users, Comparator.comparingDouble(user ->
-    // user.getPlayerDetails().calculateMMR()));
-
-    // if (users.size() != numPlayers) {
-    // throw new IllegalStateException("The required amount of registered player
-    // have not been met!");
-    // }
-
-    // if (users.size() % 2 != 0) {
-    // throw new IllegalStateException("The number of players should be even to
-    // create matches.");
-    // }
-
-    // int max = users.size() / 2;
-    // int increment = max / 2;
-
-    // for (int i = 0; i < users.size() / 2; i++) {
-    // User user1 = users.get(i);
-    // User user2 = users.get(users.size() - 1 - i);
-
-    // double mmrDifference = Math
-    // .abs(user1.getPlayerDetails().calculateMMR() -
-    // user2.getPlayerDetails().calculateMMR());
-
-    // // logic to get the match id and number
-    // int bracket = i % increment;
-    // int matchNumber = 0;
-
-    // if (i % 2 == 0) {
-    // if (i < increment) {
-    // matchNumber = bracket + 1;
-    // }
-    // if (i >= increment) {
-    // matchNumber = bracket + 2;
-    // }
-    // } else {
-    // if (i <= increment) {
-    // matchNumber = max - bracket + 1;
-    // }
-    // if (i > increment) {
-    // matchNumber = max - bracket;
-    // }
-    // }
-
-    // Match match = new Match();
-    // match.setTournamentId(this.id);
-    // match.setPlayer1Id(user1.getId());
-    // match.setPlayer2Id(user2.getId());
-    // match.setPlayer1Score(0);
-    // match.setPlayer2Score(0);
-    // match.setMmrDifference(mmrDifference);
-    // match.setMatchDate(this.date);
-    // match.setStage("Round 1");
-    // String matchId = generateMatchId(match, matchNumber);
-    // match.setMatchId(matchId);
-    // matches.add(match);
-    // }
-
-    // Round newRound = new Round("initial", matches);
-
-    // this.rounds.add(newRound);
-    // }
 
 }
