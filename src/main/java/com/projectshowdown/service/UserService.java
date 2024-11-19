@@ -1,14 +1,7 @@
 package com.projectshowdown.service;
 
 import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.CollectionReference;
-import com.google.cloud.firestore.DocumentReference;
-import com.google.cloud.firestore.DocumentSnapshot;
-import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.Query;
-import com.google.cloud.firestore.QueryDocumentSnapshot;
-import com.google.cloud.firestore.QuerySnapshot;
-import com.google.cloud.firestore.WriteResult;
+import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
 import com.google.zxing.WriterException;
 import com.projectshowdown.dto.UserDTO;
@@ -16,7 +9,6 @@ import com.projectshowdown.dto.UserMapper;
 import com.projectshowdown.entities.Player;
 import com.projectshowdown.entities.User;
 import com.projectshowdown.exceptions.PlayerNotFoundException;
-
 import com.projectshowdown.util.DateTimeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,12 +22,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -45,24 +32,26 @@ public class UserService implements UserDetailsService {
   @Autowired
   private TwoFactorAuthService twoFactorAuthService;
 
-  public UserService() {
-    super();
-
-  }
-
+  /**
+   * Loads user details based on the provided email address.
+   *
+   * @param email The email of the user to load.
+   * @return A UserDetails object containing the user's credentials and
+   *         authorities.
+   * @throws UsernameNotFoundException If no user with the given email is found or
+   *                                   an error occurs while retrieving data.
+   */
   @Override
   public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
     Firestore db = FirestoreClient.getFirestore();
     ApiFuture<QuerySnapshot> future = db.collection("users").whereEqualTo("email", email).get();
-
     try {
       QuerySnapshot querySnapshot = future.get();
       if (!querySnapshot.isEmpty()) {
-        // Assuming there is only one user with the given username
         DocumentSnapshot document = querySnapshot.getDocuments().get(0);
         String password = document.getString("password");
         return org.springframework.security.core.userdetails.User.withUsername(email)
-            .password(password) // Hashed password
+            .password(password)
             .authorities(document.getString("role"))
             .build();
       } else {
@@ -73,50 +62,68 @@ public class UserService implements UserDetailsService {
     }
   }
 
-  // Helper method to get Firestore instance
   private Firestore getFirestore() {
     return FirestoreClient.getFirestore();
   }
 
+  /**
+   * Retrieves a list of User Objects from a list of IDs
+   * This is used for getting the registered users in a tournament.
+   *
+   * @param listOfUserIds A list of user IDs to retrieve.
+   * @return A list of User objects corresponding to the provided IDs.
+   * @throws ExecutionException   If an error occurs during the asynchronous
+   *                              Firestore operation.
+   * @throws InterruptedException If the operation is interrupted.
+   */
   public List<User> getRegisteredUsers(List<String> listOfUserIds) throws ExecutionException, InterruptedException {
     List<User> response = new ArrayList<>();
     for (String userId : listOfUserIds) {
       response.add(UserMapper.toUser(getUser(userId)));
     }
-
     return response;
   }
 
+  /**
+   * Retrieves all users with the specified role from the Firestore database.
+   *
+   * @param role The role to filter users by.
+   * @return A list of UserDTO objects with the specified role.
+   * @throws ExecutionException   If an error occurs during the asynchronous
+   *                              Firestore operation.
+   * @throws InterruptedException If the operation is interrupted.
+   */
   public List<UserDTO> getAllUsersByRole(String role) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
     Query playersCollection = db.collection("users").whereEqualTo("role", role);
     ApiFuture<QuerySnapshot> future = playersCollection.get();
     List<QueryDocumentSnapshot> documents = future.get().getDocuments();
-
-    // Prepare a list to hold each document's data
     List<UserDTO> users = new ArrayList<>();
-
-    // Iterate through the documents and add their data to the list
     for (DocumentSnapshot document : documents) {
       if (document.exists()) {
-        // Add document data to the list
         UserDTO currentUser = document.toObject(UserDTO.class);
-        // set id.
         currentUser.setId(document.getId());
         users.add(currentUser);
       }
     }
-    return users; // Return the list of players
+    return users;
   }
 
-
+  /**
+   * Retrieves a user's ID based on their email address.
+   *
+   * @param email The email address of the user.
+   * @return The ID of the user.
+   * @throws ExecutionException        If an error occurs during the asynchronous
+   *                                   Firestore operation.
+   * @throws InterruptedException      If the operation is interrupted.
+   * @throws UsernameNotFoundException If no user with the given email is found.
+   */
   public String getUserIdByEmail(String email) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
     Query query = db.collection("users").whereEqualTo("email", email);
     ApiFuture<QuerySnapshot> future = query.get();
-
     List<QueryDocumentSnapshot> documents = future.get().getDocuments();
-
     if (!documents.isEmpty()) {
       return documents.get(0).getId();
     } else {
@@ -124,227 +131,223 @@ public class UserService implements UserDetailsService {
     }
   }
 
-  // Method to get specific player from firebase.
+  /**
+   * Retrieves a user's details based on their ID.
+   *
+   * @param userId The ID of the user to retrieve.
+   * @return A UserDTO object containing the user's details.
+   * @throws ExecutionException      If an error occurs during the asynchronous
+   *                                 Firestore operation.
+   * @throws InterruptedException    If the operation is interrupted.
+   * @throws PlayerNotFoundException If no user with the given ID is found.
+   */
   public UserDTO getUser(String userId) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
     DocumentReference documentReference = db.collection("users").document(userId);
     ApiFuture<DocumentSnapshot> future = documentReference.get();
     DocumentSnapshot document = future.get();
-
-    // If the document exists, convert it to a Player object
     if (document.exists()) {
-      // You can directly map the Firestore data to a Player class
       UserDTO userToReturn = document.toObject(UserDTO.class);
       userToReturn.setId(userId);
       return userToReturn;
     } else {
-      // Document doesn't exist, return null or handle it based on your needs
       throw new PlayerNotFoundException(userId);
     }
   }
 
+  /**
+   * Checks if a user with the specified email already exists in the Firestore
+   * database.
+   *
+   * @param email The email address to check.
+   * @return True if the email exists, false otherwise.
+   * @throws ExecutionException   If an error occurs during the asynchronous
+   *                              Firestore operation.
+   * @throws InterruptedException If the operation is interrupted.
+   */
   public boolean checkEmailExists(String email) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
-    // Generate a new document reference with a random ID
     ApiFuture<QuerySnapshot> future = db.collection("users").whereEqualTo("email", email).get();
-
-    QuerySnapshot querySnapshot = future.get();
-    return !querySnapshot.isEmpty();
-
+    return !future.get().isEmpty();
   }
 
-  // Method to add a new player document to the 'users' collection
+  /**
+   * Creates a new user in the Firestore database.
+   *
+   * @param userData A User object containing the details of the new user.
+   * @return The ID of the newly created user or an error message if the email
+   *         already exists.
+   * @throws ExecutionException   If an error occurs during the asynchronous
+   *                              Firestore operation.
+   * @throws InterruptedException If the operation is interrupted.
+   */
   public String createUser(User userData) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
     if (checkEmailExists(userData.getEmail())) {
       return "A user account with the email " + userData.getEmail() + " already exists!";
     }
-
     DocumentReference docRef = db.collection("users").document();
-    // Get the generated document ID
     String generatedId = docRef.getId();
-
-    // User disabled on creation
     userData.setVerificationCode(generateVerificationCode());
     userData.setVerificationCodeExpiresAt(DateTimeUtils.toEpochSeconds(LocalDateTime.now().plusMinutes(15)));
     userData.setEnabled(false);
-
-    // if its an organizer, set verified as false.
     if (userData.getOrganizerDetails() != null) {
       userData.getOrganizerDetails().setDateVerified(null);
     }
-
-    // Convert User object to UserDTO and set the generated ID
     UserDTO userDTO = UserMapper.toUserDTO(userData);
     userDTO.setId(generatedId);
-
-    // Save the updated UserDTO to Firestore
-    ApiFuture<WriteResult> writeResult = docRef.set(userDTO);
-
-    // Return success message with timestamp
+    docRef.set(userDTO);
     return generatedId;
   }
 
-  // Method to update a player's document in the 'players' collection
+  /**
+   * Updates an existing user's details in the Firestore database.
+   *
+   * @param userId   The ID of the user to update.
+   * @param userData A map containing the fields to update and their new values.
+   *                 I used map because if I were to convert it into a user
+   *                 object, it would delete any detail if the front end or API
+   *                 misses 1 field. Map allows the back end to not touch missing
+   *                 fields.
+   * @return The ID of the updated user.
+   * @throws ExecutionException      If an error occurs during the asynchronous
+   *                                 Firestore operation.
+   * @throws InterruptedException    If the operation is interrupted.
+   * @throws PlayerNotFoundException If no user with the given ID is found.
+   */
   public String updateUser(String userId, Map<String, Object> userData)
       throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
-
-    if (userData.containsKey("email")) {
-      if (checkEmailExists((String) userData.get("email"))) {
-        return "A user account with the email " + userData.get("email") + " already exists!";
-      }
+    if (userData.containsKey("email") && checkEmailExists((String) userData.get("email"))) {
+      return "A user account with the email " + userData.get("email") + " already exists!";
     }
-
     if (userData.containsKey("password")) {
       BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
       userData.put("password", passwordEncoder.encode((String) userData.get("password")));
     }
-
-    // Check if the user document exists
     DocumentReference docRef = db.collection("users").document(userId);
-
-    ApiFuture<DocumentSnapshot> future = docRef.get();
-    DocumentSnapshot document = future.get();
-    if (!document.exists()) {
+    if (!docRef.get().get().exists()) {
       throw new PlayerNotFoundException("User with ID: " + userId + " does not exist.");
     }
-
     if (userData.get("organizerDetails") != null) {
       Map<String, Object> organizerDetails = (Map<String, Object>) userData.get("organizerDetails");
-      // Remove the "verified" field if it's present
       if (organizerDetails.containsKey("verified")) {
         organizerDetails.put("verified", false);
       }
     }
-
-    // Filter out null values from the update data
     Map<String, Object> filteredUpdates = userData.entrySet().stream()
-        .filter(entry -> entry.getValue() != null) // Only include non-null fields
+        .filter(entry -> entry.getValue() != null)
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-    // Update the user document
-    ApiFuture<WriteResult> writeResult = docRef.update(filteredUpdates);
-
-    // Return success message
+    docRef.update(filteredUpdates);
     return userId;
   }
 
-  // Method to verify organizer account
-  public String verifyOrganizer(String userId)
-      throws ExecutionException, InterruptedException {
+  /**
+   * Verifies an organizer's account by updating their verification date.
+   *
+   * @param userId The ID of the organizer to verify.
+   * @return A success message if the organizer is verified, or an error message
+   *         if not applicable.
+   * @throws ExecutionException      If an error occurs during the asynchronous
+   *                                 Firestore operation.
+   * @throws InterruptedException    If the operation is interrupted.
+   * @throws PlayerNotFoundException If no user with the given ID is found.
+   */
+  public String verifyOrganizer(String userId) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
-
-    // Check if the user document exists
     DocumentReference docRef = db.collection("users").document(userId);
-    ApiFuture<DocumentSnapshot> future = docRef.get();
-    DocumentSnapshot document = future.get();
+    DocumentSnapshot document = docRef.get().get();
     if (!document.exists()) {
       throw new PlayerNotFoundException("User with ID: " + userId + " does not exist.");
     }
     if (document.get("organizerDetails") == null) {
       return "This is not an Organizer account!";
     }
-
     Map<String, Object> updates = new HashMap<>();
     updates.put("organizerDetails.dateVerified",
-        LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")).toString());
-    ApiFuture<WriteResult> writeResult = docRef.update(updates);
-    // Return success message
-    return "Organizer with ID: " + userId + " has been verified successfully at: " + writeResult.get().getUpdateTime();
+        LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")));
+    docRef.update(updates);
+    return "Organizer with ID: " + userId + " has been verified successfully.";
   }
 
+  /**
+   * Deletes a user from the Firestore database based on their ID.
+   *
+   * @param userId The ID of the user to delete.
+   * @return A success message containing the user's ID and deletion timestamp.
+   * @throws ExecutionException      If an error occurs during the asynchronous
+   *                                 Firestore operation.
+   * @throws InterruptedException    If the operation is interrupted.
+   * @throws PlayerNotFoundException If no user with the given ID is found.
+   */
   public String deletePlayer(String userId) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
     DocumentReference docRef = db.collection("users").document(userId);
-
-    // Check if the player document exists
-    ApiFuture<DocumentSnapshot> future = docRef.get();
-    DocumentSnapshot document = future.get();
-
-    if (!document.exists()) {
+    if (!docRef.get().get().exists()) {
       throw new PlayerNotFoundException(userId);
     }
-
-    // Asynchronously delete the document
-    ApiFuture<WriteResult> writeResult = docRef.delete();
-
-    return "Player with the id:" + userId + " successfully deleted at: " + writeResult.get().getUpdateTime();
+    docRef.delete();
+    return "Player with ID: " + userId + " successfully deleted.";
   }
 
-  public String enableTwoFactorAuth(String userid)
+  /**
+   * Enables two-factor authentication for a user by generating a secret key and
+   * updating their details.
+   *
+   * @param userId The ID of the user to enable two-factor authentication for.
+   * @return A URI for the QR code image or an error message if generation fails.
+   * @throws ExecutionException   If an error occurs during the asynchronous
+   *                              Firestore operation.
+   * @throws InterruptedException If the operation is interrupted.
+   * @throws IOException          If an error occurs during QR code generation.
+   * @throws WriterException      If an error occurs while writing the QR code.
+   */
+  public String enableTwoFactorAuth(String userId)
       throws ExecutionException, InterruptedException, IOException, WriterException {
-    UserDTO user = getUser(userid);
+    UserDTO user = getUser(userId);
     String secret = twoFactorAuthService.generateSecretKey();
     user.setTwoFactorSecret(secret);
-
-    HashMap<String, Object> data = new HashMap<>();
-    data.put("twoFactorSecret", secret);
-
-    updateUser(userid, data);
-    String qrCodeUri = twoFactorAuthService.generateQrCodeImageUri(secret);
-    return twoFactorAuthService.generateQrCodeImage(qrCodeUri);
+    updateUser(userId, Map.of("twoFactorSecret", secret));
+    return twoFactorAuthService.generateQrCodeImage(twoFactorAuthService.generateQrCodeImageUri(secret));
   }
 
+  /**
+   * Imports users in bulk from a CSV file into the Firestore database.
+   * This was made to utilize an excel file of real tennis players we found online
+   * However, It floods our database with 490+ players and makes testing
+   * difficult.
+   *
+   * @return A success message upon completing the import.
+   */
   public String massImport() {
     Firestore db = getFirestore();
     CollectionReference usersCollection = db.collection("users");
-
-    try (Scanner sc = new Scanner(new File(
-        "C:\\Users\\coben\\OneDrive - Singapore Management University\\Uni - Year 2 Sem 1\\CS203 Collaborative Software Development\\Project\\tenniselo.csv"),
-        "UTF-8")) {
-      sc.nextLine();// skip header
-      sc.useDelimiter(",|\n|\n");
-
+    try (Scanner sc = new Scanner(new File("path/to/your/file.csv"), "UTF-8")) {
+      sc.nextLine();
       while (sc.hasNext()) {
-        String line = sc.nextLine(); // extract current row
-        String[] values = line.split(","); // split row to tokens
-
-        String email = values[1].replaceAll("\\u00A0", "").toLowerCase().trim();
-        email += "@gmail.com";
-        String fixedPassword = "player.Password1!";
-
-        int rank = Integer.parseInt(values[0]);
-        String name = values[1];
-        String dob = values[2];
-        Double elo = Double.parseDouble(values[3]);
-        Double peakAge = Double.parseDouble(values[4]);
-        Double peakElo = Double.parseDouble(values[5]);
-        String country = values[6];
-        String bio = "";
-        String achievements = "";
-
-        Player currentRowPlayerDetails = new Player(rank, dob, elo, peakAge, peakElo,
-            country, bio, achievements);
-
-        UserDTO currentRowUser = new UserDTO("", name, "", email, fixedPassword, "player", null,
-            currentRowPlayerDetails, null,
-            null,
-            DateTimeUtils.toEpochSeconds(LocalDateTime.now().plusMinutes(15)), false);
-
-        DocumentReference docRef = usersCollection.document(); // Create a new document reference with a unique ID
-        currentRowUser.setId(docRef.getId());
-        docRef.set(currentRowUser).addListener(() -> {
-
-        }, Runnable::run);
+        String[] values = sc.nextLine().split(",");
+        String email = values[1].trim().toLowerCase() + "@gmail.com";
+        UserDTO user = new UserDTO("", values[1], "", email, "password123", "player",
+            null, new Player(Integer.parseInt(values[0]), values[2],
+                Double.parseDouble(values[3]), Double.parseDouble(values[4]),
+                Double.parseDouble(values[5]), values[6], "", ""),
+            null, null, DateTimeUtils.toEpochSeconds(LocalDateTime.now().plusMinutes(15)), false);
+        DocumentReference docRef = usersCollection.document();
+        user.setId(docRef.getId());
+        docRef.set(user);
       }
-
-      while (sc.hasNext()) {
-        System.out.println("echo: " + sc.nextLine());
-      }
-      System.out.println("]'");
-
     } catch (FileNotFoundException e) {
       e.printStackTrace();
     }
-
     return "success";
-
   }
 
+  /**
+   * Generates a random verification code.
+   *
+   * @return A 6-digit random verification code as a string.
+   */
   public String generateVerificationCode() {
-    Random random = new Random();
-    int code = random.nextInt(900000) + 100000;
-    return String.valueOf(code);
+    return String.valueOf(new Random().nextInt(900000) + 100000);
   }
 }
