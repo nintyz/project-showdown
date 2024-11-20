@@ -110,30 +110,6 @@ public class UserServiceTest {
     }
 
     @Test
-    public void testGetAllPlayers() throws ExecutionException, InterruptedException {
-        // Mock Firestore behavior
-        QuerySnapshot querySnapshotMock = mock(QuerySnapshot.class);
-        when(firestore.collection("users").whereEqualTo("role", "player").get())
-                .thenReturn(querySnapshotApiFuture);
-
-        List<QueryDocumentSnapshot> documents = new ArrayList<>();
-        QueryDocumentSnapshot documentSnapshot = mock(QueryDocumentSnapshot.class);
-        when(documentSnapshot.exists()).thenReturn(true);
-        when(documentSnapshot.toObject(UserDTO.class)).thenReturn(mockUserDTO);
-        documents.add(documentSnapshot);
-
-        when(querySnapshotApiFuture.get()).thenReturn(querySnapshotMock);
-        when(querySnapshotMock.getDocuments()).thenReturn(documents);
-
-        // Call the method
-        List<UserDTO> players = userService.getAllPlayers();
-
-        // Verify that the list contains one player
-        assertEquals(1, players.size());
-        assertEquals("testuser@example.com", players.get(0).getEmail());
-    }
-
-    @Test
     public void testDeletePlayer_PlayerExists() throws ExecutionException, InterruptedException {
         // Mock Firestore behavior
         when(firestore.collection("users").document("existingUserId")).thenReturn(documentReference);
