@@ -4,12 +4,12 @@ import LandingPage from '@/views/LandingPage.vue'
 import LoginPage from '@/views/LoginPage.vue'
 import DashboardPage from '@/views/DashboardPage.vue'
 // import PlayerProfile from '@/views/PlayerProfile.vue'
-import OrganizerProfile from '@/views/Organizer/OrganizerProfile.vue'
+import OrganizerProfile from '@/views/OrganizerProfile.vue'
 import AdminDashboard from '@/views/AllTournamentsDashboard.vue'
 import AdminOrganizers from '@/views/AdminOrganizers.vue'
 import AddTournament from '@/views/AddTournament.vue'
 import SignUp from '@/views/SignUp.vue'
-import AddUserDetails from '@/views/Player/AddUserDetails.vue'
+import AddUserDetails from '@/views/AddUserDetails.vue'
 import AllTournaments from '@/views/AllTournaments.vue'
 import TournamentDetails from '@/views/TournamentDetails.vue'
 import TournamentDashboard from '@/views/TournamentDashboard.vue'
@@ -18,10 +18,10 @@ import OAuthCallback from "@/views/OAuthCallback.vue";
 import Verify from "@/views/VerifyAccount.vue";
 import Verify2FA from "@/views/Verify2FA.vue";
 import EditProfile from '@/views/UpdatePlayer.vue'
-import EditOrganizer from '@/views/Organizer/UpdateOrganizer.vue'
+import EditOrganizer from '@/views/UpdateOrganizer.vue'
 import AllPlayers from '@/views/AllPlayers.vue'
-import PersonalProfile from '@/views/Player/PersonalProfile.vue'
-import SpecificPlayerProfile from '@/views/Player/SpecificPlayerProfile.vue'
+import PersonalProfile from '@/views/PersonalProfile.vue'
+import SpecificPlayerProfile from '@/views/SpecificPlayerProfile.vue'
 import MatchUpdate from '@/views/MatchUpdate.vue'
 
 const routes = [

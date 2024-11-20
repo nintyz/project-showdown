@@ -31,13 +31,18 @@
             <!-- Action Buttons based on role and registration status -->
             <div class="action-buttons mt-4">
                 <!-- Render for Players -->
-                <template v-if="role === 'player'">
-
+                <template v-if="tournament.status === 'Cancelled'">
+                    <p class="text-danger">This tournament has been cancelled.</p>
+                </template>
+                <template v-else-if="role === 'player'">
+                    <div v-if="tournament.status === 'Ended'">
+                        <p class="text-danger">This tournament has ended.</p>
+                    </div>
                     <button v-if="!isUserRegistered" class="btn btn-outline-primary me-2" @click="registerForTournament"
                         :disabled="isRegistrationFull || isRegistrationClosed">
-                        {{ registrationStatus }}
+                        Register
                     </button>
-                    <button v-else-if="isUserRegistered" class="btn btn-outline-secondary me-2" style="background-color:red"
+                    <button v-else class="btn btn-outline-secondary me-2" style="background-color:red"
                         @click="unregisterFromTournament">
                         Unregister
                     </button>
@@ -224,27 +229,30 @@ export default {
         },
         async registerForTournament() {
             try {
+                // Perform the registration request
                 const response = await axios.put(`http://localhost:8080/tournament/${this.tournament.id}/register/${this.userId}`);
-                const message = response.data; // Accessing the `message` field from the response
+                const message = response.data; // Assuming the server sends a `message` field in the response
+
+                // Fetch the current user's details to add to the list of registered users
+                const userResponse = await axios.get(`http://localhost:8080/user/${this.userId}`);
+                const userDetails = userResponse.data;
                 this.showNotification(message, 'success');
-                await this.fetchTournamentDetails();
+
+                // Update the list of users with the newly registered user
+                this.users.push(userDetails);
+
+                // Show success notification
+
+                // Update the tournament details locally to toggle the button
+                this.tournament.users.push(this.userId);
+
             } catch (error) {
-                // If there's an error response, handle it here
-                const errorMessage = error.response?.data?.message || error.message; // Use error.message if `response.data.message` isn't available
+                // Handle errors gracefully
+                const errorMessage = error.response?.data?.message || error.message; // Fallback to general error message
                 this.showNotification(errorMessage, 'error');
             }
-
-
-            // try {
-
-            //     await axios.put(`http://localhost:8080/tournament/${this.tournament.id}/register/${this.userId}`);
-            //     this.showNotification('Successfully registered for the tournament.', 'success');
-            //     await this.fetchTournamentDetails();
-            // } catch (error) {
-            //     console.error('Error registering for tournament:', error);
-            //     this.showNotification('Failed to register for the tournament.', 'error');
-            // }
         },
+
         async unregisterFromTournament() {
             try {
                 await axios.put(`http://localhost:8080/tournament/${this.tournament.id}/cancelRegistration/${this.userId}`);

@@ -52,21 +52,21 @@
 
             <!-- My Tournaments Section -->
             <div class="my-tournaments-section card mt-4">
-                <h3 class="card-header">My Tournaments</h3>
+                <h3 class="card-header">Tournaments</h3>
                 <ul class="tournament-list mt-4">
                     <li v-for="(tournament, index) in tournaments" :key="index"
                         class="row align-items-center mb-3 mx-2">
                         <div class="col-md-2">
-                            <img :src="tournament.logo" alt="Tournament Logo" class="img-tournament" />
+                            <img :src="tournament.logoUrl" alt="Tournament Logo" class="img-tournament" />
                         </div>
                         <div class="col-md-8">
                             <div class="tournament-info">
                                 <h4>{{ tournament.name }}</h4>
-                                <p>{{ tournament.location }} | {{ tournament.date }}</p>
+                                <p>{{ tournament.country }} | {{ tournament.venue }}</p>
                             </div>
                         </div>
                         <div class="col-md-2 text-right">
-                            <button class="btn btn-secondary" @click="viewTournament(tournament)">View</button>
+                            <button class="btn btn-secondary" @click="viewTournament(tournament.id)">View</button>
                         </div>
                     </li>
                 </ul>
@@ -151,8 +151,8 @@ export default {
         redirectToEditProfile() {
             this.$router.push('/edit-profile');
         },
-        viewTournament(tournament) {
-            alert(`Redirecting to the dashboard for ${tournament.name}`);
+        viewTournament(id) {
+            this.$router.push(`/tournament/${id}`);
         },
     },
 };

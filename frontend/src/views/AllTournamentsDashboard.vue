@@ -116,7 +116,7 @@ export default {
     },
     mounted() {
         this.fetchTournaments();
-        console.log("Organizer ID:", this.userId);
+        // console.log("User ID:", this.userId);
     },
 };
 </script>
