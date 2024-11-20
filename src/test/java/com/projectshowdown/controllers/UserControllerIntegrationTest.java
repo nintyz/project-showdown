@@ -1,44 +1,47 @@
 package com.projectshowdown.controllers;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.projectshowdown.config.TestGoogleServiceConfig;
-import com.projectshowdown.config.TestSecurityConfig;
-import com.projectshowdown.configs.JwtUtil;
-import com.projectshowdown.dto.UserDTO;
-import com.projectshowdown.entities.Player;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.metrics.data.MetricsRepositoryMethodInvocationListener;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.annotation.Import;
-import org.springframework.http.*;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
-
+import static java.lang.Thread.sleep;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static java.lang.Thread.sleep;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.projectshowdown.config.TestGoogleServiceConfig;
+import com.projectshowdown.config.TestSecurityConfig;
+import com.projectshowdown.dto.UserDTO;
+import com.projectshowdown.entities.Player;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = "SUPPORT_EMAIL=admin@gmail.com")
 @TestPropertySource(properties = "APP_PASSWORD=Password1!")
 @TestPropertySource(properties = "GOOGLE_CONFIG_PATH=/Users/arthurchan/Documents/firebasekey/serviceAccountKey.json")
+@TestPropertySource(properties = "GOOGLE_CREDENTIALS_JSON=/Users/arthurchan/Documents/firebasekey/serviceAccountKey.json")
 
 @Import({TestGoogleServiceConfig.class, TestSecurityConfig.class})
 @ActiveProfiles("test")
 public class UserControllerIntegrationTest {
-
-    @MockBean
-    private JwtUtil jwtUtil;
     
     @LocalServerPort
     private int port;
@@ -54,8 +57,6 @@ public class UserControllerIntegrationTest {
     private HttpHeaders headers;
 
     private List<String> createdUserIds = new ArrayList<>();
-    @Autowired
-    private MetricsRepositoryMethodInvocationListener metricsRepositoryMethodInvocationListener;
 
     @BeforeEach
     public void setUp() {

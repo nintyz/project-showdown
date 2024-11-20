@@ -64,7 +64,7 @@ class MatchServiceTest {
     private Match testMatch;
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         testMatch = new Match(
                 "match1",
                 "tournament1",
