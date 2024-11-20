@@ -32,52 +32,12 @@ public class Player {
     private String bio;
     private String achievements;
 
-    public int getRank() {
-        return rank;
-    }
-
-    public void setRank(int rank) {
-        this.rank = rank;
-    }
-
-    public String getDob() {
-        return dob;
-    }
-
-    public void setDob(String dob) {
-        this.dob = dob;
-    }
-
     public Integer age() {
         if (dob == null) {
             return null;
         }
         LocalDate actualDob = LocalDate.parse(dob);
         return Period.between(actualDob, LocalDate.now()).getYears();
-    }
-
-    public double getPeakAge() {
-        return peakAge;
-    }
-
-    public void setPeakAge(double peakAge) {
-        this.peakAge = peakAge;
-    }
-
-    public double getElo() {
-        return elo;
-    }
-
-    public void setElo(double elo) {
-        this.elo = elo;
-    }
-
-    public double getPeakElo() {
-        return peakElo;
-    }
-
-    public void setPeakElo(double peakElo) {
-        this.peakElo = peakElo;
     }
 
     // Method to calculate MMR based on the given formula
