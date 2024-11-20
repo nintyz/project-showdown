@@ -3,13 +3,9 @@
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Technologies Used](#technologies-used)
-3. [Prerequisites](#prerequisites)
-4. [Setup and Installation](#setup-and-installation)
-5. [Running the Application](#running-the-application)
-6. [Development](#development)
-7. [Testing](#testing)
-8. [Deployment](#deployment)
-9. [License](#license)
+3. [DB Schema](#db-schema)
+4. [Running the Application Locally](#running-the-application-locally)
+5. [License](#license)
 
 ## Introduction
 Welcome to G2T5's Tennis Tournament Management System - Project Showdown! Project Showdown is a full-stack application that utilises Springboot for backend and Vue.JS for frontend, seamlessly integrated through Docker for streamlined development and deployment.
@@ -65,7 +61,6 @@ For front-end development:
 For back-end development
 1. Navigate to `backend` directory
 2. Run `mvn spring-boot:run`
-3. If there are errors, run `mvn spring-boot:run -Dmaven.test.skip=true`
 
 ## License 
 This project is licensed under the [MIT License](LICENSE).
