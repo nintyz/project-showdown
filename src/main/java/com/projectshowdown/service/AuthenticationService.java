@@ -106,7 +106,7 @@ public class AuthenticationService {
      * @param user The {@link UserDTO} representing the user to send the email to.
      * @throws RuntimeException If an error occurs while sending the email.
      */
-    public void sendVerificationEmail(UserDTO user) { //TODO: Update with company logo
+    public void sendVerificationEmail(UserDTO user) { 
         String subject = "Account Verification";
         String verificationCode = user.getVerificationCode();
         String verificationLink = "http://localhost:3000/verify?email=" + user.getEmail() + "&code=" + verificationCode;

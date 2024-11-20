@@ -18,6 +18,10 @@ import java.io.IOException;
 import com.google.cloud.firestore.Firestore;
 import com.google.firebase.cloud.FirestoreClient;
 
+/**
+ * Controller for managing tournament-related operations.
+ * Exposes endpoints to perform CRUD operations, handle user registrations, and upload tournament logos.
+ */
 @RestController
 public class TournamentController {
     public Firestore getFirestore() {
@@ -27,13 +31,38 @@ public class TournamentController {
     @Autowired
     TournamentService tournamentService;
 
-    // GET all players
+    /**
+     * Retrieves all tournaments.
+     *
+     * @return A list of {@link Tournament} objects.
+     * @throws ExecutionException   If an error occurs while fetching tournaments.
+     * @throws InterruptedException If the operation is interrupted.
+     */
     @GetMapping("/tournaments")
     public List<Tournament> getTournaments() throws ExecutionException, InterruptedException {
         return tournamentService.getAllTournaments();
     }
 
-    // POST - add tournament with form data
+    /**
+     * Creates a new tournament with form data.
+     *
+     * @param name        The name of the tournament.
+     * @param dateTime    The date and time of the tournament.
+     * @param type        The type of the tournament.
+     * @param year        The year of the tournament.
+     * @param numPlayers  The number of players participating.
+     * @param minMMR      The minimum MMR required to participate.
+     * @param maxMMR      The maximum MMR allowed.
+     * @param country     The country hosting the tournament.
+     * @param venue       The venue of the tournament.
+     * @param status      The status of the tournament (e.g., "Scheduled").
+     * @param organizerId The organizer's ID.
+     * @param file        The tournament logo file.
+     * @return A success message with the generated tournament ID.
+     * @throws ExecutionException   If an error occurs while creating the tournament.
+     * @throws InterruptedException If the operation is interrupted.
+     * @throws IOException          If an error occurs while uploading the logo.
+     */
     @PostMapping("/tournaments")
     @ResponseStatus(HttpStatus.CREATED)
     public String addTournamentWithParams(
@@ -62,18 +91,42 @@ public class TournamentController {
         return "Tournament created successfully with ID: " + generatedId;
     }
 
+    /**
+     * Retrieves tournaments by organizer ID.
+     *
+     * @param organizerId The organizer's ID.
+     * @return A list of {@link Tournament} objects for the specified organizer.
+     * @throws ExecutionException   If an error occurs while fetching tournaments.
+     * @throws InterruptedException If the operation is interrupted.
+     */
     @GetMapping("/tournaments/organizer/{organizerId}")
     public List<Tournament> getTournamentsByOrganizerId(@PathVariable String organizerId)
             throws ExecutionException, InterruptedException {
         return tournamentService.getTournamentsByOrganizerId(organizerId);
     }
 
+    /**
+     * Retrieves tournaments by player ID.
+     *
+     * @param playerId The player's ID.
+     * @return A list of {@link Tournament} objects for the specified player.
+     * @throws ExecutionException   If an error occurs while fetching tournaments.
+     * @throws InterruptedException If the operation is interrupted.
+     */
     @GetMapping("/tournaments/player/{playerId}")
     public List<Tournament> getTournamentsByPlayerId(@PathVariable String playerId)
             throws ExecutionException, InterruptedException {
         return tournamentService.getTournamentsByPlayerId(playerId);
     }
 
+    /**
+     * Displays details of a specific tournament.
+     *
+     * @param id The tournament ID.
+     * @return A map containing the tournament details.
+     * @throws ExecutionException   If an error occurs while fetching the tournament.
+     * @throws InterruptedException If the tournament is not found.
+     */
     @GetMapping("/tournament/{id}")
     public Map<String, Object> displayTournament(@PathVariable String id)
             throws ExecutionException, InterruptedException {
@@ -86,6 +139,7 @@ public class TournamentController {
 
         return tournament;
     }
+
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/tournaments/{organizerId}")
@@ -115,6 +169,16 @@ public class TournamentController {
         return "Tournament created successfully with ID: " + generatedId;
     }
 
+    /**
+     * Updates a tournament's details.
+     *
+     * @param id           The tournament ID.
+     * @param organizerId  The organizer's ID.
+     * @param tournamentData A map containing the tournament's updated details.
+     * @return A success message indicating the update status.
+     * @throws ExecutionException   If an error occurs while updating the tournament.
+     * @throws InterruptedException If the operation is interrupted.
+     */
     @PutMapping("/tournament/{id}/{organizerId}")
     @ResponseStatus(HttpStatus.OK)
     public String updateTournament(@PathVariable String id, @PathVariable String organizerId,
@@ -123,6 +187,15 @@ public class TournamentController {
         return tournamentService.updateTournament(id, organizerId, tournamentData);
     }
 
+    /**
+     * Registers a user for a tournament.
+     *
+     * @param id     The tournament ID.
+     * @param userId The user ID.
+     * @return A success message indicating the registration status.
+     * @throws ExecutionException   If an error occurs during registration.
+     * @throws InterruptedException If the operation is interrupted.
+     */
     @PutMapping("/tournament/{id}/register/{userId}")
     @ResponseStatus(HttpStatus.OK)
     public String registerUser(@PathVariable String id, @PathVariable String userId)
@@ -130,6 +203,15 @@ public class TournamentController {
         return tournamentService.registerUser(id, userId);
     }
 
+    /**
+     * Cancels a user's registration for a tournament.
+     *
+     * @param id     The tournament ID.
+     * @param userId The user ID.
+     * @return A success message indicating the cancellation status.
+     * @throws ExecutionException   If an error occurs during cancellation.
+     * @throws InterruptedException If the operation is interrupted.
+     */
     @PutMapping("/tournament/{id}/cancelRegistration/{userId}")
     @ResponseStatus(HttpStatus.OK)
     public String cancelRegistration(@PathVariable String id, @PathVariable String userId)
@@ -137,6 +219,14 @@ public class TournamentController {
         return tournamentService.cancelRegistration(id, userId);
     }
 
+    /**
+     * Progresses a tournament to the next stage.
+     *
+     * @param tournamentId The tournament ID.
+     * @return A success message indicating the progression status.
+     * @throws ExecutionException   If an error occurs while progressing the tournament.
+     * @throws InterruptedException If the operation is interrupted.
+     */
     @PutMapping("/tournament/{tournamentId}/matches")
     @ResponseStatus(HttpStatus.OK)
     public String progressTournament(@PathVariable String tournamentId)
@@ -144,7 +234,13 @@ public class TournamentController {
         return tournamentService.progressTournament(tournamentId);
     }
 
-    // upload logo to firebase storage
+    /**
+     * Uploads a logo for a tournament.
+     *
+     * @param id   The tournament ID.
+     * @param file The logo file to be uploaded.
+     * @return A success message if the upload is successful.
+     */
     @PostMapping("/tournament/{id}/uploadLogo")
     public ResponseEntity<String> uploadLogo(@PathVariable String id, @RequestParam("file") MultipartFile file) {
         try {
