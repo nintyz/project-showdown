@@ -63,6 +63,22 @@ public class Player {
      */
     private String achievements;
 
+    public int getRank() {
+        return rank;
+    }
+
+    public void setRank(int rank) {
+        this.rank = rank;
+    }
+
+    public String getDob() {
+        return dob;
+    }
+
+    public void setDob(String dob) {
+        this.dob = dob;
+    }
+
     /**
      * Calculates the player's current age based on their date of birth.
      *
@@ -74,6 +90,30 @@ public class Player {
         }
         LocalDate actualDob = LocalDate.parse(dob);
         return Period.between(actualDob, LocalDate.now()).getYears();
+    }
+
+    public double getPeakAge() {
+        return peakAge;
+    }
+
+    public void setPeakAge(double peakAge) {
+        this.peakAge = peakAge;
+    }
+
+    public double getElo() {
+        return elo;
+    }
+
+    public void setElo(double elo) {
+        this.elo = elo;
+    }
+
+    public double getPeakElo() {
+        return peakElo;
+    }
+
+    public void setPeakElo(double peakElo) {
+        this.peakElo = peakElo;
     }
 
     /**

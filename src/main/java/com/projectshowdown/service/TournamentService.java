@@ -42,15 +42,6 @@ import com.projectshowdown.events.MatchUpdatedEvent;
 
 @Service
 public class TournamentService {
-    public static final String TOURNAMENTS_DB = "tournaments";
-    public static final String USERS_FIELD = "users";
-    public static final String ROUNDS_FIELD = "rounds";
-    public static final String MATCHES_FIELD = "matches";
-    public static final String PLAYER_1_ID_FIELD = "player1Id";
-    public static final String PLAYER_2_ID_FIELD = "player2Id";
-    public static final String ORGANIZER_ROLE = "organizer";
-    public static final String ORGANIZER_ID_FIELD = "organizerId";
-    public static final String STATUS_FIELD = "status";
     @Autowired
     UserService userService;
 
@@ -79,7 +70,7 @@ public class TournamentService {
      */
     public List<Tournament> getAllTournaments() throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
-        QuerySnapshot querySnapshot = db.collection(TOURNAMENTS_DB).get().get();
+        QuerySnapshot querySnapshot = db.collection("tournaments").get().get();
 
         // Map the documents directly to Tournament objects
         return querySnapshot.getDocuments().stream()
@@ -103,7 +94,7 @@ public class TournamentService {
     public List<Tournament> getTournamentsByOrganizerId(String organizerId)
             throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
-        QuerySnapshot querySnapshot = db.collection(TOURNAMENTS_DB).get().get();
+        QuerySnapshot querySnapshot = db.collection("tournaments").get().get();
 
         // Map the documents directly to Tournament objects
         return querySnapshot.getDocuments().stream()
@@ -125,8 +116,8 @@ public class TournamentService {
      * @throws InterruptedException If the operation is interrupted.
      */
     public List<Tournament> getTournamentsByPlayerId(String userId) throws ExecutionException, InterruptedException {
-        CollectionReference tournaments = getFirestore().collection(TOURNAMENTS_DB);
-        Query query = tournaments.whereArrayContains(USERS_FIELD, userId);
+        CollectionReference tournaments = getFirestore().collection("tournaments");
+        Query query = tournaments.whereArrayContains("users", userId);
         return query.get().get().toObjects(Tournament.class);
     }
 
@@ -142,7 +133,7 @@ public class TournamentService {
      */
     public String addTournament(Tournament tournament, String userId) throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
-        DocumentReference docRef = db.collection(TOURNAMENTS_DB).document();
+        DocumentReference docRef = db.collection("tournaments").document();
         tournament.setId(docRef.getId());
         tournament.setOrganizerId(userId);
 
@@ -167,7 +158,7 @@ public class TournamentService {
      */
     public Tournament getTournament(String tournamentId) throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
-        DocumentReference docRef = db.collection(TOURNAMENTS_DB).document(tournamentId);
+        DocumentReference docRef = db.collection("tournaments").document(tournamentId);
         DocumentSnapshot document = docRef.get().get();
         if (document.exists()) {
             Tournament tournament = document.toObject(Tournament.class);
@@ -192,23 +183,23 @@ public class TournamentService {
         Map<String, Object> response = new HashMap<>();
 
         // Fetch tournament details
-        DocumentSnapshot tournamentSnapshot = db.collection(TOURNAMENTS_DB).document(tournamentId).get().get();
+        DocumentSnapshot tournamentSnapshot = db.collection("tournaments").document(tournamentId).get().get();
         if (!tournamentSnapshot.exists()) {
             throw new IllegalArgumentException("Tournament not found");
         }
         response.putAll(tournamentSnapshot.getData());
 
         // Fetch and enrich rounds
-        List<Map<String, Object>> rounds = (List<Map<String, Object>>) tournamentSnapshot.get(ROUNDS_FIELD);
+        List<Map<String, Object>> rounds = (List<Map<String, Object>>) tournamentSnapshot.get("rounds");
         if (rounds != null) {
             List<Map<String, Object>> enrichedRounds = rounds.stream().map(round -> {
-                List<String> matchIds = (List<String>) round.get(MATCHES_FIELD);
+                List<String> matchIds = (List<String>) round.get("matches");
                 List<Map<String, Object>> matchesData = new ArrayList<>();
 
                 if (matchIds != null) {
                     matchIds.forEach(matchId -> {
                         try {
-                            DocumentSnapshot matchSnapshot = db.collection(MATCHES_FIELD).document(matchId).get().get();
+                            DocumentSnapshot matchSnapshot = db.collection("matches").document(matchId).get().get();
                             if (matchSnapshot.exists()) {
                                 Map<String, Object> matchData = matchSnapshot.getData();
                                 enrichMatchWithPlayerData(db, matchData);
@@ -219,10 +210,10 @@ public class TournamentService {
                         }
                     });
                 }
-                round.put(MATCHES_FIELD, matchesData);
+                round.put("matches", matchesData);
                 return round;
             }).collect(Collectors.toList());
-            response.put(ROUNDS_FIELD, enrichedRounds);
+            response.put("rounds", enrichedRounds);
         }
 
         return response;
@@ -236,16 +227,16 @@ public class TournamentService {
      */
     private void enrichMatchWithPlayerData(Firestore db, Map<String, Object> matchData) {
         try {
-            String player1Id = (String) matchData.get(PLAYER_1_ID_FIELD);
-            String player2Id = (String) matchData.get(PLAYER_2_ID_FIELD);
+            String player1Id = (String) matchData.get("player1Id");
+            String player2Id = (String) matchData.get("player2Id");
 
             if (player1Id != null) {
-                DocumentSnapshot player1Snapshot = db.collection(USERS_FIELD).document(player1Id).get().get();
+                DocumentSnapshot player1Snapshot = db.collection("users").document(player1Id).get().get();
                 matchData.put("player1",
                         player1Snapshot.exists() ? player1Snapshot.getData() : "Player account deleted");
             }
             if (player2Id != null) {
-                DocumentSnapshot player2Snapshot = db.collection(USERS_FIELD).document(player2Id).get().get();
+                DocumentSnapshot player2Snapshot = db.collection("users").document(player2Id).get().get();
                 matchData.put("player2",
                         player2Snapshot.exists() ? player2Snapshot.getData() : "Player account deleted");
             }
@@ -269,7 +260,7 @@ public class TournamentService {
     public String updateTournament(String tournamentId, String organizerId, Map<String, Object> tournamentData)
             throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
-        DocumentReference docRef = db.collection(TOURNAMENTS_DB).document(tournamentId);
+        DocumentReference docRef = db.collection("tournaments").document(tournamentId);
 
         // Check if the tournament exists
         DocumentSnapshot document = docRef.get().get();
@@ -279,7 +270,7 @@ public class TournamentService {
 
         // Ensure organizer permissions
         UserDTO organizer = userService.getUser(organizerId);
-        if (!organizer.getRole().equalsIgnoreCase(ORGANIZER_ROLE) || !organizerId.equals(document.get(ORGANIZER_ID_FIELD))) {
+        if (!organizer.getRole().equalsIgnoreCase("organizer") || !organizerId.equals(document.get("organizerId"))) {
             return "You are not authorized to edit this tournament.";
         }
 
@@ -289,8 +280,8 @@ public class TournamentService {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         // check if the update is to cancel tournament
-        if (tournamentData.containsKey(STATUS_FIELD)
-                && ((String) tournamentData.get(STATUS_FIELD)).equalsIgnoreCase("Cancelled")) {
+        if (tournamentData.containsKey("status")
+                && ((String) tournamentData.get("status")).equalsIgnoreCase("Cancelled")) {
             // check if tournament has begun
             Tournament tournament = getTournament(tournamentId);
             if (tournament.inProgress()) {
@@ -303,7 +294,7 @@ public class TournamentService {
             String tournamentName = document.getString("name");
 
             // Retrieve the list of registered users
-            List<String> registeredUsers = (List<String>) document.get(USERS_FIELD);
+            List<String> registeredUsers = (List<String>) document.get("users");
             for (String userId : registeredUsers) {
 
                 try {
@@ -341,7 +332,7 @@ public class TournamentService {
      */
     public String registerUser(String tournamentId, String userId) throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
-        DocumentReference docRef = db.collection(TOURNAMENTS_DB).document(tournamentId);
+        DocumentReference docRef = db.collection("tournaments").document(tournamentId);
 
         // Check if the document exists
         DocumentSnapshot document = docRef.get().get();
@@ -363,7 +354,7 @@ public class TournamentService {
         }
 
         // Register user
-        List<String> users = (List<String>) document.get(USERS_FIELD);
+        List<String> users = (List<String>) document.get("users");
         if (users == null)
             users = new ArrayList<>();
         if (users.contains(userId)) {
@@ -372,7 +363,7 @@ public class TournamentService {
 
         // Add user to the list and update in Firebase
         users.add(userId);
-        docRef.update(USERS_FIELD, users);
+        docRef.update("users", users);
         return "Successfully registered.";
     }
 
@@ -390,7 +381,7 @@ public class TournamentService {
     public String cancelRegistration(String tournamentId, String userId)
             throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
-        DocumentReference docRef = db.collection(TOURNAMENTS_DB).document(tournamentId);
+        DocumentReference docRef = db.collection("tournaments").document(tournamentId);
 
         // Check if the tournament document exists
         DocumentSnapshot document = docRef.get().get();
@@ -398,7 +389,7 @@ public class TournamentService {
             throw new TournamentNotFoundException(tournamentId);
         }
 
-        List<String> registeredUsers = (List<String>) document.get(USERS_FIELD);
+        List<String> registeredUsers = (List<String>) document.get("users");
 
         // Remove the user if they are registered
         if (registeredUsers != null && registeredUsers.contains(userId)) {
@@ -408,7 +399,7 @@ public class TournamentService {
         }
 
         // Update the 'users' field in Firestore
-        WriteResult writeResult = docRef.update(USERS_FIELD, registeredUsers).get();
+        WriteResult writeResult = docRef.update("users", registeredUsers).get();
 
         return "UserId: " + userId + " has successfully unregistered from tournament: " + tournamentId
                 + " at: " + writeResult.getUpdateTime();
@@ -439,7 +430,7 @@ public class TournamentService {
             // achievements
             if (lastRoundMatches.size() == 1) {
                 Map<String, Object> statusToUpdate = new HashMap<>();
-                statusToUpdate.put(STATUS_FIELD, "Ended");
+                statusToUpdate.put("status", "Ended");
                 updateTournament(tournamentId, tournament.getOrganizerId(), statusToUpdate);
 
                 // Update achievements for winner and loser
@@ -526,7 +517,7 @@ public class TournamentService {
 
         // Save the updated tournament in Firestore
         Firestore db = getFirestore();
-        db.collection(TOURNAMENTS_DB).document(tournamentId).set(tournament).get();
+        db.collection("tournaments").document(tournamentId).set(tournament).get();
 
         return "Next round processed. Result: " + result;
     }
@@ -729,8 +720,8 @@ public class TournamentService {
         Round newRound = new Round(roundName, matches);
         tournament.getRounds().add(newRound);
         Map<String, Object> toUpdateTournament = new HashMap<String, Object>();
-        toUpdateTournament.put(ROUNDS_FIELD, tournament.getRounds());
-        toUpdateTournament.put(STATUS_FIELD, "In Progress");
+        toUpdateTournament.put("rounds", tournament.getRounds());
+        toUpdateTournament.put("status", "In Progress");
         updateTournament(tournament.getId(), tournament.getOrganizerId(), toUpdateTournament);
     }
 
@@ -738,7 +729,7 @@ public class TournamentService {
     public String uploadLogoToFirebase(String tournamentId, MultipartFile file)
             throws IOException, ExecutionException, InterruptedException {
 
-        String bucketName = "projectshowdown-df5f2.firebasestorage.app"; // Firebase Storage
+        String bucketName = "projectshowdown-df5f2.firebasestorage.app"; // replace with your actual Firebase Storage
                                                                          // bucket name
         String fileName = "tournament-logo/" + tournamentId + ".jpg";
 
@@ -756,11 +747,36 @@ public class TournamentService {
 
         // Update Firestore with logo URL
         Firestore db = getFirestore();
-        DocumentReference docRef = db.collection(TOURNAMENTS_DB).document(tournamentId);
+        DocumentReference docRef = db.collection("tournaments").document(tournamentId);
         Map<String, Object> updates = new HashMap<>();
         updates.put("logoUrl", logoUrl);
         docRef.update(updates).get();
 
         return logoUrl;
     }
+
+    // // Generates logo URL for a tournament without storing it in Firestore
+    // public String getLogoUrl(String tournamentId) {
+    // String fileName = "tournament-logo/" + tournamentId + ".jpg";
+    // return
+    // String.format("https://firebasestorage.googleapis.com/v0/b/%s/o/%s?alt=media",
+    // StorageClient.getInstance().bucket().getName(),
+    // fileName.replace("/", "%2F"));
+    // }
+
+    // public Tournament getTournamentWithLogo(String tournamentId) throws
+    // ExecutionException, InterruptedException {
+    // DocumentReference documentReference =
+    // getFirestore().collection("tournaments").document(tournamentId);
+    // DocumentSnapshot document = documentReference.get().get();
+
+    // if (document.exists()) {
+    // Tournament tournament = document.toObject(Tournament.class);
+    // tournament.setId(tournamentId);
+    // tournament.setLogoUrl(getLogoUrl(tournamentId)); // Dynamically set logo URL
+    // return tournament;
+    // } else {
+    // throw new TournamentNotFoundException(tournamentId);
+    // }
+    // }
 }

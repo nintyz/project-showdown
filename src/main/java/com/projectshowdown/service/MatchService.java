@@ -28,15 +28,6 @@ import java.util.stream.Collectors;
 @Service
 public class MatchService {
 
-    public static final String MATCHES_DB = "matches";
-    public static final String TOURNAMENT_ID_FIELD = "tournamentId";
-    public static final String DATE_TIME_FIELD = "dateTime";
-    public static final String PLAYER_1_SCORE_FIELD = "player1Score";
-    public static final String PLAYER_2_SCORE_FIELD = "player2Score";
-    public static final String TOURNAMENTS_DB = "tournaments";
-    public static final String NAME_FIELD = "name";
-    public static final String PLAYER_1_ID_FIELD = "player1Id";
-    public static final String PLAYER_2_ID_FIELD = "player2Id";
     @Autowired
     UserService userService;
 
@@ -68,7 +59,7 @@ public class MatchService {
      */
     public String addMatch(Match matchToSave) throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
-        DocumentReference docRef = db.collection(MATCHES_DB).document(matchToSave.getId());
+        DocumentReference docRef = db.collection("matches").document(matchToSave.getId());
         docRef.set(matchToSave).get();
         return matchToSave.getId();
     }
@@ -87,7 +78,7 @@ public class MatchService {
     public String updateMatch(String id, Map<String, Object> matchData)
             throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
-        DocumentReference docRef = db.collection(MATCHES_DB).document(id);
+        DocumentReference docRef = db.collection("matches").document(id);
 
         // Check if the match exists
         DocumentSnapshot document = docRef.get().get();
@@ -96,21 +87,21 @@ public class MatchService {
                     "Unable to find match with id: " + id);
         }
 
-        String tournamentId = document.getString(TOURNAMENT_ID_FIELD);
+        String tournamentId = document.getString("tournamentId");
 
         // Ensure the match has a date and time set if updating scores
-        if ("TBC".equals(document.getString(DATE_TIME_FIELD)) && !matchData.containsKey(DATE_TIME_FIELD)) {
+        if ("TBC".equals(document.getString("dateTime")) && !matchData.containsKey("dateTime")) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Please update match's date and time details before attempting to update the scores.");
         }
 
         // Notify players if the match date and time are updated
-        if (matchData.containsKey(DATE_TIME_FIELD)) {
-            notifyPlayersAboutMatchUpdate(document, matchData.get(DATE_TIME_FIELD).toString(), tournamentId);
+        if (matchData.containsKey("dateTime")) {
+            notifyPlayersAboutMatchUpdate(document, matchData.get("dateTime").toString(), tournamentId);
         }
 
         // Mark match as completed if both player scores are updated
-        if (matchData.containsKey(PLAYER_1_SCORE_FIELD) && matchData.containsKey(PLAYER_2_SCORE_FIELD)) {
+        if (matchData.containsKey("player1Score") && matchData.containsKey("player2Score")) {
             matchData.put("completed", true);
         }
 
@@ -127,7 +118,7 @@ public class MatchService {
         eventPublisher.publishEvent(new MatchUpdatedEvent(this, tournamentId, match));
 
         // Update ELO for the winner if scores are updated
-        if (matchData.containsKey(PLAYER_1_SCORE_FIELD) && matchData.containsKey(PLAYER_2_SCORE_FIELD)) {
+        if (matchData.containsKey("player1Score") && matchData.containsKey("player2Score")) {
             updateWinnerElo(match);
         }
 
@@ -156,12 +147,12 @@ public class MatchService {
                 .format(java.time.format.DateTimeFormatter.ofPattern("hh:mm a"));
 
         // Retrieve tournament details
-        DocumentSnapshot tournamentDoc = db.collection(TOURNAMENTS_DB).document(tournamentId).get().get();
-        String tournamentName = tournamentDoc.exists() ? tournamentDoc.getString(NAME_FIELD) : "Unknown Tournament";
+        DocumentSnapshot tournamentDoc = db.collection("tournaments").document(tournamentId).get().get();
+        String tournamentName = tournamentDoc.exists() ? tournamentDoc.getString("name") : "Unknown Tournament";
 
         // Retrieve player details
-        UserDTO user1 = userService.getUser(document.getString(PLAYER_1_ID_FIELD));
-        UserDTO user2 = userService.getUser(document.getString(PLAYER_2_ID_FIELD));
+        UserDTO user1 = userService.getUser(document.getString("player1Id"));
+        UserDTO user2 = userService.getUser(document.getString("player2Id"));
 
         // Send email notifications
         try {
@@ -228,7 +219,7 @@ public class MatchService {
      */
     public Match getMatch(String matchId) throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
-        DocumentSnapshot document = db.collection(MATCHES_DB).document(matchId).get().get();
+        DocumentSnapshot document = db.collection("matches").document(matchId).get().get();
 
         if (document.exists()) {
             Match match = document.toObject(Match.class);

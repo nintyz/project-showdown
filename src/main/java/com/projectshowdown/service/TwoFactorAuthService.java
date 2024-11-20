@@ -23,8 +23,6 @@ import java.util.Base64;
 @Service
 public class TwoFactorAuthService {
 
-    public static final String PROJECT_TITLE = "ProjectShowdown";
-
     /**
      * Generates a secret key for use in Two-Factor Authentication (2FA).
      *
@@ -45,14 +43,14 @@ public class TwoFactorAuthService {
      */
 
     public String generateQrCodeImageUri(String secret) {
-        String issuer = PROJECT_TITLE;
+        String issuer = "ProjectShowdown";
 
         QrData data = new QrData.Builder()
                 .label(issuer)
                 .secret(secret)
                 .algorithm(HashingAlgorithm.SHA1)
-                .digits(6) // 6-digit code
-                .period(30) // 30-second period
+                .digits(6)
+                .period(30)
                 .build();
 
         return data.getUri();
