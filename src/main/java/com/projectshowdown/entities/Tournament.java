@@ -67,4 +67,8 @@ public class Tournament {
         return !LocalDateTime.now().isAfter(LocalDateTime.parse(dateTime));
     }
 
+    public boolean inProgress(){
+        return status.equalsIgnoreCase("in progress");
+    }
+
 }
