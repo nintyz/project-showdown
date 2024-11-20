@@ -148,6 +148,11 @@ public class Tournament {
         return !LocalDateTime.now().isAfter(LocalDateTime.parse(dateTime));
     }
 
+    /**
+     * Checks whether the tournament is in progress.
+     *
+     * @return {@code true} if the tournament is in progress; {@code false} otherwise.
+     */
     public boolean inProgress(){
         return status.equalsIgnoreCase("in progress");
     }
