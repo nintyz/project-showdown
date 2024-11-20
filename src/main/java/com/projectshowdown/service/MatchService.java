@@ -2,9 +2,10 @@ package com.projectshowdown.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
-import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class MatchService {
+
     @Autowired
     UserService userService;
 
@@ -35,144 +37,167 @@ public class MatchService {
     @Autowired
     private ApplicationEventPublisher eventPublisher;
 
-    private final static int ELO_GAINED_WHEN_YOU_WIN = 25;
+    private static final int ELO_GAINED_WHEN_YOU_WIN = 25;
 
-    // Helper method to get Firestore instance
+    /**
+     * Retrieves the Firestore database instance.
+     *
+     * @return The Firestore instance.
+     */
     private Firestore getFirestore() {
         return FirestoreClient.getFirestore();
     }
 
+    /**
+     * Adds a new match to Firestore.
+     *
+     * @param matchToSave The Match object to save.
+     * @return The ID of the saved match.
+     * @throws ExecutionException   If an error occurs during the Firestore
+     *                              operation.
+     * @throws InterruptedException If the operation is interrupted.
+     */
     public String addMatch(Match matchToSave) throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
-        // Generate a new document reference with a random ID
         DocumentReference docRef = db.collection("matches").document(matchToSave.getId());
-
-        // Save the tournament to Firestore
-
-        ApiFuture<WriteResult> writeResult = docRef.set(matchToSave);
+        docRef.set(matchToSave).get();
         return matchToSave.getId();
-
     }
 
-    // Method to update a tournament document in the 'tournaments' collection
+    /**
+     * Updates a match in Firestore with new data and handles associated logic
+     * such as notifying players, updating scores, and publishing events.
+     *
+     * @param id        The ID of the match to update.
+     * @param matchData A map of the fields to update.
+     * @return A success message with the update time or an error message.
+     * @throws ExecutionException   If an error occurs during the Firestore
+     *                              operation.
+     * @throws InterruptedException If the operation is interrupted.
+     */
     public String updateMatch(String id, Map<String, Object> matchData)
             throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
-
-        // Get a reference to the document
         DocumentReference docRef = db.collection("matches").document(id);
 
-        // Check if the document exists
-        ApiFuture<DocumentSnapshot> future = docRef.get();
-        DocumentSnapshot document = future.get();
+        // Check if the match exists
+        DocumentSnapshot document = docRef.get().get();
         if (!document.exists()) {
-            return "Unable to find match with id: " + id;
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Unable to find match with id: " + id);
         }
 
-        // Retrieve tournamentId from the match document for later use
         String tournamentId = document.getString("tournamentId");
 
-        // if current match dateTime is TBC, and you're not trying to update the
-        // dateTime, should prompt to update dateTime
-        if (((String) document.get("dateTime")).equals("TBC") && !matchData.containsKey("dateTime")) {
-            return "Please update match's date and time details before attempting to update the scores";
+        // Ensure the match has a date and time set if updating scores
+        if ("TBC".equals(document.getString("dateTime")) && !matchData.containsKey("dateTime")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Please update match's date and time details before attempting to update the scores.");
         }
 
-        // if trying to update match date & time
+        // Notify players if the match date and time are updated
         if (matchData.containsKey("dateTime")) {
-            // Extract user IDs from match document
-            String user1Id = document.getString("player1Id");
-            String user2Id = document.getString("player2Id");
-
-            String newDateTime = (String) matchData.get("dateTime");
-
-            // Extract date and time from newDateTime (assuming format
-            // "yyyy-MM-dd'T'HH:mm:ss:SS")
-            String[] dateTimeParts = newDateTime.split("T");
-            String date = dateTimeParts[0]; // e.g., "2024-12-31"
-            String time = dateTimeParts[1].substring(0, 5); // Extract "HH:mm" part
-
-            // Convert time to AM/PM format
-            String amPmTime;
-            try {
-                java.time.LocalTime localTime = java.time.LocalTime.parse(time);
-                amPmTime = localTime.format(java.time.format.DateTimeFormatter.ofPattern("hh:mm a")); // e.g., "02:15
-                                                                                                      // PM"
-            } catch (Exception e) {
-                amPmTime = time; // fallback in case of parsing issue
-            }
-
-            // Retrieve tournament information using tournamentId from match document
-            DocumentReference tournamentRef = db.collection("tournaments").document(tournamentId);
-            DocumentSnapshot tournamentDocument = tournamentRef.get().get();
-            String tournamentName = tournamentDocument.exists() ? tournamentDocument.getString("name")
-                    : "Unknown Tournament";
-
-            // Retrieve user information
-            UserDTO user1 = userService.getUser(user1Id);
-            UserDTO user2 = userService.getUser(user2Id);
-
-            // Send emails to both players
-            try {
-                System.out.println("Sending email notification for updated match timing...");
-
-                notificationService.notifyMatchDetailsUpdated(
-                        user1.getEmail(),
-                        user1.getName(),
-                        user2.getName(),
-                        tournamentName,
-                        date,
-                        amPmTime);
-
-                notificationService.notifyMatchDetailsUpdated(
-                        user2.getEmail(),
-                        user2.getName(),
-                        user1.getName(),
-                        tournamentName,
-                        date,
-                        amPmTime);
-            } catch (MessagingException e) {
-                System.out.println("Failed to send updated match notification emails.");
-                e.printStackTrace();
-            }
-
+            notifyPlayersAboutMatchUpdate(document, matchData.get("dateTime").toString(), tournamentId);
         }
 
-        // set match completed
+        // Mark match as completed if both player scores are updated
         if (matchData.containsKey("player1Score") && matchData.containsKey("player2Score")) {
             matchData.put("completed", true);
         }
 
-        // Filter out null values from the update data
+        // Filter out null values from the match data
         Map<String, Object> filteredUpdates = matchData.entrySet().stream()
-                .filter(entry -> entry.getValue() != null) // Only include non-null fields
+                .filter(entry -> entry.getValue() != null)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        // Perform the update operation
-        ApiFuture<WriteResult> writeResult = docRef.update(filteredUpdates);
+        // Update Firestore with the filtered match data
+        WriteResult writeResult = docRef.update(filteredUpdates).get();
 
+        // Publish match updated event
         Match match = document.toObject(Match.class);
-        // check if Round has been completed
-        // publish event for progress tournament and update player achievements
         eventPublisher.publishEvent(new MatchUpdatedEvent(this, tournamentId, match));
 
-        // if trying to update scores, update the winner player's elo
+        // Update ELO for the winner if scores are updated
         if (matchData.containsKey("player1Score") && matchData.containsKey("player2Score")) {
-
-            UserDTO winner = userService.getUser(match.winnerId());
-            Map<String, Object> toUpdateScore = new HashMap<>();
-            Double newElo = winner.getPlayerDetails().getElo() + ELO_GAINED_WHEN_YOU_WIN;
-            toUpdateScore.put("playerDetails.elo", newElo);
-            if (winner.getPlayerDetails().getPeakElo() < newElo) {
-                toUpdateScore.put("playerDetails.peakElo", newElo);
-            }
-            userService.updateUser(winner.getId(), toUpdateScore);
+            updateWinnerElo(match);
         }
 
-        // Return success message with the update time
-        return "Match with ID: " + id + " updated successfully at: " + writeResult.get().getUpdateTime();
+        return "Match with ID: " + id + " updated successfully at: " + writeResult.getUpdateTime();
     }
 
+    /**
+     * Notifies players about an updated match date and time via email.
+     *
+     * @param document     The match document containing player information.
+     * @param newDateTime  The new date and time for the match.
+     * @param tournamentId The ID of the tournament the match belongs to.
+     * @throws ExecutionException   If an error occurs during the Firestore
+     *                              operation.
+     * @throws InterruptedException If the operation is interrupted.
+     */
+    private void notifyPlayersAboutMatchUpdate(DocumentSnapshot document, String newDateTime, String tournamentId)
+            throws ExecutionException, InterruptedException {
+        Firestore db = getFirestore();
+
+        // Parse and format the date and time
+        String[] dateTimeParts = newDateTime.split("T");
+        String date = dateTimeParts[0];
+        String time = dateTimeParts[1].substring(0, 5);
+        String amPmTime = java.time.LocalTime.parse(time)
+                .format(java.time.format.DateTimeFormatter.ofPattern("hh:mm a"));
+
+        // Retrieve tournament details
+        DocumentSnapshot tournamentDoc = db.collection("tournaments").document(tournamentId).get().get();
+        String tournamentName = tournamentDoc.exists() ? tournamentDoc.getString("name") : "Unknown Tournament";
+
+        // Retrieve player details
+        UserDTO user1 = userService.getUser(document.getString("player1Id"));
+        UserDTO user2 = userService.getUser(document.getString("player2Id"));
+
+        // Send email notifications
+        try {
+            notificationService.notifyMatchDetailsUpdated(
+                    user1.getEmail(), user1.getName(), user2.getName(), tournamentName, date, amPmTime);
+
+            notificationService.notifyMatchDetailsUpdated(
+                    user2.getEmail(), user2.getName(), user1.getName(), tournamentName, date, amPmTime);
+        } catch (MessagingException e) {
+            System.out.println("Failed to send updated match notification emails.");
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Updates the ELO score for the winner of a match.
+     *
+     * @param match The Match object containing the winner's information.
+     * @throws ExecutionException   If an error occurs during the Firestore
+     *                              operation.
+     * @throws InterruptedException If the operation is interrupted.
+     */
+    private void updateWinnerElo(Match match) throws ExecutionException, InterruptedException {
+        UserDTO winner = userService.getUser(match.winnerId());
+        Map<String, Object> toUpdateScore = new HashMap<>();
+        double newElo = winner.getPlayerDetails().getElo() + ELO_GAINED_WHEN_YOU_WIN;
+        toUpdateScore.put("playerDetails.elo", newElo);
+
+        // Update peak ELO if the new ELO exceeds the previous peak
+        if (winner.getPlayerDetails().getPeakElo() < newElo) {
+            toUpdateScore.put("playerDetails.peakElo", newElo);
+        }
+
+        userService.updateUser(winner.getId(), toUpdateScore);
+    }
+
+    /**
+     * Checks if all matches in the current round are completed.
+     *
+     * @param currentRound A list of match IDs in the current round.
+     * @return True if all matches are completed, false otherwise.
+     * @throws ExecutionException   If an error occurs during the Firestore
+     *                              operation.
+     * @throws InterruptedException If the operation is interrupted.
+     */
     public boolean checkCurrentRoundCompletion(List<String> currentRound)
             throws ExecutionException, InterruptedException {
         for (Match match : getMatches(currentRound)) {
@@ -183,29 +208,43 @@ public class MatchService {
         return true;
     }
 
+    /**
+     * Retrieves a match by its ID.
+     *
+     * @param matchId The ID of the match.
+     * @return The Match object.
+     * @throws ExecutionException   If an error occurs during the Firestore
+     *                              operation.
+     * @throws InterruptedException If the operation is interrupted.
+     */
     public Match getMatch(String matchId) throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
-        // Generate a new document reference with a random ID
-        DocumentReference documentReference = db.collection("matches").document(matchId);
-        ApiFuture<DocumentSnapshot> future = documentReference.get();
-        DocumentSnapshot document = future.get();
-        // If the document exists, convert it to a Player object
-        if (document.exists()) {
-            Match matchToReturn = document.toObject(Match.class);
-            matchToReturn.setId(matchId);
-            return matchToReturn;
-        } else {
-            // Document doesn't exist, return null or handle it based on your needs
-            throw new RuntimeException("unable to find match: " + matchId);
-        }
+        DocumentSnapshot document = db.collection("matches").document(matchId).get().get();
 
+        if (document.exists()) {
+            Match match = document.toObject(Match.class);
+            match.setId(matchId);
+            return match;
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Unable to find match: " + matchId);
+        }
     }
 
+    /**
+     * Retrieves multiple matches by their IDs.
+     *
+     * @param matchIds A list of match IDs.
+     * @return A list of Match objects.
+     * @throws ExecutionException   If an error occurs during the Firestore
+     *                              operation.
+     * @throws InterruptedException If the operation is interrupted.
+     */
     public List<Match> getMatches(List<String> matchIds) throws ExecutionException, InterruptedException {
-        List<Match> response = new ArrayList<>();
+        List<Match> matches = new ArrayList<>();
         for (String matchId : matchIds) {
-            response.add(getMatch(matchId));
+            matches.add(getMatch(matchId));
         }
-        return response;
+        return matches;
     }
 }
