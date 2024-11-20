@@ -2,8 +2,8 @@
 
 ## Table of Contents
 1. [Introduction](#introduction)
-2. [Technologies Used](#technologies-used)
-3. [DB Schema](#db-schema)
+2. [DB Schema](#db-schema)
+3. [Technologies Used](#technologies-used)
 4. [Running the Application Locally](#running-the-application-locally)
 5. [License](#license)
 
