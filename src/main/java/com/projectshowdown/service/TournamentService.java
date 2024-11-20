@@ -51,202 +51,232 @@ public class TournamentService {
     @Autowired
     NotificationService notificationService;
 
-    // Helper method to get Firestore instance
+    /**
+     * Retrieves the Firestore database instance.
+     *
+     * @return The Firestore instance.
+     */
     private Firestore getFirestore() {
         return FirestoreClient.getFirestore();
     }
 
+    /**
+     * Retrieves all tournaments from Firestore.
+     *
+     * @return A list of all Tournament objects.
+     * @throws ExecutionException   If an error occurs during the asynchronous
+     *                              Firestore operation.
+     * @throws InterruptedException If the operation is interrupted.
+     */
     public List<Tournament> getAllTournaments() throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
-        Query tournamentsCollection = db.collection("tournaments");
-        ApiFuture<QuerySnapshot> future = tournamentsCollection.get();
-        List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+        QuerySnapshot querySnapshot = db.collection("tournaments").get().get();
 
-        // Prepare a list to hold each document's data
-        List<Tournament> allTournaments = new ArrayList<>();
-
-        // Iterate through the documents and add their data to the list
-        for (DocumentSnapshot document : documents) {
-            if (document.exists()) {
-                // Add document data to the listt
-                Tournament currTournament = document.toObject(Tournament.class);
-                // set id.
-                currTournament.setId(document.getId());
-                allTournaments.add(currTournament);
-
-            }
-        }
-
-        return allTournaments; // Return the list of tournament
+        // Map the documents directly to Tournament objects
+        return querySnapshot.getDocuments().stream()
+                .map(document -> {
+                    Tournament tournament = document.toObject(Tournament.class);
+                    tournament.setId(document.getId());
+                    return tournament;
+                })
+                .collect(Collectors.toList());
     }
 
+    /**
+     * Retrieves tournaments organized by a specific organizer.
+     *
+     * @param organizerId The organizer's ID.
+     * @return A list of tournaments organized by the given organizer.
+     * @throws ExecutionException   If an error occurs during the asynchronous
+     *                              Firestore operation.
+     * @throws InterruptedException If the operation is interrupted.
+     */
     public List<Tournament> getTournamentsByOrganizerId(String organizerId)
             throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
-        Query tournamentsCollection = db.collection("tournaments").whereEqualTo("organizerId", organizerId);
-        ApiFuture<QuerySnapshot> future = tournamentsCollection.get();
-        List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+        QuerySnapshot querySnapshot = db.collection("tournaments").get().get();
 
-        // Prepare a list to hold each document's data
-        List<Tournament> allTournaments = new ArrayList<>();
-
-        // Iterate through the documents and add their data to the list
-        for (DocumentSnapshot document : documents) {
-            if (document.exists()) {
-                // Add document data to the listt
-                Tournament currTournament = document.toObject(Tournament.class);
-                // set id.
-                currTournament.setId(document.getId());
-                allTournaments.add(currTournament);
-
-            }
-        }
-        return allTournaments; // Return the list of tournament
+        // Map the documents directly to Tournament objects
+        return querySnapshot.getDocuments().stream()
+                .map(document -> {
+                    Tournament tournament = document.toObject(Tournament.class);
+                    tournament.setId(document.getId());
+                    return tournament;
+                })
+                .collect(Collectors.toList());
     }
 
+    /**
+     * Retrieves tournaments a specific player is registered in.
+     *
+     * @param userId The ID of the player.
+     * @return A list of tournaments the player is registered in.
+     * @throws ExecutionException   If an error occurs during the asynchronous
+     *                              Firestore operation.
+     * @throws InterruptedException If the operation is interrupted.
+     */
     public List<Tournament> getTournamentsByPlayerId(String userId) throws ExecutionException, InterruptedException {
-        CollectionReference tournaments = FirestoreClient.getFirestore().collection("tournaments");
-
-        // Use array-contains to check if the userId is in the "users" array field
+        CollectionReference tournaments = getFirestore().collection("tournaments");
         Query query = tournaments.whereArrayContains("users", userId);
-        QuerySnapshot querySnapshot = query.get().get();
-
-        return querySnapshot.toObjects(Tournament.class); // Converts the result to a list of Tournament objects
+        return query.get().get().toObjects(Tournament.class);
     }
 
-    // Method to save tournament details to Firestore
+    /**
+     * Adds a new tournament to Firestore.
+     *
+     * @param tournament The Tournament object to add.
+     * @param userId     The ID of the organizer.
+     * @return The ID of the created tournament or an error message.
+     * @throws ExecutionException   If an error occurs during the asynchronous
+     *                              Firestore operation.
+     * @throws InterruptedException If the operation is interrupted.
+     */
     public String addTournament(Tournament tournament, String userId) throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
         DocumentReference docRef = db.collection("tournaments").document();
-        String generatedId = docRef.getId();
-        tournament.setId(generatedId);
+        tournament.setId(docRef.getId());
         tournament.setOrganizerId(userId);
 
         try {
-            ApiFuture<WriteResult> writeResult = docRef.set(tournament);
-            return generatedId;
+            docRef.set(tournament);
+            return docRef.getId();
         } catch (Exception e) {
             e.printStackTrace();
             return "Error adding tournament: " + e.getMessage();
         }
     }
 
-    // Method to get specific tournament from firebase.
+    /**
+     * Retrieves a specific tournament by ID.
+     *
+     * @param tournamentId The ID of the tournament.
+     * @return The Tournament object.
+     * @throws ExecutionException          If an error occurs during the
+     *                                     asynchronous Firestore operation.
+     * @throws InterruptedException        If the operation is interrupted.
+     * @throws TournamentNotFoundException If the tournament is not found.
+     */
     public Tournament getTournament(String tournamentId) throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
-        DocumentReference documentReference = db.collection("tournaments").document(tournamentId);
-        ApiFuture<DocumentSnapshot> future = documentReference.get();
-        DocumentSnapshot document = future.get();
-
-        // If the document exists, convert it to a Player object
+        DocumentReference docRef = db.collection("tournaments").document(tournamentId);
+        DocumentSnapshot document = docRef.get().get();
         if (document.exists()) {
-            // You can directly map the Firestore data to a Player class
-            Tournament tournamentToReturn = document.toObject(Tournament.class);
-            tournamentToReturn.setId(tournamentId);
-            return tournamentToReturn;
+            Tournament tournament = document.toObject(Tournament.class);
+            tournament.setId(tournamentId);
+            return tournament;
         } else {
-            // Document doesn't exist, return null or handle it based on your needs
             throw new TournamentNotFoundException(tournamentId);
         }
     }
 
-    // Method to get specific tournament from Firebase with error handling
-
+    /**
+     * Displays a detailed view of a tournament, including rounds and player data.
+     *
+     * @param tournamentId The ID of the tournament.
+     * @return A map representing the tournament details.
+     * @throws ExecutionException   If an error occurs during the asynchronous
+     *                              Firestore operation.
+     * @throws InterruptedException If the operation is interrupted.
+     */
     public Map<String, Object> displayTournament(String tournamentId) throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
         Map<String, Object> response = new HashMap<>();
 
-        // Step 1: Fetch Tournament
-        DocumentReference tournamentRef = db.collection("tournaments").document(tournamentId);
-        DocumentSnapshot tournamentSnapshot = tournamentRef.get().get();
+        // Fetch tournament details
+        DocumentSnapshot tournamentSnapshot = db.collection("tournaments").document(tournamentId).get().get();
         if (!tournamentSnapshot.exists()) {
             throw new IllegalArgumentException("Tournament not found");
         }
         response.putAll(tournamentSnapshot.getData());
 
-        // Step 2: Initialize rounds data if available
-        List<Map<String, Object>> roundsData = new ArrayList<>();
+        // Fetch and enrich rounds
         List<Map<String, Object>> rounds = (List<Map<String, Object>>) tournamentSnapshot.get("rounds");
-
         if (rounds != null) {
-            for (Map<String, Object> round : rounds) {
-                Map<String, Object> roundData = new HashMap<>();
-                roundData.put("name", round.get("name"));
-
+            List<Map<String, Object>> enrichedRounds = rounds.stream().map(round -> {
                 List<String> matchIds = (List<String>) round.get("matches");
                 List<Map<String, Object>> matchesData = new ArrayList<>();
 
                 if (matchIds != null) {
-                    // Step 3: Fetch each match in the round
-                    for (String matchId : matchIds) {
-                        DocumentReference matchRef = db.collection("matches").document(matchId);
-                        DocumentSnapshot matchSnapshot = matchRef.get().get();
-                        if (matchSnapshot.exists()) {
-                            Map<String, Object> matchData = matchSnapshot.getData();
-
-                            // Fetch player data if available
-                            String player1Id = (String) matchData.get("player1Id");
-                            String player2Id = (String) matchData.get("player2Id");
-
-                            if (player1Id != null) {
-                                DocumentSnapshot player1Snapshot = db.collection("users").document(player1Id).get()
-                                        .get();
-                                if (player1Snapshot.exists()) {
-                                    matchData.put("player1", player1Snapshot.getData());
-                                } else {
-                                    matchData.put("player1", "Player account has been deleted");
-                                }
+                    matchIds.forEach(matchId -> {
+                        try {
+                            DocumentSnapshot matchSnapshot = db.collection("matches").document(matchId).get().get();
+                            if (matchSnapshot.exists()) {
+                                Map<String, Object> matchData = matchSnapshot.getData();
+                                enrichMatchWithPlayerData(db, matchData);
+                                matchesData.add(matchData);
                             }
-                            if (player2Id != null) {
-                                DocumentSnapshot player2Snapshot = db.collection("users").document(player2Id).get()
-                                        .get();
-                                if (player2Snapshot.exists()) {
-                                    matchData.put("player2", player2Snapshot.getData());
-                                } else {
-                                    matchData.put("player2", "Player account has been deleted");
-                                }
-                            }
-                            matchesData.add(matchData);
+                        } catch (ExecutionException | InterruptedException e) {
+                            e.printStackTrace();
                         }
-                    }
+                    });
                 }
-                roundData.put("matches", matchesData);
-                roundsData.add(roundData);
-            }
+                round.put("matches", matchesData);
+                return round;
+            }).collect(Collectors.toList());
+            response.put("rounds", enrichedRounds);
         }
-
-        // Step 4: Add rounds data to tournament data
-        response.put("rounds", roundsData);
 
         return response;
     }
 
-    // Method to update a tournament document in the 'tournaments' collection
-    // Method to update a tournament document in the 'tournaments' collection
+    /**
+     * Enriches a match's data with player information.
+     *
+     * @param db        The Firestore instance.
+     * @param matchData The match data to enrich.
+     */
+    private void enrichMatchWithPlayerData(Firestore db, Map<String, Object> matchData) {
+        try {
+            String player1Id = (String) matchData.get("player1Id");
+            String player2Id = (String) matchData.get("player2Id");
+
+            if (player1Id != null) {
+                DocumentSnapshot player1Snapshot = db.collection("users").document(player1Id).get().get();
+                matchData.put("player1",
+                        player1Snapshot.exists() ? player1Snapshot.getData() : "Player account deleted");
+            }
+            if (player2Id != null) {
+                DocumentSnapshot player2Snapshot = db.collection("users").document(player2Id).get().get();
+                matchData.put("player2",
+                        player2Snapshot.exists() ? player2Snapshot.getData() : "Player account deleted");
+            }
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Updates a tournament's details in Firestore.
+     *
+     * @param tournamentId   The ID of the tournament to update.
+     * @param organizerId    The ID of the organizer making the update.
+     * @param tournamentData The data to update.
+     * @return A success message with the update time or an error message.
+     * @throws ExecutionException          If an error occurs during the
+     *                                     asynchronous Firestore operation.
+     * @throws InterruptedException        If the operation is interrupted.
+     * @throws TournamentNotFoundException If the tournament is not found.
+     */
     public String updateTournament(String tournamentId, String organizerId, Map<String, Object> tournamentData)
             throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
-
-        // Get a reference to the document
         DocumentReference docRef = db.collection("tournaments").document(tournamentId);
 
-        // Check if the document exists
-        ApiFuture<DocumentSnapshot> future = docRef.get();
-        DocumentSnapshot document = future.get();
+        // Check if the tournament exists
+        DocumentSnapshot document = docRef.get().get();
         if (!document.exists()) {
             throw new TournamentNotFoundException(tournamentId);
         }
 
-        UserDTO editingUser = userService.getUser(organizerId);
-        // if the user is an organizer role and trying to edit another organizer's
-        // tournament
-        if (editingUser.getRole().equalsIgnoreCase("organizer") && !organizerId.equals(document.get("organizerId"))) {
-            return "You are not allowed to edit another organizer's tournament!";
+        // Ensure organizer permissions
+        UserDTO organizer = userService.getUser(organizerId);
+        if (!organizer.getRole().equalsIgnoreCase("organizer") || !organizerId.equals(document.get("organizerId"))) {
+            return "You are not authorized to edit this tournament.";
         }
 
-        // Filter out null values from the update data
+        // Apply updates
         Map<String, Object> filteredUpdates = tournamentData.entrySet().stream()
-                .filter(entry -> entry.getValue() != null) // Only include non-null fields
+                .filter(entry -> entry.getValue() != null)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         // check if the update is to cancel tournament
@@ -289,7 +319,17 @@ public class TournamentService {
                 + updateWriteResult.get().getUpdateTime();
     }
 
-    // Method to register a new player
+    /**
+     * Registers a user for a tournament.
+     *
+     * @param tournamentId The ID of the tournament.
+     * @param userId       The ID of the user to register.
+     * @return A success message or error message if registration fails.
+     * @throws ExecutionException          If an error occurs during the
+     *                                     asynchronous Firestore operation.
+     * @throws InterruptedException        If the operation is interrupted.
+     * @throws TournamentNotFoundException If the tournament is not found.
+     */
     public String registerUser(String tournamentId, String userId) throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
         DocumentReference docRef = db.collection("tournaments").document(tournamentId);
@@ -301,93 +341,105 @@ public class TournamentService {
         }
 
         Tournament tournament = getTournament(tournamentId);
-        if (tournament.getRounds() != null && tournament.getRounds().size() != 0) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "Tournament has already begun.");
+        if (tournament.getRounds() != null && !tournament.getRounds().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Tournament has already begun.");
         }
 
         UserDTO user = userService.getUser(userId);
         if (!tournament.checkDate(user)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "Tournament's registration date is already over!");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Tournament registration period is over.");
         }
         if (!tournament.checkUserEligibility(user)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "Player MMR not eligible for this tournament.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Player MMR is not eligible for this tournament.");
         }
 
-        // Get the current list of users and check if the user is already registered
-        List<String> currentUsers = (List<String>) document.get("users");
-        if (currentUsers == null)
-            currentUsers = new ArrayList<>();
-        if (currentUsers.contains(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "You have already registered for this tournament!");
+        // Register user
+        List<String> users = (List<String>) document.get("users");
+        if (users == null)
+            users = new ArrayList<>();
+        if (users.contains(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are already registered for this tournament.");
         }
 
         // Add user to the list and update in Firebase
-        currentUsers.add(userId);
-        docRef.update("users", currentUsers).get(); // Ensure the update is completed
+        users.add(userId);
+        docRef.update("users", users);
         return "Successfully registered.";
     }
 
-    // Method to register a new player
+    /**
+     * Cancels a user's registration for a specific tournament.
+     *
+     * @param tournamentId The ID of the tournament.
+     * @param userId       The ID of the user to unregister.
+     * @return A success message with the unregistration timestamp.
+     * @throws ExecutionException          If an error occurs during the Firestore
+     *                                     operation.
+     * @throws InterruptedException        If the operation is interrupted.
+     * @throws TournamentNotFoundException If the tournament is not found.
+     */
     public String cancelRegistration(String tournamentId, String userId)
             throws ExecutionException, InterruptedException {
         Firestore db = getFirestore();
-
-        // Get a reference to the document
         DocumentReference docRef = db.collection("tournaments").document(tournamentId);
 
-        // Check if the document exists
-        ApiFuture<DocumentSnapshot> future = docRef.get();
-        DocumentSnapshot document = future.get();
+        // Check if the tournament document exists
+        DocumentSnapshot document = docRef.get().get();
         if (!document.exists()) {
             throw new TournamentNotFoundException(tournamentId);
         }
 
         List<String> registeredUsers = (List<String>) document.get("users");
 
-        if (registeredUsers.contains(userId)) {
+        // Remove the user if they are registered
+        if (registeredUsers != null && registeredUsers.contains(userId)) {
             registeredUsers.remove(userId);
         } else {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "You are not registered to this event!");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not registered for this event!");
         }
 
-        // Update the 'players' field with the updated list
-        ApiFuture<WriteResult> writeResult = docRef.update("users", registeredUsers);
+        // Update the 'users' field in Firestore
+        WriteResult writeResult = docRef.update("users", registeredUsers).get();
 
-        // Return success message with the update time
-        return "UserId:" + userId + " has successfully unregistered from tournament: " + tournamentId
-                + " at: " + writeResult.get().getUpdateTime();
+        return "UserId: " + userId + " has successfully unregistered from tournament: " + tournamentId
+                + " at: " + writeResult.getUpdateTime();
     }
 
+    /**
+     * Handles the event when a match is updated and progresses the tournament if
+     * required.
+     *
+     * @param event The MatchUpdatedEvent containing details about the updated
+     *              match.
+     * @throws ExecutionException   If an error occurs during Firestore operations.
+     * @throws InterruptedException If the operation is interrupted.
+     */
     @EventListener
     public void handleMatchUpdated(MatchUpdatedEvent event) throws ExecutionException, InterruptedException {
         String tournamentId = event.getTournamentId();
         Tournament tournament = getTournament(tournamentId);
+
+        // Get matches in the last round
         List<String> lastRoundMatches = tournament.getRounds().get(tournament.getRounds().size() - 1).getMatches();
 
         System.out.println("Checking if all matches in the round are completed...");
-        System.out.println(tournament);
-        // Check if all matches are completed before progressing
         if (matchService.checkCurrentRoundCompletion(lastRoundMatches)) {
             System.out.println("All matches completed for this round.");
 
-            // If final round, award achievements and do not progress further
+            // If it is the final round, update the tournament's status and user
+            // achievements
             if (lastRoundMatches.size() == 1) {
-                // update status of tournament to ended
                 Map<String, Object> statusToUpdate = new HashMap<>();
                 statusToUpdate.put("status", "Ended");
                 updateTournament(tournamentId, tournament.getOrganizerId(), statusToUpdate);
 
-                // update user achievement
+                // Update achievements for winner and loser
                 updateUserAchievements(tournament, event.getMatch().winnerId(), true);
                 updateUserAchievements(tournament, event.getMatch().loserId(), false);
+
                 System.out.println("Final round completed. No further progression needed.");
             } else {
-                // Proceed to the next round
+                // Progress to the next round
                 String progressionResult = progressTournament(tournamentId);
                 System.out.println("Tournament progression result: " + progressionResult);
             }
@@ -396,28 +448,57 @@ public class TournamentService {
         }
     }
 
+    /**
+     * Updates a user's achievements based on their performance in the tournament.
+     *
+     * @param tournament The tournament where the achievement was earned.
+     * @param userId     The ID of the user whose achievements are being updated.
+     * @param gold       True if the user won the tournament, false if they were the
+     *                   runner-up.
+     * @throws ExecutionException   If an error occurs during Firestore operations.
+     * @throws InterruptedException If the operation is interrupted.
+     */
     public void updateUserAchievements(Tournament tournament, String userId, boolean gold)
             throws ExecutionException, InterruptedException {
         UserDTO user = userService.getUser(userId);
-        HashMap<String, Object> achievements = new HashMap<>();
-        String newAchievement = "Obtained " + (gold ? "Gold" : "Silver") + " from " + tournament.getName() + ". ";
-        achievements.put("playerDetails.achievements", user.getPlayerDetails().getAchievements() + newAchievement);
+
+        // Construct the achievement message
+        String achievement = "Obtained " + (gold ? "Gold" : "Silver") + " from " + tournament.getName() + ". ";
+        Map<String, Object> achievements = new HashMap<>();
+        achievements.put("playerDetails.achievements", user.getPlayerDetails().getAchievements() + achievement);
 
         userService.updateUser(userId, achievements);
     }
 
+    /**
+     * Retrieves the list of users who won their matches in the last round.
+     *
+     * @param matches The list of match IDs from the last round.
+     * @return A list of winning User objects.
+     * @throws ExecutionException   If an error occurs during Firestore operations.
+     * @throws InterruptedException If the operation is interrupted.
+     */
     public List<User> getWinningUsers(List<String> matches) throws ExecutionException, InterruptedException {
-        List<User> response = new ArrayList<>();
+        List<User> winners = new ArrayList<>();
 
         for (Match match : matchService.getMatches(matches)) {
             if (!match.isCompleted()) {
                 throw new RuntimeException("Matches from the last round are not completed!");
             }
-            response.add(UserMapper.toUser(userService.getUser(match.winnerId())));
+            winners.add(UserMapper.toUser(userService.getUser(match.winnerId())));
         }
 
-        return response;
+        return winners;
     }
+
+    /**
+     * Progresses the tournament to the next round if applicable.
+     *
+     * @param tournamentId The ID of the tournament to progress.
+     * @return A message indicating the result of the progression.
+     * @throws ExecutionException   If an error occurs during Firestore operations.
+     * @throws InterruptedException If the operation is interrupted.
+     */
 
     public String progressTournament(String tournamentId) throws ExecutionException, InterruptedException {
         Tournament tournament = getTournament(tournamentId);
@@ -434,15 +515,22 @@ public class TournamentService {
         String result = generateNextRound(tournament, nextRoundName);
         System.out.println("Next round generation result: " + result);
 
-        // After generating the round, update the tournament in Firestore
+        // Save the updated tournament in Firestore
         Firestore db = getFirestore();
-        DocumentReference tournamentRef = db.collection("tournaments").document(tournamentId);
-        ApiFuture<WriteResult> updateResult = tournamentRef.set(tournament); // Update tournament document
-        updateResult.get(); // Wait for the update to complete
+        db.collection("tournaments").document(tournamentId).set(tournament).get();
 
         return "Next round processed. Result: " + result;
     }
 
+    /**
+     * Determines the name of the next round in the tournament based on the current
+     * round count.
+     *
+     * @param tournament The Tournament object containing current round and user
+     *                   details.
+     * @return The name of the next round, or "Error" if the tournament has already
+     *         completed.
+     */
     private String determineNextRoundName(Tournament tournament) {
         int roundCount = tournament.getRounds() != null ? tournament.getRounds().size() : 0;
         int totalUsers = tournament.getUsers().size();
@@ -463,6 +551,14 @@ public class TournamentService {
         }
     }
 
+    /**
+     * Initializes the first round of a tournament by generating matches based on
+     * player MMR.
+     *
+     * @param tournament The Tournament object to initialize.
+     * @param roundName  The name of the round being initialized (e.g., "Round 1").
+     * @return A message indicating success or failure of initialization.
+     */
     public String initializeTournament(Tournament tournament, String roundName) {
         try {
             List<User> users = userService.getRegisteredUsers(tournament.getUsers());
@@ -482,6 +578,14 @@ public class TournamentService {
         }
     }
 
+    /**
+     * Generates the matches for the next round in a tournament based on the winners
+     * of the previous round.
+     *
+     * @param tournament The Tournament object to progress.
+     * @param roundName  The name of the next round to generate.
+     * @return A message indicating the result of the round generation.
+     */
     public String generateNextRound(Tournament tournament, String roundName) {
         try {
             List<String> lastRound = getLastRoundMatches(tournament);
@@ -498,12 +602,32 @@ public class TournamentService {
         }
     }
 
+    /**
+     * Retrieves the matches from the last round of the tournament and sorts them by
+     * match ID.
+     *
+     * @param tournament The Tournament object containing round details.
+     * @return A sorted list of match IDs from the last round.
+     */
     private List<String> getLastRoundMatches(Tournament tournament) {
         List<String> lastRound = tournament.getRounds().get(tournament.getRounds().size() - 1).getMatches();
         lastRound.sort(Comparator.comparingInt(id -> Integer.parseInt(id.split("_")[1])));
         return lastRound;
     }
 
+    /**
+     * Generates matches for the first round of a tournament, seeding the top
+     * players based on their MMR.
+     *
+     * @param tournament   The Tournament object.
+     * @param users        A list of users registered for the tournament.
+     * @param stage        The stage or round name (e.g., "Round 1").
+     * @param totalMatches The total number of matches already generated (used for
+     *                     match IDs).
+     * @return A list of match IDs generated for the round.
+     * @throws ExecutionException   If an error occurs during Firestore operations.
+     * @throws InterruptedException If the operation is interrupted.
+     */
     private List<String> generateMatchesWithSeed(Tournament tournament, List<User> users, String stage,
             int totalMatches)
             throws ExecutionException, InterruptedException {
