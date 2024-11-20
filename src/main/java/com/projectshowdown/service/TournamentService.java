@@ -685,7 +685,6 @@ public class TournamentService {
             matches.add(createMatch(tournament, stage, user1, user2, totalMatches + matches.size() + 1));
 
             // Send email notifications to both players about the match, however dateTime is
-            // TBC
             try {
                 System.out.println("Sending player match email ....");
                 notificationService.notifyPlayerMatched(

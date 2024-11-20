@@ -16,12 +16,16 @@
 Welcome to G2T5's Tennis Tournament Management System - Project Showdown! Project Showdown is a full-stack application that utilises Springboot for backend and Vue.JS for frontend, seamlessly integrated through Docker for streamlined development and deployment.
 
 Members:
-1. Yap Seng How Coben
-2. Aaron Poh Ji Teck
-3. Leo Cong Liam Andre
-4. Peh Siew Yu
-5. Pauliine Chew Gan Enn
-6. Arthur Chan Yeat Fuen
+1. Yap Seng How Coben (Product Owner, Developer)
+2. Aaron Poh Ji Teck (Developer)
+3. Leo Cong Liam Andre (Scrum Master, Developer)
+4. Peh Siew Yu (Developer)
+5. Pauliine Chew Gan Enn (Developer)
+6. Arthur Chan Yeat Fuen (Developer)
+
+## DB Schema
+![Database Diagram](https://github.com/nintyz/project-showdown/blob/master/drawSQL-image-export-2024-11-20.png)
+[View Database Diagram](https://drawsql.app/teams/showdown/diagrams/showdown)
 
 
 ## Project Structure
