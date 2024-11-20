@@ -19,18 +19,29 @@ Members:
 6. Arthur Chan Yeat Fuen (Developer)
 
 ## Workload Distribution
-1. **Coben:**
-* Worked on various backend logics including player, match and tournament services
-2. **Aaron:**
-* Configured authentication and security for the webapp, and helped deploy the app
-3. **Andre:**
-* Built frontend pages (e.g. landing page) and worked on the chatbot
-4. **Siew Yu:**
-* Worked on backend logic for email notifications and integration with frontend for notifications
-5. **Pauline:**
-* Designed and built the frontend of the webapp, including integration with the backend
-6. **Arthur:**
-* Worked on matchmaking logic and testing, and its implementation in backend
+
+### Coben (Product Owner, Developer)
+- Worked on various backend logics including player, match and tournament services
+
+### Aaron (Developer)
+- Configured authentication and security for the webapp
+- Helped deploy the application
+
+### Andre (Scrum Master, Developer)
+- Built frontend pages (e.g. landing page)
+- Worked on the chatbot implementation
+
+### Siew Yu (Developer)
+- Worked on backend logic for email notifications
+- Integrated frontend with notification system
+
+### Pauline (Developer)
+- Designed and built the frontend of the webapp
+- Integrated frontend components with backend services
+
+### Arthur (Developer)
+- Worked on matchmaking logic and testing
+- Implemented matchmaking system in backend
 
 ## DB Schema
 ![Database Diagram](drawSQL-image-export-2024-11-20.png)
