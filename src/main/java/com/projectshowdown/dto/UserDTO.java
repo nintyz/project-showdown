@@ -7,7 +7,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-//special User object to ensure firebase only store the variables here.
+/**
+ * Data Transfer Object (DTO) representing a user.
+ * This class ensures only relevant user data is stored or transferred in Firebase, avoiding redundant methods.
+ */
 @Setter
 @Getter
 @AllArgsConstructor
