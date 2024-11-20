@@ -22,6 +22,11 @@ import org.springframework.web.bind.annotation.*;
 import com.projectshowdown.configs.JwtUtil;
 import com.projectshowdown.entities.User;
 
+/**
+ * Controller for handling authentication-related operations.
+ * This includes login, account verification, two-factor authentication (2FA), 
+ * and sending/resending verification codes or emails.
+ */
 @RestController
 public class AuthenticationController {
 
@@ -43,6 +48,14 @@ public class AuthenticationController {
     @Autowired
     private TwoFactorAuthService twoFactorAuthService;
 
+    /**
+     * Endpoint for logging in a user.
+     *
+     * @param userCredentials The {@link User} object containing the user's email and password.
+     * @return A {@link ResponseEntity} containing a JWT token, user ID, and a flag indicating if 2FA is required.
+     * @throws UsernameNotFoundException If the user does not exist.
+     * @throws BadCredentialsException If the provided credentials are incorrect.
+     */
     @PostMapping("/login")
     public ResponseEntity<?> createAuthenticationToken(@RequestBody User userCredentials) {
         try {
@@ -75,6 +88,12 @@ public class AuthenticationController {
         }
     }
 
+    /**
+     * Enables two-factor authentication (2FA) for a user by generating a QR code.
+     *
+     * @param email The email address of the user.
+     * @return A {@link ResponseEntity} containing a Base64-encoded QR code image.
+     */
     @PostMapping("/enable-2fa")
     public ResponseEntity<?> enableTwoFactorAuth(@RequestParam String email) {
         try {
@@ -85,6 +104,12 @@ public class AuthenticationController {
         }
     }
 
+    /**
+     * Verifies a 2FA code entered by the user.
+     *
+     * @param verify2faDto A {@link Verify2faDTO} containing the user's email and 2FA code.
+     * @return A {@link ResponseEntity} containing a JWT token if the code is valid.
+     */
     @PostMapping("/verify-2fa")
     public ResponseEntity<?> verifyTwoFactorAuth(@RequestBody Verify2faDTO verify2faDto) {
         try {
@@ -102,6 +127,12 @@ public class AuthenticationController {
         }
     }
 
+    /**
+     * Verifies a user's account using a verification code.
+     *
+     * @param verifyUserDto A {@link VerifyUserDto} containing the user's email and verification code.
+     * @return A {@link ResponseEntity} indicating the result of the verification process.
+     */
     @PostMapping("/verify")
     public ResponseEntity<?> verifyUser(@RequestBody VerifyUserDto verifyUserDto) {
         try {
@@ -128,6 +159,12 @@ public class AuthenticationController {
         }
     }
 
+    /**
+     * Sends a verification email to the specified user.
+     *
+     * @param email The email address of the user.
+     * @return A {@link ResponseEntity} indicating the result of the email-sending process.
+     */
     @PostMapping("/send-verification-email")
     public ResponseEntity<?> sendVerificationEmail(@RequestBody String email) {
         try {
@@ -143,6 +180,12 @@ public class AuthenticationController {
         }
     }
 
+    /**
+     * Resends the verification code to the specified user.
+     *
+     * @param email The email address of the user.
+     * @return A {@link ResponseEntity} indicating the result of the resend operation.
+     */
     @PostMapping("/resend")
     public ResponseEntity<?> resendVerificationCode(@RequestParam String email) {
         try {

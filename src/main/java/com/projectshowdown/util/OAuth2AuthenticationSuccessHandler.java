@@ -16,6 +16,10 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+/**
+ * Handles successful OAuth2 authentication by redirecting the user
+ * based on their verification and two-factor authentication status.
+ */
 @Component
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
@@ -28,6 +32,16 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     @Autowired
     JwtUtil jwtUtil;
 
+    /**
+     * Called when a user has been successfully authenticated.
+     * Redirects the user based on their verification status and
+     * whether they have two-factor authentication enabled.
+     *
+     * @param request the request which caused the successful authentication
+     * @param response the response
+     * @param authentication the authentication object
+     * @throws IOException if an input or output exception occurs
+     */
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException {

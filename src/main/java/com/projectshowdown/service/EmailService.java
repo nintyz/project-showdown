@@ -8,10 +8,25 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service class for sending emails using JavaMailSender.
+ * Provides functionality to send HTML emails with inline images.
+ */
+
 @Service
 public class EmailService {
     @Autowired
     private JavaMailSender emailSender;
+
+    /**
+     * Sends an email to the specified recipient with the given subject and content.
+     * The email is sent as HTML and includes an inline image for branding.
+     *
+     * @param to      The recipient's email address.
+     * @param subject The subject of the email.
+     * @param text    The content of the email, which can include HTML formatting.
+     * @throws MessagingException If there is an error creating or sending the email.
+     */
 
     public void sendEmail(String to, String subject, String text) throws MessagingException {
         MimeMessage message = emailSender.createMimeMessage();

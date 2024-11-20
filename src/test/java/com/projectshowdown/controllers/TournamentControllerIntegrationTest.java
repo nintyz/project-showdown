@@ -1,6 +1,5 @@
 package com.projectshowdown.controllers;
 
-// import com.google.cloud.firestore.Firestore;
 import com.projectshowdown.config.TestSecurityConfig;
 import com.projectshowdown.config.TestGoogleServiceConfig;
 import com.projectshowdown.configs.JwtUtil;
@@ -30,8 +29,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = "SUPPORT_EMAIL=admin@gmail.com")
-@TestPropertySource(properties = "APP_PASSWORD=Password1!")
+@TestPropertySource(properties = "APP_PASSWORD=admin.Password1!")
 @TestPropertySource(properties = "GOOGLE_CONFIG_PATH=/Users/arthurchan/Documents/firebasekey/serviceAccountKey.json")
+@TestPropertySource(properties = "GOOGLE_CREDENTIALS_JSON=/Users/arthurchan/Documents/firebasekey/serviceAccountKey.json")
+
 
 @Import({TestGoogleServiceConfig.class, TestSecurityConfig.class})
 @ActiveProfiles("test")
@@ -60,18 +61,17 @@ public class TournamentControllerIntegrationTest {
         createdTournamentIds = new ArrayList<>();
 
         testTournament = new Tournament(
-                "testId",
-                "Test Tournament",
-                2024,
-                "Test Venue",
-                "2024-12-31T10:15:30",
-                32,
-                "pending",
-                1000.0,
-                2000.0,
-                new ArrayList<>(),  // Initialize empty Rounds List
-                "testOrganizerId",
-                new ArrayList<>()   // Initialize empty user List
+                // "testId",
+                // "Test Tournament",
+                // 2024,
+                // "Test Venue",
+                // 32,
+                // "pending",
+                // 1000.0,
+                // 2000.0,
+                // new ArrayList<>(),  // Initialize empty Rounds List
+                // "testOrganizerId",
+                // new ArrayList<>()   // Initialize empty user List
         );
     }
 

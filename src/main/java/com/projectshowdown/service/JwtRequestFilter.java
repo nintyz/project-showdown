@@ -28,6 +28,18 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     @Autowired
     private JwtUtil jwtUtil;
 
+    /**
+     * Filters incoming HTTP requests to validate the presence and validity of a JWT.
+     * If a valid JWT is found, the user's roles are extracted, and the Spring Security
+     * authentication context is set up with these roles.
+     *
+     * @param request  The incoming HTTP request.
+     * @param response The HTTP response.
+     * @param chain    The filter chain to pass the request/response along.
+     * @throws jakarta.servlet.ServletException If a servlet-specific error occurs.
+     * @throws IOException                      If an I/O error occurs during filtering.
+     */
+
     @Override
     protected void doFilterInternal(jakarta.servlet.http.HttpServletRequest request,
             jakarta.servlet.http.HttpServletResponse response, jakarta.servlet.FilterChain chain)

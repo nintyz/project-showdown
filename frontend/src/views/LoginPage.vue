@@ -103,7 +103,7 @@
           console.error('Login error:', error);
           if (error.response?.data === "Account not verified. Please verify your account.") {
             await axios.post(`http://localhost:8080/resend?email=${this.email}`);
-            this.$router.push(`/verify?email=${this.email}`);
+            this.$router.push({ path: '/verify', query: { email: this.email, source: 'login' } });
           } else {
             localStorage.setItem('role', 'guest');
             this.error = error.response?.data || 'Login failed. Please try again.';
@@ -126,12 +126,12 @@
       handleGoogleSignIn() {
         console.log("Google Sign-In");
         // Add logic for Google sign-in
-        window.location.href = 'http://localhost:8080/oauth2/authorization/google';
+        window.location.href = 'http://ec2-3-107-24-69.ap-southeast-2.compute.amazonaws.com:8080/oauth2/authorization/google';
       },
       handleFacebookSignIn() {
         console.log("Facebook Sign-In");
         // Add logic for Facebook sign-in
-        window.location.href = 'http://localhost:8080/oauth2/authorization/facebook';
+        window.location.href = 'http://ec2-3-107-24-69.ap-southeast-2.compute.amazonaws.com:8080/oauth2/authorization/facebook';
       },
       goToSignUp() {
         // Redirect to sign-up page

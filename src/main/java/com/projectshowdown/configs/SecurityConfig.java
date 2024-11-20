@@ -87,7 +87,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,  "/organizers").hasAuthority("admin")
                         .requestMatchers(HttpMethod.PUT,  "/organizer/*").hasAnyAuthority("admin","organizer")
                         .requestMatchers(HttpMethod.DELETE,  "/organizer/*").hasAuthority("admin")
-                        .requestMatchers(HttpMethod.POST, "/addRandomData").permitAll()
 
                         // tournaments CRUD
                         .requestMatchers(HttpMethod.GET, "/tournaments", "/tournaments/**").permitAll()

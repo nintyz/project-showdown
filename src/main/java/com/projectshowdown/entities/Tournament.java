@@ -13,31 +13,94 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.projectshowdown.dto.UserDTO;
 
+/**
+ * Represents a tournament in the application.
+ * Contains details about the tournament, such as name, venue, participants,
+ * and related rounds.
+ */
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Tournament {
+    /**
+     * The unique identifier for the tournament.
+     */
     private String id;
 
+    /**
+     * The name of the tournament.
+     */
     @NotNull(message = "Tournament name should not be empty")
     private String name;
+
+    /**
+     * The year the tournament is held.
+     */
     private int year;
+
+    /**
+     * The venue where the tournament takes place.
+     */
     private String venue;
+
+    /**
+     * The country where the tournament is held.
+     */
     private String country;
-    // private String date;
+
+    /**
+     * The date and time of the tournament in ISO format (e.g., "YYYY-MM-DDTHH:mm:ss").
+     */
     private String dateTime;
+
+    /**
+     * The total number of players in the tournament.
+     */
     private int numPlayers;
+
+    /**
+     * The current status of the tournament (e.g., "In Progress", "Completed").
+     */
     private String status;
+
+    /**
+     * The minimum MMR (Matchmaking Rating) required to join the tournament.
+     */
     private double minMMR;
+
+    /**
+     * The maximum MMR (Matchmaking Rating) allowed to join the tournament.
+     */
     private double maxMMR;
+
+    /**
+     * The URL of the tournament's logo.
+     */
     private String logoUrl;
+
+    /**
+     * The rounds associated with the tournament.
+     */
     private List<Round> rounds = new ArrayList<>(); 
 
+    /**
+     * The ID of the tournament's organizer.
+     */
     private String organizerId;
+
+    /**
+     * A list of user IDs registered for the tournament.
+     */
     private List<String> users = new ArrayList<>();
 
+    /**
+     * Retrieves the rounds of the tournament.
+     * Initializes the rounds list if it is null.
+     *
+     * @return A list of rounds in the tournament.
+     */
     public List<Round> getRounds() {
         if (this.rounds == null) {
             this.rounds = new ArrayList<>();
@@ -45,91 +108,11 @@ public class Tournament {
         return this.rounds;
     }
     
-    public void setRounds(List<Round> rounds) {
-        this.rounds = rounds;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    // public int getYear() {
-    //     return year;
-    // }
-
-    // public void setYear(int year) {
-    //     this.year = year;
-    // }
-
-    public String getVenue() {
-        return venue;
-    }
-
-    public void setVenue(String venue) {
-        this.venue = venue;
-    }
-
-    public String getCountry() {
-        return country;
-    }
-
-    public void setCountry(String country) {
-        this.country = country;
-    }
-
-
-    public String getDateTime() {
-        return dateTime;
-    }
-
-    public void setDateTime(String dateTime) {
-        this.dateTime = dateTime;
-    }
-
-    public int getNumPlayers() {
-        return numPlayers;
-    }
-
-    public void setNumPlayers(int numPlayers) {
-        this.numPlayers = numPlayers;
-    }
-
-    public boolean inProgress(){
-        return status.equalsIgnoreCase("in progress");
-    }
-
-    public double getMinMMR() {
-        return minMMR;
-    }
-
-    public void setMinMMR(double minMMR) {
-        this.minMMR = minMMR;
-    }
-
-    public double getMaxMMR() {
-        return maxMMR;
-    }
-
-    public void setMaxMMR(double maxMMR) {
-        this.maxMMR = maxMMR;
-    }
-
-    public List<String> getUsers() {
-        return users;
-    }
-
-    public void setUsers(List<String> users) {
-        this.users = users;
-    }
-
+    /**
+     * Calculates the total number of matches across all rounds in the tournament.
+     *
+     * @return The total number of matches in the tournament.
+     */
     public int totalMatches() {
         int counter = 0;
         for (int i = 0; i < rounds.size(); i++) {
@@ -138,6 +121,12 @@ public class Tournament {
         return counter;
     }
 
+    /**
+     * Checks whether a user is eligible to participate in the tournament based on their MMR.
+     *
+     * @param player The player to check eligibility for.
+     * @return {@code true} if the player's MMR is within the tournament's range; {@code false} otherwise.
+     */
     public boolean checkUserEligibility(UserDTO player) {
         double playerMMR = player.getPlayerDetails().calculateMMR();
 
@@ -149,97 +138,23 @@ public class Tournament {
         }
     }
 
+    /**
+     * Checks whether the tournament date is valid for a player to participate.
+     *
+     * @param player The player to check the date for.
+     * @return {@code true} if the current date is before the tournament's date; {@code false} otherwise.
+     */
     public boolean checkDate(UserDTO player) {
-        if (LocalDateTime.now().isAfter(LocalDateTime.parse(dateTime))) {
-            return false;
-        }
-        return true;
+        return !LocalDateTime.now().isAfter(LocalDateTime.parse(dateTime));
     }
 
-    // public TreeMap<Integer, User> getSeedings() {
-    // TreeMap<Integer, User> seedings = new TreeMap<>();
-    // List<String> users = this.getUsers();
-
-    // Collections.sort(users, new Comparator<User>() {
-    // @Override
-    // public int compare(User p1, User p2) {
-    // double mmr1 = p1.getPlayerDetails().calculateMMR();
-    // double mmr2 = p2.getPlayerDetails().calculateMMR();
-    // return Double.compare(mmr2, mmr1);
-    // }
-    // });
-
-    // for (int i = 0; i < users.size(); i++) {
-    // User player = users.get(i);
-    // seedings.put(i + 1, player);
-    // }
-    // return seedings;
-    // }
-
-    // public void initializeTournament() {
-    // List<Match> matches = new ArrayList<>();
-
-    // Collections.sort(users, Comparator.comparingDouble(user ->
-    // user.getPlayerDetails().calculateMMR()));
-
-    // if (users.size() != numPlayers) {
-    // throw new IllegalStateException("The required amount of registered player
-    // have not been met!");
-    // }
-
-    // if (users.size() % 2 != 0) {
-    // throw new IllegalStateException("The number of players should be even to
-    // create matches.");
-    // }
-
-    // int max = users.size() / 2;
-    // int increment = max / 2;
-
-    // for (int i = 0; i < users.size() / 2; i++) {
-    // User user1 = users.get(i);
-    // User user2 = users.get(users.size() - 1 - i);
-
-    // double mmrDifference = Math
-    // .abs(user1.getPlayerDetails().calculateMMR() -
-    // user2.getPlayerDetails().calculateMMR());
-
-    // // logic to get the match id and number
-    // int bracket = i % increment;
-    // int matchNumber = 0;
-
-    // if (i % 2 == 0) {
-    // if (i < increment) {
-    // matchNumber = bracket + 1;
-    // }
-    // if (i >= increment) {
-    // matchNumber = bracket + 2;
-    // }
-    // } else {
-    // if (i <= increment) {
-    // matchNumber = max - bracket + 1;
-    // }
-    // if (i > increment) {
-    // matchNumber = max - bracket;
-    // }
-    // }
-
-    // Match match = new Match();
-    // match.setTournamentId(this.id);
-    // match.setPlayer1Id(user1.getId());
-    // match.setPlayer2Id(user2.getId());
-    // match.setPlayer1Score(0);
-    // match.setPlayer2Score(0);
-    // match.setMmrDifference(mmrDifference);
-    // match.setMatchDate(this.date);
-    // match.setStage("Round 1");
-    // String matchId = generateMatchId(match, matchNumber);
-    // match.setMatchId(matchId);
-    // matches.add(match);
-    // }
-
-    // Round newRound = new Round("initial", matches);
-
-    // this.rounds.add(newRound);
-    // }
+    /**
+     * Checks whether the tournament is in progress.
+     *
+     * @return {@code true} if the tournament is in progress; {@code false} otherwise.
+     */
+    public boolean inProgress(){
+        return status.equalsIgnoreCase("in progress");
+    }
 
 }

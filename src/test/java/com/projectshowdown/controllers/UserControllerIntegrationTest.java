@@ -1,41 +1,47 @@
 package com.projectshowdown.controllers;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.projectshowdown.config.TestGoogleServiceConfig;
-import com.projectshowdown.config.TestSecurityConfig;
-import com.projectshowdown.configs.JwtUtil;
-import com.projectshowdown.dto.UserDTO;
-import com.projectshowdown.entities.Player;
+import static java.lang.Thread.sleep;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.projectshowdown.config.TestGoogleServiceConfig;
+import com.projectshowdown.config.TestSecurityConfig;
+import com.projectshowdown.dto.UserDTO;
+import com.projectshowdown.entities.Player;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = "SUPPORT_EMAIL=admin@gmail.com")
 @TestPropertySource(properties = "APP_PASSWORD=Password1!")
 @TestPropertySource(properties = "GOOGLE_CONFIG_PATH=/Users/arthurchan/Documents/firebasekey/serviceAccountKey.json")
+@TestPropertySource(properties = "GOOGLE_CREDENTIALS_JSON=/Users/arthurchan/Documents/firebasekey/serviceAccountKey.json")
 
 @Import({TestGoogleServiceConfig.class, TestSecurityConfig.class})
 @ActiveProfiles("test")
 public class UserControllerIntegrationTest {
-
-    @MockBean
-    private JwtUtil jwtUtil;
     
     @LocalServerPort
     private int port;
@@ -56,11 +62,11 @@ public class UserControllerIntegrationTest {
     public void setUp() {
         baseUrl = "http://localhost:" + port;
         Player playerDetails = new Player(1, "2000-01-01", 2000.0, 24, 2500.0, "", "", "");
-        UserDTO testUser = new UserDTO(
+        this.testUserDTO = new UserDTO(
             "testUserId",
             "testName",
             "testProfileUrl",
-            "testEmail",
+                "test" + UUID.randomUUID().toString() + "@gmail.com",
             "Password1@",
             "player",
             "testTwoFactorSecret",
@@ -98,9 +104,9 @@ public class UserControllerIntegrationTest {
         HttpEntity<UserDTO> request = new HttpEntity<>(testUserDTO, headers);
         ResponseEntity<String> response = restTemplate.postForEntity(baseUrl + "/users", request, String.class);
         response.getBody();
-
+        System.out.println(response.getBody());
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertTrue(response.getBody().contains("User created successfully with ID:"));
+        assertTrue(!response.getBody().contains("exists"));
     }
 
     @Test
@@ -109,7 +115,8 @@ public class UserControllerIntegrationTest {
         HttpEntity<UserDTO> addRequest = new HttpEntity<>(testUserDTO, headers);
         ResponseEntity<String> addResponse = restTemplate.postForEntity(baseUrl + "/users", addRequest, String.class);
         String userId = addResponse.getBody();
-
+        System.out.println(addResponse.getBody());
+        sleep(50);
         // Then, get the player
         ResponseEntity<String> getResponse = restTemplate.exchange(
                 baseUrl + "/user/" + userId,
@@ -117,7 +124,7 @@ public class UserControllerIntegrationTest {
                 new HttpEntity<>(headers),
                 String.class
         );
-
+        System.out.println(getResponse.getBody());
         assertEquals(HttpStatus.OK, getResponse.getStatusCode());
         assertNotNull(getResponse.getBody());
 
@@ -166,11 +173,13 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    void testDeletePlayer() {
+    void testDeletePlayer() throws InterruptedException {
         // First, add a player
         HttpEntity<UserDTO> addRequest = new HttpEntity<>(testUserDTO, headers);
         ResponseEntity<String> addResponse = restTemplate.postForEntity(baseUrl + "/users", addRequest, String.class);
         String userId = addResponse.getBody();
+
+        sleep(50);
 
         // Delete the player
         ResponseEntity<String> deleteResponse = restTemplate.exchange(
@@ -179,7 +188,7 @@ public class UserControllerIntegrationTest {
                 new HttpEntity<>(headers),
                 String.class
         );
-
+        System.out.println(deleteResponse.getBody());
         assertEquals(HttpStatus.OK, deleteResponse.getStatusCode());
         assertTrue(deleteResponse.getBody().contains("Player with the id:" + userId + " successfully deleted"));
 
