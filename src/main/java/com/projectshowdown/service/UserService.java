@@ -109,13 +109,18 @@ public class UserService implements UserDetailsService {
 
   // Method to get specific player from firebase using userId
   public UserDTO getUser(String userId) throws ExecutionException, InterruptedException {
+    // Retrieves the document from Firestore for the given userId
     DocumentSnapshot document = firestoreService.getDocument(USERS_COLLECTION, userId);
     
+    // Check if the document exists; throw an exception if not found
     if (!document.exists()) {
       throw new PlayerNotFoundException(userId);
     }
 
+    // Map the Firestore document to a UserDTO object
     UserDTO userToReturn = document.toObject(UserDTO.class);
+    
+    // Set the userId explicitly, as it's not included in the document data
     userToReturn.setId(userId);
 
     return userToReturn;
