@@ -11,6 +11,10 @@ import org.springframework.stereotype.Service;
 
 import com.projectshowdown.configs.GoogleServiceConfig;
 
+/**
+ * Service class for interacting with the Dialogflow chatbot API.
+ * This service sends user input to the Dialogflow agent and retrieves the chatbot's response.
+ */
 @Service
 public class ChatbotService {
 
@@ -19,6 +23,13 @@ public class ChatbotService {
 
     @Autowired
     private GoogleServiceConfig googleServiceConfig;
+
+    /**
+     * Sends user input to the Dialogflow API and retrieves the chatbot's response.
+     *
+     * @param userInput The user's input as a {@link String}.
+     * @return The chatbot's response as a {@link String}. If an error occurs, returns an error message.
+     */
 
     public String getResponse(String userInput) {
         String SESSION_ID = "1234";

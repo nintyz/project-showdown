@@ -12,6 +12,11 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Service class for handling user authentication and verification.
+ * Provides functionality to verify user accounts, resend verification codes,
+ * and send verification emails.
+ */
 @Service
 public class AuthenticationService {
 
@@ -21,6 +26,16 @@ public class AuthenticationService {
     @Autowired
     private UserService userService;
 
+    /**
+     * Verifies a user's account using the provided verification code and email.
+     * Ensures that the verification code is valid and has not expired.
+     *
+     * @param input The {@link VerifyUserDto} containing the user's email and verification code.
+     * @throws ExecutionException   If an error occurs while accessing the database.
+     * @throws InterruptedException If the operation is interrupted.
+     * @throws RuntimeException     If the user is not found, the account is already verified,
+     *                               the verification code has expired, or the code is invalid.
+     */
     public void verifyUser(VerifyUserDto input) throws ExecutionException, InterruptedException {
         Optional<UserDTO> optionalUser = Optional.ofNullable(userService.getUser(userService.getUserIdByEmail(input.getEmail())));
         if (optionalUser.isPresent()) {
@@ -47,6 +62,15 @@ public class AuthenticationService {
         }
     }
 
+    /**
+     * Resends a new verification code to the user.
+     * Generates a new verification code, sets its expiration time, and sends it via email.
+     *
+     * @param email The email address of the user.
+     * @throws ExecutionException   If an error occurs while accessing the database.
+     * @throws InterruptedException If the operation is interrupted.
+     * @throws RuntimeException     If the user is not found or the account is already verified.
+     */
     public void resendVerificationCode(String email) throws ExecutionException, InterruptedException {
         Optional<UserDTO> optionalUser = Optional.ofNullable(userService.getUser(userService.getUserIdByEmail(email)));
         if (optionalUser.isPresent()) {
@@ -75,6 +99,13 @@ public class AuthenticationService {
         }
     }
 
+    /**
+     * Sends a verification email to the user.
+     * Includes the verification code and a link to verify the user's account.
+     *
+     * @param user The {@link UserDTO} representing the user to send the email to.
+     * @throws RuntimeException If an error occurs while sending the email.
+     */
     public void sendVerificationEmail(UserDTO user) { //TODO: Update with company logo
         String subject = "Account Verification";
         String verificationCode = user.getVerificationCode();
