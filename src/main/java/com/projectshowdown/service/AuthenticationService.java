@@ -20,6 +20,9 @@ import java.util.concurrent.ExecutionException;
 @Service
 public class AuthenticationService {
 
+    public static final String VERIFICATION_CODE_FIELD = "verificationCode";
+    public static final String VERIFICATION_CODE_EXPIRES_AT_FIELD = "verificationCodeExpiresAt";
+    public static final String ENABLED_FIELD = "enabled";
     @Autowired
     private EmailService emailService;
 
@@ -49,9 +52,9 @@ public class AuthenticationService {
             if (user.getVerificationCode().equals(input.getVerificationCode())) {
 
                 HashMap<String, Object> verify = new HashMap<>();
-                verify.put("enabled", true);
-                verify.put("verificationCode", null);
-                verify.put("verificationCodeExpiresAt", null);
+                verify.put(ENABLED_FIELD, true);
+                verify.put(VERIFICATION_CODE_FIELD, null);
+                verify.put(VERIFICATION_CODE_EXPIRES_AT_FIELD, null);
                 userService.updateUser(userService.getUserIdByEmail(input.getEmail()), verify);
 
             } else {
@@ -91,8 +94,8 @@ public class AuthenticationService {
 
             // update user verification code and expiration
             HashMap<String, Object> verify = new HashMap<>();
-            verify.put("verificationCode", verificationCode);
-            verify.put("verificationCodeExpiresAt", verificationCodeExpiresAt);
+            verify.put(VERIFICATION_CODE_FIELD, verificationCode);
+            verify.put(VERIFICATION_CODE_EXPIRES_AT_FIELD, verificationCodeExpiresAt);
             userService.updateUser(userService.getUserIdByEmail(email), verify);
         } else {
             throw new RuntimeException("User not found");
@@ -106,7 +109,7 @@ public class AuthenticationService {
      * @param user The {@link UserDTO} representing the user to send the email to.
      * @throws RuntimeException If an error occurs while sending the email.
      */
-    public void sendVerificationEmail(UserDTO user) { 
+    public void sendVerificationEmail(UserDTO user) { //TODO: Update with company logo
         String subject = "Account Verification";
         String verificationCode = user.getVerificationCode();
         String verificationLink = "http://localhost:3000/verify?email=" + user.getEmail() + "&code=" + verificationCode;

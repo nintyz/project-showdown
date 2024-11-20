@@ -108,89 +108,6 @@ public class Tournament {
         return this.rounds;
     }
     
-    public void setRounds(List<Round> rounds) {
-        this.rounds = rounds;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-
-    public String getVenue() {
-        return venue;
-    }
-
-    public void setVenue(String venue) {
-        this.venue = venue;
-    }
-
-    public String getCountry() {
-        return country;
-    }
-
-    public void setCountry(String country) {
-        this.country = country;
-    }
-
-
-    public String getDateTime() {
-        return dateTime;
-    }
-
-    public void setDateTime(String dateTime) {
-        this.dateTime = dateTime;
-    }
-
-    public int getNumPlayers() {
-        return numPlayers;
-    }
-
-    public void setNumPlayers(int numPlayers) {
-        this.numPlayers = numPlayers;
-    }
-
-    /**
-     * Checks whether the tournament is currently in progress.
-     *
-     * @return {@code true} if the tournament's status is "in progress"; {@code false} otherwise.
-     */
-    public boolean inProgress(){
-        return status.equalsIgnoreCase("in progress");
-    }
-
-    public double getMinMMR() {
-        return minMMR;
-    }
-
-    public void setMinMMR(double minMMR) {
-        this.minMMR = minMMR;
-    }
-
-    public double getMaxMMR() {
-        return maxMMR;
-    }
-
-    public void setMaxMMR(double maxMMR) {
-        this.maxMMR = maxMMR;
-    }
-
-    public List<String> getUsers() {
-        return users;
-    }
-
-    public void setUsers(List<String> users) {
-        this.users = users;
-    }
-
     /**
      * Calculates the total number of matches across all rounds in the tournament.
      *
@@ -228,10 +145,11 @@ public class Tournament {
      * @return {@code true} if the current date is before the tournament's date; {@code false} otherwise.
      */
     public boolean checkDate(UserDTO player) {
-        if (LocalDateTime.now().isAfter(LocalDateTime.parse(dateTime))) {
-            return false;
-        }
-        return true;
+        return !LocalDateTime.now().isAfter(LocalDateTime.parse(dateTime));
+    }
+
+    public boolean inProgress(){
+        return status.equalsIgnoreCase("in progress");
     }
 
 }
