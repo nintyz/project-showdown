@@ -22,6 +22,8 @@ import java.util.Map;
  */
 @RestController
 public class UserController {
+    public static final String PLAYER_ROLE = "player";
+    public static final String ORGANIZER_ROLE = "organizer";
     @Autowired
     private UserService userService;
 
@@ -46,7 +48,7 @@ public class UserController {
      */
     @GetMapping("/users")
     public List<UserDTO> getPlayers() throws ExecutionException, InterruptedException {
-        return userService.getAllUsersByRole("player");
+        return userService.getAllUsersByRole(PLAYER_ROLE);
     }
 
     /**
@@ -58,7 +60,7 @@ public class UserController {
      */
     @GetMapping("/organizers")
     public List<UserDTO> getOrganizers() throws ExecutionException, InterruptedException {
-        return userService.getAllUsersByRole("organizer");
+        return userService.getAllUsersByRole(ORGANIZER_ROLE);
     }
 
     /**

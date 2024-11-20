@@ -29,6 +29,13 @@ import java.util.stream.Collectors;
 @Service
 public class UserService implements UserDetailsService {
 
+  public static final String USER_DB = "users";
+  public static final String EMAIL_FIELD = "email";
+  public static final String PASSWORD_FIELD = "password";
+  public static final String ROLE_FIELD = "role";
+  public static final String ORGANIZER_DETAILS_FIELD = "organizerDetails";
+  public static final String TWO_FACTOR_SECRET_FIELD = "twoFactorSecret";
+
   @Autowired
   private TwoFactorAuthService twoFactorAuthService;
 
@@ -44,15 +51,15 @@ public class UserService implements UserDetailsService {
   @Override
   public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
     Firestore db = FirestoreClient.getFirestore();
-    ApiFuture<QuerySnapshot> future = db.collection("users").whereEqualTo("email", email).get();
+    ApiFuture<QuerySnapshot> future = db.collection(USER_DB).whereEqualTo(EMAIL_FIELD, email).get();
     try {
       QuerySnapshot querySnapshot = future.get();
       if (!querySnapshot.isEmpty()) {
         DocumentSnapshot document = querySnapshot.getDocuments().get(0);
-        String password = document.getString("password");
+        String password = document.getString(PASSWORD_FIELD);
         return org.springframework.security.core.userdetails.User.withUsername(email)
             .password(password)
-            .authorities(document.getString("role"))
+            .authorities(document.getString(ROLE_FIELD))
             .build();
       } else {
         throw new UsernameNotFoundException("User not found: " + email);
@@ -95,7 +102,7 @@ public class UserService implements UserDetailsService {
    */
   public List<UserDTO> getAllUsersByRole(String role) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
-    Query playersCollection = db.collection("users").whereEqualTo("role", role);
+    Query playersCollection = db.collection(USER_DB).whereEqualTo(ROLE_FIELD, role);
     ApiFuture<QuerySnapshot> future = playersCollection.get();
     List<QueryDocumentSnapshot> documents = future.get().getDocuments();
     List<UserDTO> users = new ArrayList<>();
@@ -121,7 +128,7 @@ public class UserService implements UserDetailsService {
    */
   public String getUserIdByEmail(String email) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
-    Query query = db.collection("users").whereEqualTo("email", email);
+    Query query = db.collection(USER_DB).whereEqualTo(EMAIL_FIELD, email);
     ApiFuture<QuerySnapshot> future = query.get();
     List<QueryDocumentSnapshot> documents = future.get().getDocuments();
     if (!documents.isEmpty()) {
@@ -143,7 +150,7 @@ public class UserService implements UserDetailsService {
    */
   public UserDTO getUser(String userId) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
-    DocumentReference documentReference = db.collection("users").document(userId);
+    DocumentReference documentReference = db.collection(USER_DB).document(userId);
     ApiFuture<DocumentSnapshot> future = documentReference.get();
     DocumentSnapshot document = future.get();
     if (document.exists()) {
@@ -167,7 +174,7 @@ public class UserService implements UserDetailsService {
    */
   public boolean checkEmailExists(String email) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
-    ApiFuture<QuerySnapshot> future = db.collection("users").whereEqualTo("email", email).get();
+    ApiFuture<QuerySnapshot> future = db.collection(USER_DB).whereEqualTo(EMAIL_FIELD, email).get();
     return !future.get().isEmpty();
   }
 
@@ -186,7 +193,7 @@ public class UserService implements UserDetailsService {
     if (checkEmailExists(userData.getEmail())) {
       return "A user account with the email " + userData.getEmail() + " already exists!";
     }
-    DocumentReference docRef = db.collection("users").document();
+    DocumentReference docRef = db.collection(USER_DB).document();
     String generatedId = docRef.getId();
     userData.setVerificationCode(generateVerificationCode());
     userData.setVerificationCodeExpiresAt(DateTimeUtils.toEpochSeconds(LocalDateTime.now().plusMinutes(15)));
@@ -218,19 +225,19 @@ public class UserService implements UserDetailsService {
   public String updateUser(String userId, Map<String, Object> userData)
       throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
-    if (userData.containsKey("email") && checkEmailExists((String) userData.get("email"))) {
-      return "A user account with the email " + userData.get("email") + " already exists!";
+    if (userData.containsKey(EMAIL_FIELD) && checkEmailExists((String) userData.get(EMAIL_FIELD))) {
+      return "A user account with the email " + userData.get(EMAIL_FIELD) + " already exists!";
     }
-    if (userData.containsKey("password")) {
+    if (userData.containsKey(PASSWORD_FIELD)) {
       BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-      userData.put("password", passwordEncoder.encode((String) userData.get("password")));
+      userData.put(PASSWORD_FIELD, passwordEncoder.encode((String) userData.get(PASSWORD_FIELD)));
     }
-    DocumentReference docRef = db.collection("users").document(userId);
+    DocumentReference docRef = db.collection(USER_DB).document(userId);
     if (!docRef.get().get().exists()) {
       throw new PlayerNotFoundException("User with ID: " + userId + " does not exist.");
     }
-    if (userData.get("organizerDetails") != null) {
-      Map<String, Object> organizerDetails = (Map<String, Object>) userData.get("organizerDetails");
+    if (userData.get(ORGANIZER_DETAILS_FIELD) != null) {
+      Map<String, Object> organizerDetails = (Map<String, Object>) userData.get(ORGANIZER_DETAILS_FIELD);
       if (organizerDetails.containsKey("verified")) {
         organizerDetails.put("verified", false);
       }
@@ -255,12 +262,12 @@ public class UserService implements UserDetailsService {
    */
   public String verifyOrganizer(String userId) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
-    DocumentReference docRef = db.collection("users").document(userId);
+    DocumentReference docRef = db.collection(USER_DB).document(userId);
     DocumentSnapshot document = docRef.get().get();
     if (!document.exists()) {
       throw new PlayerNotFoundException("User with ID: " + userId + " does not exist.");
     }
-    if (document.get("organizerDetails") == null) {
+    if (document.get(ORGANIZER_DETAILS_FIELD) == null) {
       return "This is not an Organizer account!";
     }
     Map<String, Object> updates = new HashMap<>();
@@ -282,7 +289,7 @@ public class UserService implements UserDetailsService {
    */
   public String deletePlayer(String userId) throws ExecutionException, InterruptedException {
     Firestore db = getFirestore();
-    DocumentReference docRef = db.collection("users").document(userId);
+    DocumentReference docRef = db.collection(USER_DB).document(userId);
     if (!docRef.get().get().exists()) {
       throw new PlayerNotFoundException(userId);
     }
@@ -307,7 +314,7 @@ public class UserService implements UserDetailsService {
     UserDTO user = getUser(userId);
     String secret = twoFactorAuthService.generateSecretKey();
     user.setTwoFactorSecret(secret);
-    updateUser(userId, Map.of("twoFactorSecret", secret));
+    updateUser(userId, Map.of(TWO_FACTOR_SECRET_FIELD, secret));
     return twoFactorAuthService.generateQrCodeImage(twoFactorAuthService.generateQrCodeImageUri(secret));
   }
 
@@ -321,7 +328,7 @@ public class UserService implements UserDetailsService {
    */
   public String massImport() {
     Firestore db = getFirestore();
-    CollectionReference usersCollection = db.collection("users");
+    CollectionReference usersCollection = db.collection(USER_DB);
     try (Scanner sc = new Scanner(new File("path/to/your/file.csv"), "UTF-8")) {
       sc.nextLine();
       while (sc.hasNext()) {
