@@ -28,7 +28,7 @@ Members:
 2. **Aaron:** 
 * Configured authentication and security for the webapp, and helped deploy the app  
 3. **Andre:** 
-* Researched on DialogFlow and built the chatbot for the WebApp, including integration with frontend for chatbot  
+* Built frontend pages (e.g. landing page) and worked on the chatbot
 4. **Siew Yu:** 
 * Worked on backend logic for email notifications and integration with frontend for notifications  
 5. **Pauline:** 
@@ -41,17 +41,31 @@ Members:
 [View Database Diagram](https://drawsql.app/teams/showdown/diagrams/showdown)
 
 ## Technologies Used
+- Backend:
+    - Java 17
+    - Spring Boot 3.x
+    - Spring Data JPA
+    - Spring Security
+- Frontend:
+    - Vue.js
+    - CSS
+    - Bootstrap
+- Database:
+    - Firebase Firestore
+- DevOps:
+    - Docker version 27.2.0, build 3ab4256
+    - Docker Compose
 
-## Prerequisites
-Before you begin, please ensure you have the following installed on your system:
-- Docker
-- Docker Compose
-- Java Development Kit (JDK) 17 (for local development)
-- Node.js 18 or later (for local development)
-- npm or yarn (for local development)
+## Running the Application Locally
+For front-end development:
+1. Navigate to `frontend` directory
+2. Run `npm install`
+3. Start the server with `npm run serve`
 
-## Setup and Installation
-
-## Running the Application
+For back-end development
+1. Navigate to `backend` directory
+2. Run `mvn spring-boot:run`
+3. If there are errors, run `mvn spring-boot:run -Dmaven.test.skip=true`
 
 ## License 
+This project is licensed under the [MIT License](LICENSE).
